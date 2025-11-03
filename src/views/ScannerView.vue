@@ -42,7 +42,7 @@ let cvRouter = null;
           resultsContainer.textContent += `${item.formatString}: ${codigo}\n\n`;
 
           try {
-            const { data } = await api.post('/escaner/procesar', { codigo });
+            const { data } = await api.post('/api/scanner/process', {codigo});
             resultsContainer.textContent += `✅ Código encontrado: ${data.name || 'sin nombre'}`;
 
           } catch (err) {
@@ -85,17 +85,9 @@ function handleIntroduceCodeByHand() {
   <AuthLayout>
     <h1 class="sr-only text-4xl">Escaner</h1>
 
-
     <div id="camera-view-container"></div>
 
-    <button class="py-2 px-4 bg-green-300 cursor-pointer" @click="handleIntroduceCodeByHand">Introducir código a mano</button>
-
     <div id="results"></div>
-
-    <p>Códigos de referencia (para copiar y pegar)</p>
-    <p>Bandeja de tomates: 7622201717506</p>
-    <p>Cepita de durazno: 7790895648427</p>
-    <p>Coca cola experimental: 5690892358612</p>
   </AuthLayout>
 </template>
 
