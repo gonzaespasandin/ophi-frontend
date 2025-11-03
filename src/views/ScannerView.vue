@@ -1,5 +1,6 @@
 <script setup>
 import AuthLayout from "../layouts/AuthLayout.vue";
+import api from "../config/axios";
 
 // TODO: Mover esto a un servicio? Para que quede más ordenado
 // TODO: De ser posible, importarlo en el proyecto (npm i ..., etc), y no como CDN
@@ -41,24 +42,16 @@ let cvRouter = null;
           resultsContainer.textContent += `${item.formatString}: ${codigo}\n\n`;
 
           try {
-            const response = await fetch('/escaner/procesar', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-              },
-              body: JSON.stringify({ codigo })
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-              resultsContainer.textContent += `✅ Código encontrado: ${data.name || 'sin nombre'}`;
-            } else {
-              resultsContainer.textContent += `❌ Código no encontrado: ${codigo}`;
-            }
+            const { data } = await api.post('/escaner/procesar', { codigo });
+            resultsContainer.textContent += `✅ Código encontrado: ${data.name || 'sin nombre'}`;
 
           } catch (err) {
-            resultsContainer.textContent += `❌ Error al consultar el backend: ${err}`;
+            const status = err?.response?.status;
+            if (status === 404) {
+              resultsContainer.textContent += `❌ Código no encontrado: ${codigo}`;
+            } else {
+              resultsContainer.textContent += `❌ Error al consultar el backend: ${err?.message || err}`;
+            }
           }
         }
       }
