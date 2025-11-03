@@ -42,27 +42,22 @@ console.log(user.value)
     <Back/>
     <SomeUserInfo :user="user"/>
 
-    <RouterLink to="/">
-      <div>
-        <h3>{{user}}Restricción alimenticia</h3>
-      </div>
-    </RouterLink>
-    <!-- <ul>
-      <li v-for="profile of user.profiles" :key="profile.id" class="border">
-        <details>
-          <summary>
-            <img :src="profile.avatar" :alt="`Avatar de ${profile.name}`">
-            {{ profile.name }}
-          </summary>
+    <div>
+      <h3 class="py-1 px-3">Tus perfiles</h3>
+      <ul>
+        <li v-for="profile of user.profiles" :key="profile.id">
+          <details class="mb-2">
+            <summary class="bg-white mx-3 px-2 py-1 rounded-t">
+              {{ profile.name }}
+            </summary>
 
-          <ul>
-            <li v-for="ingredient of profile.ingredients">
-              {{ ingredient.name }}
-            </li>
-          </ul>
-        </details>
-      </li>
-    </ul> -->
+            <p class="px-2 mx-3 py-1 rounded-b bg-white/50">
+              {{ profile.ingredients.map(i => i.name).join(', ') }}
+            </p>
+          </details>
+        </li>
+      </ul>
+    </div>
 
 
     <button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button>
