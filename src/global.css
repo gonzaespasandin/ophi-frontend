@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+#app {
+    max-width: 420px;
+    height: 100dvh;
+    margin-inline: auto;
+    border: 1px solid red;
+}
