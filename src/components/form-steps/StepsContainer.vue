@@ -40,6 +40,15 @@ function handleNext() {
     return
   }
 
+/* STEPS FOR REGISTRATION
+* 1. Terminos y condiciones
+* 2. ¿A qué deberías pretar atención? (Intolerancias / Alergias alimentarias / Dietas especiales / Todas)
+* 3. ¿Qué intolerancias querés configurar?
+* 4. ¿Qué alergias gestionas actualmente?
+* 5. Forma de alimentación
+* 6. Otros datos (gmail, name, etc.)
+* 6. Resumen
+* */
   currentStep.value += 1
 }
 

@@ -1,43 +1,38 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import HomeIcon from "./icons/HomeIcon.vue"
-import ScanBarcodeIcon from "./icons/ScanBarcodeIcon.vue";
-import UserIcon from "./icons/UserIcon.vue";
-import SearchIcon from "./icons/SearchIcon.vue";
-import HistoryIcon from "./icons/HistoryIcon.vue";
 </script>
 
 <template>
   <nav>
-    <ul class="grid grid-cols-5">
+    <ul class="grid grid-cols-5 bg-[#ffffff] py-3 text-[#005B8E]">
       <li>
-        <RouterLink to="/">
-          <HomeIcon />
+        <RouterLink to="/" class="flex flex-col items-center gap-2">
+          <i class="fa-solid fa-house"></i>
           Inicio
         </RouterLink>
       </li>
       <li>
-        <RouterLink to="/search">
-          <SearchIcon />
+        <RouterLink to="/search" class="flex flex-col items-center gap-2">
+          <i class="fa-solid fa-magnifying-glass"></i>
           Buscar
         </RouterLink>
       </li>
       <li>
-        <RouterLink to="/scanner">
-          <ScanBarcodeIcon />
-          Escanear
+        <RouterLink to="/scanner" class="flex flex-col items-center gap-2">
+          <i class="fa-solid fa-barcode text-4xl"></i>
+          
         </RouterLink>
       </li>
       <li>
-        <RouterLink to="/history">
-          <HistoryIcon />
-          Historial
-        </RouterLink>
-      </li>
-      <li>
-        <RouterLink to="/profile">
-          <UserIcon />
+        <RouterLink to="/profile" class="flex flex-col items-center gap-2">
+          <i class="fa-solid fa-user"></i>
           Perfil
+        </RouterLink>
+      </li>
+      <li>
+        <RouterLink to="/history" class="flex flex-col items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          Historial
         </RouterLink>
       </li>
     </ul>

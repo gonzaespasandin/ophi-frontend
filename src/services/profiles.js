@@ -12,5 +12,6 @@ export async function storeProfile(data) {
     console.log('Creando perfil de usuario', data)
     const result = await axiosInstance.post('/api/profiles', data)
 
+    console.log(result.data, 'data')
     return result.data
 }

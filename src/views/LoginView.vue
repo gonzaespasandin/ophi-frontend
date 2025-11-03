@@ -43,23 +43,52 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <RouterLink to="/welcome">Ir a la página de bienvenida</RouterLink>
-  <h1 class="text-4xl">Iniciar sesión</h1>
+ <div>
+    <RouterLink to="/welcome" class="p-3 mt-4"><i class="fa-solid fa-arrow-left"></i> volver</RouterLink>
+    <div class="flex flex-col justify-around min-h-screen">
+      <div class="flex flex-col justify-between flex-grow">
+        <img src="../assets/img/logo.png" alt="">
+        <div class="flex flex-col justify-center mb-5 px-3 h-50">
+          <h1 class="text-4xl text-center">Iniciar sesión</h1>
+          <p>Por favor, completá los siguientes campos.</p>
+        </div>
+      </div>
 
 
-  <form action="#" method="post" @submit.prevent="handleSubmit">
-    <div>
-      <label for="email">Email</label>
-      <input class="block border" type="text" id="email" name="email" v-model="formData.email" autofocus>
-      <small>{{ formErrors.email }}</small>
+      <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-center p-4 min-h-80 bg-[#005B8E]">
+        <div class="mb-4">
+          <label for="email" aria-label="Email"></label>
+          <input class="block border inputs" type="text" id="email" name="email" v-model="formData.email" placeholder="Email" autofocus>
+          <small>{{ formErrors.email }}</small>
+        </div>
+
+        <div>
+          <label for="password" aria-label="Contraseña"></label>
+          <input class="block border inputs" type="password" id="password" name="password" v-model="formData.password" placeholder="Contraseña" >
+          <small>{{ formErrors.password }}</small>
+        </div>
+
+        <button type="submit" class="action-btn mt-6">Iniciar Sesión</button>
+      </form>
     </div>
-
-    <div>
-      <label for="password">Password</label>
-      <input class="block border" type="password" id="password" name="password" v-model="formData.password">
-      <small>{{ formErrors.password }}</small>
-    </div>
-
-    <button>Iniciar Sesión</button>
-  </form>
+ </div>
 </template>
+
+
+
+<style scoped>
+  div > div > div:first-child {
+    background-image: url(../assets/img/tramas/Artboard\ 1trama-1.png);
+
+    background-repeat: no-repeat;
+    background-size: 175%;
+  }
+
+  img {
+    display: block;
+    margin: 4rem auto;
+  }
+
+
+
+</style>

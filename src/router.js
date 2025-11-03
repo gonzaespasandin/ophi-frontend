@@ -9,7 +9,9 @@ import RegisterView from "./views/RegisterView.vue";
 import SearchView from "./views/SearchView.vue";
 import HistoryView from "./views/HistoryView.vue";
 import FirstView from "./views/FirstView.vue";
-import ShowProductView from "./views/ShowProductView.vue";
+import ProductView from './views/ProductView.vue';
+import NotFoundView from './views/NotFoundView.vue';
+import SearchListView from './views/SearchListView.vue';
 
 // TODO: Implement named routes
 const routes = [
@@ -54,8 +56,18 @@ const routes = [
         'meta': { 'auth': true }
     },
     {
-        'path': '/products/:id',
-        'component': ShowProductView,
+        'path': '/product/:name',
+        'component': ProductView,
+        'meta': { 'auth': true }
+    },
+    {
+        'path': '/not-found',
+        'component': NotFoundView,
+        'meta': { 'auth': true }
+    },
+    {
+        'path': '/search-list/:name',
+        'component': SearchListView,
         'meta': { 'auth': true }
     },
 ]

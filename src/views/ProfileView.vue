@@ -3,6 +3,9 @@ import AuthLayout from "../layouts/AuthLayout.vue";
 import {logout, suscribeToAuthObserver} from "../services/auth.js";
 import {onMounted, onUnmounted, ref} from "vue";
 import {useRouter} from "vue-router";
+import SomeUserInfo from "../components/ui/SomeUserInfo.vue";
+import Top from "../components/ui/Top.vue";
+import Back from '../components/ui/Back.vue';
 
 let unsuscribeToAuthObserver = () => {}
 
@@ -29,37 +32,22 @@ function handleLogUser() {
   console.log('@log user')
   console.log(user.value)
 }
+
+console.log(user.value)
 </script>
 
 <template>
   <AuthLayout>
-    <h2 class="text-4xl">Mi Perfil</h2>
+    <Top/>
+    <Back/>
+    <SomeUserInfo :user="user"/>
 
-    <dl>
-      <dt class="font-semibold text-xl">Usuario ID:</dt>
-      <dd>{{ user.id }}</dd>
-
-      <dt class="font-semibold text-xl">Nombre:</dt>
-      <dd>{{ user.name }}</dd>
-
-      <dt class="font-semibold text-xl">Email:</dt>
-      <dd>{{ user.email }}</dd>
-
-      <dt class="font-semibold text-xl">Email verificado en:</dt>
-      <dd>{{ user.email_verified_at ?? 'Nunca se verificó' }}</dd>
-
-      <dt class="font-semibold text-xl">Rol:</dt>
-      <dd>{{ user.role }}</dd>
-
-      <dt class="font-semibold text-xl">Última vez actualizado:</dt>
-      <dd>{{ user.updated_at }}</dd>
-
-      <dt class="font-semibold text-xl">Fecha de creación:</dt>
-      <dd>{{ user.created_at}}</dd>
-    </dl>
-
-    <h2 class="text-4xl">Tus perfiles</h2>
-    <ul>
+    <RouterLink to="/">
+      <div>
+        <h3>{{user}}Restricción alimenticia</h3>
+      </div>
+    </RouterLink>
+    <!-- <ul>
       <li v-for="profile of user.profiles" :key="profile.id" class="border">
         <details>
           <summary>
@@ -74,7 +62,8 @@ function handleLogUser() {
           </ul>
         </details>
       </li>
-    </ul>
+    </ul> -->
+
 
     <button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button>
 
