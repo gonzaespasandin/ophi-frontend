@@ -5,21 +5,21 @@ import { RouterLink } from 'vue-router';
 let history = [
     {
         id: 1,
-        product: 'Fideos Marolio De Sémola',
+        product: 'Bandejita de tomatitos cherry',
         result: 'danger', 
-        unsafeIngredient: 'Harina de trigo'
+        unsafeIngredient: 'Tomate cherry'
     },
     {
         id: 2,
-        product: 'Fideos Marolio De Sémola',
+        product: 'Cepita de durazno',
         result: 'success',
         unsafeIngredient: ''
     },
     {
         id: 3,
-        product: 'Fideos Marolio De Sémola',
-        result: 'danger',
-        unsafeIngredient: 'Harina de trigo'
+        product: 'Coca-cola de durazno y tomate cherry',
+        result: 'success',
+        unsafeIngredient: ''
     }
 ]
 
