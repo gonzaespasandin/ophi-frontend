@@ -19,7 +19,7 @@ const user = ref({});
 
 const product = ref('');
 
-const safe = ref(true);
+const safe = ref({isSafe: true, forWho: ''});
 const unsafeIngredients = ref([]);
 const charge = ref(false);
 
@@ -28,7 +28,7 @@ const normalizedIngredients = ref([]);
 onMounted(async () => {
     try {
         product.value = await findByName(route.params.name);
-        console.log(product.value)
+
         // Si no encuentra asbolutamente NINGUIN producto, vamos a not found
         if(product.value === 404) {
             router.push('/not-found');
@@ -38,7 +38,6 @@ onMounted(async () => {
             router.push(`/search-list/${route.params.name}`);
             return;
         }
-        console.log(product.value)
         charge.value = true;
     } catch (error) {
         console.error('No se pudo obtener el producto por nombre', error);
@@ -50,33 +49,79 @@ onMounted(async () => {
     // EN caso de que sea UN PRODUCTO
     product.value = product.value[0];
 
-    // Obtengo el perfil médico del PROPIO usuario (asuymo que debe ser siempre el de posición 0, el primero que crea)
-    const userProfileIngredients = user.value.profiles[0].ingredients;
-    // Obtengo los ingredeitnes del producto
-    console.log(product.value.ingredients);
+    // Obtengo todos los perifles médicos del usuario.
+    const userProfilesIngredients = user.value.profiles;
+
+    // Obtengo los ingredientes del producto
     const productIngredeints = product.value.ingredients;
 
-    // Recorro los ingredientes del producto
-    productIngredeints.forEach(Pingredient => {
-        // Agrego cada uno a un array, para luego hacer un párrafo.
-        normalizedIngredients.value.push(Pingredient.name);
-
-        // Por cada ingrediente, recorro los ingredientes que tiene que evitar el usuario, para ver si el alimento es seguro para el o no lo es.
-        userProfileIngredients.forEach(Uingredient => {
-            if(Pingredient.name === Uingredient.name) {
-                unsafeIngredients.value.push(Pingredient.name);
-                safe.value = false;
-            }
-        })
-    
-    });
+    // Chequeo (funcion aparte).
+    checkAll(userProfilesIngredients, productIngredeints);    
   
     normalizedIngredients.value = normalizedIngredients.value.join(', ');
 
-    unsafeIngredients.value = unsafeIngredients.value.join(', ');
-    console.log(safe.value);
+    unsafeIngredients.value = unsafeIngredients.value.join(' - ');
+  
 });
 
+function checkAll(userProfilesIngredients, productIngredeints) {
+    // Recorro los user profile
+    userProfilesIngredients.forEach(userProfileIngredients => {
+        
+        // Recorro los ingredientes de cada user profile
+        userProfileIngredients.ingredients.forEach(uIngredients => {
+            // Recorro los ingredientes del producto
+            productIngredeints.forEach(Pingredient => {
+                // Si no está en el array de normalizedIngredients, agrego (sino, se agregaría por cada perfil que tenga el usaurio).
+                // Si una paja, pero probe al reves (por cada ingrediente, recorrer los ingredientes del usuario) y lo recorre más veces todavia.
+                // TODO: mejorarlo?
+                if(!normalizedIngredients.value.includes(Pingredient.name)) {
+                    normalizedIngredients.value.push(Pingredient.name);
+                }      
+                
+              
+               if(uIngredients.ingredients === []) {
+                browseIfUserHasMoreThanOneIngredient(uIngredients.ingredients, Pingredient); 
+               } else {
+                browseIfUserHasOneIngredient(uIngredients, Pingredient);
+               }
+            });
+        });
+    });
+}
+
+function browseIfUserHasMoreThanOneIngredient(uIngredients, Pingredient) {
+   uIngredients.forEach(uIngredient => {
+        // Evalúo si hay coincidencias por id (no sé pq, pero probablemnete sea mas robusto (algo ne mi intuición me lo dice JA PON PPPPON)).
+        
+        if(uIngredient.id === Pingredient.id) {
+            // Si no esta ne le array unsafeIngredients, agrego los valores.
+            if(!unsafeIngredients.value.includes(Pingredient.name)) {
+                unsafeIngredients.value.push(Pingredient.name);
+            }
+            // Cambio a safe como falso (una vez es suficiente).
+            if(safe.value.isSafe) {
+                safe.value.isSafe = false;
+            } 
+        }
+    })
+}
+
+function browseIfUserHasOneIngredient(uIngredients, Pingredient) {
+
+        // Evalúo si hay coincidencias por id (no sé pq, pero probablemnete sea mas robusto (algo ne mi intuición me lo dice JA PON PPPPON)).
+
+        if(uIngredients.id === Pingredient.id) {
+            // Si no esta ne le array unsafeIngredients, agrego los valores.
+            if(!unsafeIngredients.value.includes(Pingredient.name)) {
+                unsafeIngredients.value.push(Pingredient.name);
+            }
+            // Cambio a safe como falso (una vez es suficiente).
+            if(safe.value.isSafe) {
+                safe.value.isSafe = false;
+            } 
+        }
+}
 
 
 </script>
@@ -89,11 +134,11 @@ onMounted(async () => {
             <div class="bg-white m-3 p-3">
                 <h2 class="text-center text-2xl">{{product.name}}</h2>
                 <span class="block text-center mb-5">Resultados</span>
-                <Alert :safe="safe"></Alert>
+                <Alert :safe="safe.isSafe"></Alert>
             </div>
 
             <div class="bg-white m-3 p-3">
-                <h2 :class="safe ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe) ? 'Ingredientes' : unsafeIngredients }}</h2>
+                <h2 :class="safe.isSafe ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe.isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
                 <p>{{ normalizedIngredients }}</p>
             </div>
         </div>
