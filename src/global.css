@@ -127,7 +127,36 @@ p {
    
 }
 
+.danger-some {
+    background-color: #C43B52;
+    border-top-left-radius: .8rem;
+    border-top-right-radius: .8rem;
+}
+.success-some {
+    background-color: #009161;
+    border-top-left-radius: .8rem;
+    border-top-right-radius: .8rem;
+   
+}
+.true {
+    li {
+        border-bottom: 1px solid #009161;
+    }
+}
+
+.false {
+    li {
+        border-bottom: 1px solid #C43B52;
+    }
+}
 
 .search-list-item {
     border-radius: .8rem;
+}
+
+.SearchView-list {
+    li {
+        border-bottom: 1px solid #009161;
+        padding: 1rem;
+    }
 }

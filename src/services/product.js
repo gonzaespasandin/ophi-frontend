@@ -33,3 +33,16 @@ export async function findByName(name) {
         return error.response.status;
     }
 }
+
+
+export async function getMatchesByName(name) {
+    try {
+        const result = await axiosInstance.get(`/api/products/matchedname/${name}`);
+
+        console.log(result.data);
+        return result.data;
+    } catch(error) {
+        console.error('[services/product.js] -> [findByName]: Error al buscar un producto por nombre', error);
+        return error.response.status;
+    }
+}
