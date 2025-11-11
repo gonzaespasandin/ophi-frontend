@@ -3,6 +3,7 @@
 import {ref} from "vue";
 import {login} from "../services/auth.js";
 import {useRouter} from "vue-router";
+import InputPassword from "../components/ui/InputPassword.vue";
 
 
 const loading = ref(false);
@@ -64,7 +65,8 @@ async function handleSubmit() {
 
         <div>
           <label for="password" aria-label="Contraseña"></label>
-          <input class="block border inputs" type="password" id="password" name="password" v-model="formData.password" placeholder="Contraseña" >
+          <InputPassword id="password" name="password" v-model="formData.password" placeholder="Contraseña" />
+          <!-- <input class="block border inputs" type="password" id="password" name="password" v-model="formData.password" placeholder="Contraseña" > -->
           <small>{{ formErrors.password }}</small>
         </div>
 
