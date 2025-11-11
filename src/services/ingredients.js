@@ -5,3 +5,18 @@ export async function getAllIngredients() {
 
     return response.data
 }
+
+export async function getListOfIntolerances() {
+    const result = await axiosInstance.get('/api/intolerances')
+    return result.data
+}
+
+export async function getListOfAllergies() {
+    const result = await axiosInstance.get('/api/allergies')
+    return result.data
+}
+
+export async function getListOfSpecialDiets() {
+    const result  = await axiosInstance.get('/api/special-diets')
+    return result.data
+}

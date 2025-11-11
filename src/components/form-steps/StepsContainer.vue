@@ -8,7 +8,6 @@ import Intolerances from './Intolerances.vue'
 import Allergies from './Allergies.vue'
 import Diets from './Diets.vue'
 import UserData from './UserData.vue'
-import Ingredients from './Ingredients.vue'
 
   const emit = defineEmits(['submit'])
 
@@ -18,8 +17,10 @@ const currentStep = ref(0)
 const props = defineProps({steps: {type: Array, required: true}})
 const stepsDictionary = {
   'terms': TermsAndConditions,
-  'all_ingredients': Ingredients,
-  'new_user_data': UserData
+  'new_user_data': UserData,
+  'intolerances': Intolerances,
+  'allergies': Allergies,
+  'diets': Diets,
 }
 
 const formData = ref({
