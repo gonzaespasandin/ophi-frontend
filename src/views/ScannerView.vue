@@ -1,16 +1,25 @@
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import AuthLayout from "../layouts/AuthLayout.vue";
 import api from "../config/axios";
-
-// TODO: Mover esto a un servicio? Para que quede más ordenado
-// TODO: De ser posible, importarlo en el proyecto (npm i ..., etc), y no como CDN
+import { suscribeToAuthObserver } from '../services/auth';
+import { useProductSafety } from '../composables/useProductSafety.js';
+import Alert from '../components/ui/Alert.vue';
+import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 
 let cvRouter = null;
 let cameraEnhancer = null;
 let cameraView = null;
-let resultsContainer = null;
 let lastScannedCode = null;
+
+let unsuscribeToAuthObserver = () => {};
+const user = ref({});
+const product = ref(null);
+const showProduct = ref(false);
+const showError = ref(false);
+const errorMessage = ref('');
+const safetyDataReady = ref(false);
+const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety } = useProductSafety();
 
 // Inicializar licencia y cargar WASM (solo una vez)
 const initializeDynamsoft = () => {
@@ -35,33 +44,38 @@ const setupResultReceiver = () => {
           }
           
           lastScannedCode = codigo;
-          
-          resultsContainer.textContent = '';
           Dynamsoft.DCE.Feedback.beep();
 
           try {
             const { data } = await api.post('/api/scanner/process', { codigo });
-            resultsContainer.innerHTML += `
-              <div class="flex flex-col justify-center items-center bg-green-500 p-2 m-4 rounded-md">
-                <p class="text-white">Producto encontrado:</p>
-                <p class="text-white">${data.name || 'Sin nombre'}</p>
-                <p class="text-white">${data.brand || 'Sin marca'}</p>
-              </div>
-            `;
+            
+            resetSafety();
+            safetyDataReady.value = false;
+            product.value = data;
+            
+            console.log('Usuario:', user.value);
+            console.log('Perfiles:', user.value.profiles);
+            console.log('Ingredientes del producto:', data.ingredients);
+            
+            if (user.value.profiles && user.value.profiles.length > 0 && data.ingredients) {
+              checkAll(user.value.profiles, data.ingredients);
+              console.log('Safe después de checkAll:', safe.value);
+              console.log('normalizedIngredients:', normalizedIngredients.value);
+              console.log('unsafeIngredients:', unsafeIngredients.value);
+              safetyDataReady.value = true;
+            }
+            
+            showError.value = false;
+            showProduct.value = true;
           } catch (err) {
             const status = err?.response?.status;
+            showProduct.value = false;
+            showError.value = true;
+            
             if (status === 404) {
-              resultsContainer.innerHTML += `
-                <div class="flex flex-col justify-center items-center bg-red-500 p-2 m-4 rounded-md">
-                  <p class="text-white">Código no encontrado: ${codigo}</p>
-                </div>
-              `;
+              errorMessage.value = `Código no encontrado: ${codigo}`;
             } else {
-              resultsContainer.innerHTML += `
-                <div class="flex flex-col justify-center items-center bg-red-500 p-2 m-4 rounded-md">
-                  <p class="text-white">Error al consultar el backend: ${err?.message || err}</p>
-                </div>
-              `;
+              errorMessage.value = `Error al consultar: ${err?.message || 'Error desconocido'}`;
             }
           }
         }
@@ -123,9 +137,8 @@ const initializeScanner = async () => {
     await cvRouter.startCapturing("ReadSingleBarcode");
   } catch (error) {
     console.error('Error al inicializar el escáner:', error);
-    if (resultsContainer) {
-      resultsContainer.textContent = `❌ Error al inicializar el escáner: ${error?.message || error}`;
-    }
+    showError.value = true;
+    errorMessage.value = `Error al inicializar el escáner: ${error?.message || error}`;
   }
 };
 
@@ -167,13 +180,14 @@ const cleanupScanner = async () => {
 
 // Lifecycle hooks
 onMounted(async () => {
-  resultsContainer = document.querySelector("#results");
+  unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
   initializeDynamsoft();
   await initializeScanner();
 });
 
 onBeforeUnmount(async () => {
   await cleanupScanner();
+  unsuscribeToAuthObserver();
 });
 
 </script>
@@ -182,19 +196,30 @@ onBeforeUnmount(async () => {
   <AuthLayout>
     <h1 class="sr-only text-4xl">Escaner</h1>
 
-    <div id="camera-view-container"></div>
+    <div class="w-full h-[50%]" id="camera-view-container"></div>
 
-    <div id="results"></div>
+    <div class="h-[50%] overflow-y-auto" id="results">
+      <div v-if="showProduct && product">
+        <div class="bg-white m-3 p-3">
+          <h2 class="text-center text-2xl">{{ product.name }}</h2>
+          <span class="block text-center mb-5">Resultados</span>
+          <template v-if="safetyDataReady">
+            <Alert v-if="user.profiles && user.profiles.length === 1 && safe.length > 0" :safe="safe[0].isSafe"></Alert>
+            <AlertSomeUsers v-else-if="user.profiles && user.profiles.length > 1 && safe.length > 0" :safe="safe"></AlertSomeUsers>
+          </template>
+        </div>
+
+        <div v-if="safetyDataReady" class="bg-white m-3 p-3">
+          <h3 :class="safe.length > 0 && safe.some(s => !s.isSafe) ? 'text-[#C43B52]' : 'text-[#009161]'" class="text-2xl">
+            {{ safe.length > 0 && safe.some(s => !s.isSafe) ? unsafeIngredients.join(' - ') || 'Ingredientes' : 'Ingredientes' }}
+          </h3>
+          <p>{{ normalizedIngredients.join(', ') }}</p>
+        </div>
+      </div>
+
+      <div v-else-if="showError" class="text-center w-full p-4 flex flex-col items-center justify-center min-h-full">
+        <p class="text-lg font-semibold mb-4">{{ errorMessage }}</p>
+      </div>
+    </div>
   </AuthLayout>
 </template>
-
-<style scoped>
-#camera-view-container {
-  width: 100%;
-  height: 70%;
-}
-
-#results {
-  height: 30%;
-}
-</style>
