@@ -71,23 +71,16 @@ onMounted(async () => {
 });
 
 function manageLocalStorage(productName) {
-
-    // let theNameIsThere = latestSearches.value.some(name => name === productName); 
-    // if(theNameIsThere){
-    //     console.log(latestSearches.value.findIndex(name => name === productName));
-    //     latestSearches.value[0] = productName;
-    // }
-
-    // TERMINAR
-    if(latestSearches.value.length < 4 && !latestSearches.value.includes(productName)) {
-        latestSearches.value.push(productName);
-    } else {
-        latestSearches.value.shift();
+    if(latestSearches.value.includes(productName)) {
+        latestSearches.value = latestSearches.value.filter(p => p !== productName);
     }
-    
-    
 
-    console.log(latestSearches.value, 'LOCLA STORAGE');
+    latestSearches.value.push(productName);
+
+    if(latestSearches.value.length > 4) {
+        latestSearches.value.shift();
+    } 
+
 
     localStorage.setItem('latestSearches', JSON.stringify(latestSearches.value));
 }
