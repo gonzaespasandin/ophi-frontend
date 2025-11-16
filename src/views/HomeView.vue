@@ -4,6 +4,7 @@ import {suscribeToAuthObserver} from "../services/auth.js";
 import {onMounted, onUnmounted, ref} from "vue";
 import Search from "../components/ui/Search.vue";
 import History from "../components/ui/History.vue";
+import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
 
   let unsuscribeToAuthObserver = () => {}
 
@@ -12,6 +13,7 @@ import History from "../components/ui/History.vue";
   onMounted(() => {
     unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
   })
+  
 
   onUnmounted(() => unsuscribeToAuthObserver());
 </script>
@@ -31,6 +33,9 @@ import History from "../components/ui/History.vue";
     </div>
     <div class="mt-5 mx-3">
       <History></History>
+    </div>
+    <div>
+      <RecomendedProducts v-if="user && user.profiles" :user="user.profiles"></RecomendedProducts>
     </div>
   </AuthLayout>
 </template>
