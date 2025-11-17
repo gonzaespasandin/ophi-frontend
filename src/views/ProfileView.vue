@@ -57,6 +57,8 @@ console.log(user.value)
           </details>
         </li>
       </ul>
+
+      <RouterLink to="/add-new-profile">Agregar nuevo perfil</RouterLink>
     </div>
 
 

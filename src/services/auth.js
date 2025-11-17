@@ -92,13 +92,14 @@ export async function register(data) {
     await login({email: user.email, password: data.password})
 
     // Register the user profile
-    const profileData = {
-        name: user.name,
-        avatar: null,
-        ingredients: [...data.ingredients]
-    }
+    await storeProfile(data)
+    user.profiles = await getAuthUserProfiles()
 
-    await storeProfile(profileData)
+    setUser(user)
+}
+
+export async function addNewProfileToAuthUser(data) {
+    await storeProfile(data)
     user.profiles = await getAuthUserProfiles()
 
     setUser(user)

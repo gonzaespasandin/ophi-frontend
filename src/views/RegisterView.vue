@@ -22,5 +22,8 @@ async function handleSubmit(formData) {
 </script>
 
 <template>
-  <StepsContainer @submit="handleSubmit" :steps="['terms', 'intolerances', 'allergies', 'diets', 'new_user_data']" />
+  <StepsContainer
+      :steps="['terms', 'intolerances', 'allergies', 'diets', 'new_user_data']"
+      @submit="handleSubmit"
+  />
 </template>
