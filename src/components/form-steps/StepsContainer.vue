@@ -3,13 +3,13 @@ import { ref } from 'vue'
 import {useRouter} from "vue-router";
 
 import TermsAndConditions from './TermsAndConditions.vue'
-import TypesOfProfile from "./TypesOfProfile.vue"
 import Intolerances from './Intolerances.vue'
 import Allergies from './Allergies.vue'
 import Diets from './Diets.vue'
 import UserData from './UserData.vue'
+import NewProfileData from "./NewProfileData.vue";
 
-  const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit'])
 
 const router = useRouter()
 
@@ -21,17 +21,17 @@ const stepsDictionary = {
   'intolerances': Intolerances,
   'allergies': Allergies,
   'diets': Diets,
+  'new_profile': NewProfileData,
 }
 
 const formData = ref({
   terms_and_conditions: false,
   ingredients: [],
-  user_data: {
-    name: '',
-    email: '',
-    password: '',
-    confirm_password: ''
-  }
+  name: '',
+  email: '',
+  password: '',
+  confirm_password: '',
+  avatar: '',
 })
 
 function handleNext() {
@@ -41,15 +41,6 @@ function handleNext() {
     return
   }
 
-/* STEPS FOR REGISTRATION
-* 1. Terminos y condiciones
-* 2. ¿A qué deberías pretar atención? (Intolerancias / Alergias alimentarias / Dietas especiales / Todas)
-* 3. ¿Qué intolerancias querés configurar?
-* 4. ¿Qué alergias gestionas actualmente?
-* 5. Forma de alimentación
-* 6. Otros datos (gmail, name, etc.)
-* 6. Resumen
-* */
   currentStep.value += 1
 }
 

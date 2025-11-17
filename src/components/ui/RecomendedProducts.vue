@@ -113,7 +113,7 @@ const modules = [A11y, Virtual];
                 @swiper="onSwiper"
                 @slideChange="onSlideChange"
                 :centered-slides="true"
-                :initial-slide="`${merged.length / 2}`"
+                :initial-slide="merged.length / 2"
                 :virtual="true"
                 >
                     <swiper-slide  v-for="(p, index) of merged" :key="index" :virtual-index="index" v-slot="{ isActive }">

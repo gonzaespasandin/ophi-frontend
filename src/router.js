@@ -12,6 +12,7 @@ import FirstView from "./views/FirstView.vue";
 import ProductView from './views/ProductView.vue';
 import NotFoundView from './views/NotFoundView.vue';
 import SearchListView from './views/SearchListView.vue';
+import AddNewProfileView from "./views/AddNewProfileView.vue";
 
 // TODO: Implement named routes
 const routes = [
@@ -70,6 +71,11 @@ const routes = [
         'component': SearchListView,
         'meta': { 'auth': true }
     },
+    {
+        'path': '/add-new-profile',
+        'component': AddNewProfileView,
+        'meta': { 'auth': true }
+    }
 ]
 
 const router = createRouter({

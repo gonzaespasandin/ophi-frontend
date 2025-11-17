@@ -15,7 +15,7 @@ const emit = defineEmits(['next', 'previous'])
         class="border rounded mb-4 block w-full py-1 px-2"
         type="text"
         name="name"
-        v-model="model.user_data.name">
+        v-model="model.name">
   </div>
 
   <div>
@@ -25,7 +25,7 @@ const emit = defineEmits(['next', 'previous'])
         class="border rounded mb-4 block w-full py-1 px-2"
         type="text"
         name="email"
-        v-model="model.user_data.email">
+        v-model="model.email">
   </div>
 
   <div>
@@ -35,7 +35,7 @@ const emit = defineEmits(['next', 'previous'])
         class="border rounded mb-4 block w-full py-1 px-2"
         type="password"
         name="password"
-        v-model="model.user_data.password">
+        v-model="model.password">
   </div>
 
   <div>
@@ -45,7 +45,7 @@ const emit = defineEmits(['next', 'previous'])
         class="border rounded mb-4 block w-full py-1 px-2"
         type="password"
         name="confirm_password"
-        v-model="model.user_data.confirm_password">
+        v-model="model.confirm_password">
   </div>
 
   <button
