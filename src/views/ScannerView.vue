@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import AuthLayout from "../layouts/AuthLayout.vue";
 import api from "../config/axios";
 import { suscribeToAuthObserver } from '../services/auth';
 import { useProductSafety } from '../composables/useProductSafety.js';
 import Alert from '../components/ui/Alert.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
+
+const router = useRouter();
 
 let cvRouter = null;
 let cameraEnhancer = null;
@@ -19,6 +22,7 @@ const showProduct = ref(false);
 const showError = ref(false);
 const errorMessage = ref('');
 const safetyDataReady = ref(false);
+const scannedCode = ref('');
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety } = useProductSafety();
 
 // Inicializar licencia y cargar WASM (solo una vez)
@@ -44,6 +48,7 @@ const setupResultReceiver = () => {
           }
           
           lastScannedCode = codigo;
+          scannedCode.value = codigo;
           Dynamsoft.DCE.Feedback.beep();
 
           try {
@@ -73,7 +78,7 @@ const setupResultReceiver = () => {
             showError.value = true;
             
             if (status === 404) {
-              errorMessage.value = `Código no encontrado: ${codigo}`;
+              errorMessage.value = `No encontramos el código escaneado, pero hay más formas de buscarlo!`;
             } else {
               errorMessage.value = `Error al consultar: ${err?.message || 'Error desconocido'}`;
             }
@@ -178,6 +183,16 @@ const cleanupScanner = async () => {
   }
 };
 
+const goToNameSearch = () => {
+  router.push({
+    path: '/search',
+    query: {
+      from: 'scanner',
+      code: scannedCode.value || ''
+    }
+  });
+};
+
 // Lifecycle hooks
 onMounted(async () => {
   unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
@@ -217,9 +232,21 @@ onBeforeUnmount(async () => {
         </div>
       </div>
 
+      <!-- <div v-else-if="showError" class="text-center w-full p-4 flex flex-col items-center justify-center min-h-full">
+        <p class="text-lg font-semibold mb-4">{{ errorMessage }}</p>
+      </div> -->
       <div v-else-if="showError" class="text-center w-full p-4 flex flex-col items-center justify-center min-h-full">
         <p class="text-lg font-semibold mb-4">{{ errorMessage }}</p>
+
+        <button type="button" class="mt-2 px-4 py-2 rounded bg-[#005B8E] text-white font-medium" @click="goToNameSearch">
+          Buscar producto por nombre
+        </button>
+
+        <p v-if="scannedCode" class="mt-2 text-xs text-gray-500">
+          Código escaneado: <span class="font-semibold">{{ scannedCode }}</span>
+        </p>
       </div>
+
     </div>
   </AuthLayout>
 </template>
