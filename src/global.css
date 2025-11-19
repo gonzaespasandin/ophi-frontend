@@ -160,3 +160,37 @@ p {
         padding: 1rem;
     }
 }
+
+
+.view {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+/* La que entra, empieza afuera a la derecha */
+.slide-enter-from {
+  transform: translateX(100%);
+}
+
+/* Termina cubriendo todo */
+.slide-enter-to {
+  transform: translateX(0);
+}
+
+/* La vista que sale NO se mueve ni se anima */
+.slide-leave-from,
+.slide-leave-to {
+  transform: translateX(0);
+}
+
+.slide-enter-active {
+  transition: transform 0.30s ease;
+}
+
+/* La que sale no debe tener transición */
+.slide-leave-active {
+  transition: none;
+}

@@ -126,4 +126,7 @@ const modules = [A11y, Virtual];
             </swiper>
        </div>
     </template>
+    <template v-else>
+        <span class="block text-center mt-10">No hay productos recomendados</span>
+    </template>
 </template>

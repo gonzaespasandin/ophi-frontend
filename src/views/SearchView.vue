@@ -58,6 +58,7 @@ async function getInput() {
       return;
     }
     products.value = await getMatchesByName(inputValue.value);
+    console.log(products.value)
   } catch(error) {
     console.log(error, 'Error al buscar producto');
   }
@@ -87,7 +88,7 @@ async function getInput() {
 
     <ul class="SearchView-list">
       <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? product" class="bg-[#f5f5f5]">
-        <RouterLink :to="`/product/${product.name ?? product}`" class="flex justify-between items-center">
+        <RouterLink :to="`/product/${product.name ?? product}/${product.brand}`" class="flex justify-between items-center">
           {{ product.name ?? product }}
           <i v-if="!product.name" class="fa-solid fa-clock-rotate-left"></i>
         </RouterLink>

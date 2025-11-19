@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import { findByName } from '../services/product';
+import { findByNameAndBrand } from '../services/product';
 import { useRoute, useRouter } from 'vue-router';
 import Alert from '../components/ui/Alert.vue';
 import { suscribeToAuthObserver } from '../services/auth';
@@ -31,14 +31,11 @@ if(localStorage.getItem('latestSearches')) {
 
 onMounted(async () => {
     try {
-        product.value = await findByName(route.params.name);
+        product.value = await findByNameAndBrand(route.params.name, route.params.brand);
+        // const brands = product.value.map(p => p.brand);
+        console.log(product.value);
 
-        if(product.value.length > 1 || product.value === 404) { // EN caso de encontrar al menos 2 o más coincidencias en la DB, vamos a la lista de productos, guardando en localStorage lso resultados.
-            localStorage.removeItem('products');
-            localStorage.setItem('products', JSON.stringify(product.value));
-            router.push(`/search-list/${route.params.name}`);
-            return;
-        } else if (product.value.length === 0) {
+        if (product.value.length === 0 || product.value === 404) {
             product.value = null;
             return;
         }
@@ -91,10 +88,11 @@ console.log(safe.value, 'safe?')
 <template>
     <AuthLayout>
         <Top/>
-        <Back/>
+        <!-- <Back/> -->
         <div v-if="charge">
             <div class="bg-white m-3 p-3">
                 <h2 class="text-center text-2xl">{{product.name}}</h2>
+                <h3 class="text-center">{{ product.brand }}</h3>
                 <span class="block text-center mb-5">Resultados</span>
                 <Alert v-if="user.profiles.length === 1" :safe="safe"></Alert>
                 <AlertSomeUsers v-else :safe="safe"></AlertSomeUsers>

@@ -57,7 +57,7 @@ const routes = [
         'meta': { 'auth': true }
     },
     {
-        'path': '/product/:name',
+        'path': '/product/:name/:brand',
         'component': ProductView,
         'meta': { 'auth': true }
     },
