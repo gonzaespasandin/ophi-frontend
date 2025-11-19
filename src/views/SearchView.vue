@@ -4,7 +4,7 @@ import Top from "../components/ui/Top.vue";
 import Back from '../components/ui/Back.vue';
 import { useRouter, useRoute } from 'vue-router';
 import { onMounted, ref, computed } from 'vue';
-import { getMatchesByName } from '../services/product';
+import { findByName, getMatchesByName } from '../services/product';
 
 
 const router = useRouter();
@@ -13,6 +13,7 @@ const route = useRoute();
 const inputValue = ref('');
 
 const products = ref([]);
+const productsForSearchListView = ref([]);
 
 //Arreglo local storage
 const storage = ref([]);
@@ -33,15 +34,24 @@ onMounted(() => {
   products.value = storage.value.length > 0 ? storage.value : [];
 }) 
 
-function handleSubmit() {
+async function handleSubmit() {
   const normalizedName = inputValue.value.trim().toLowerCase();
   if (!normalizedName) return;
-  router.push(`/product/${normalizedName}`);
+  try {
+    const result = await findByName(normalizedName);
+    if(result) {
+      productsForSearchListView.value = result;
+      localStorage.removeItem('products');
+      localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
+      router.push(`/search-list/${normalizedName}`);
+    }
+  } catch (error) {
+    console.error('Error al buscar productos por nombre', error);
+  }
+  // router.push(`/product/${normalizedName}`);
 }
 
 async function getInput() {
-
-  
   try {
     if(inputValue.value === '') {
       products.value = storage.value.length > 0 ? storage.value : [];
@@ -52,10 +62,6 @@ async function getInput() {
     console.log(error, 'Error al buscar producto');
   }
 }
-
-// function storeInLocalStorage(normalizedName) {
-  
-// }
 
 </script>
 

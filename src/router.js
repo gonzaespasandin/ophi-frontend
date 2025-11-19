@@ -67,7 +67,7 @@ const routes = [
         'meta': { 'auth': true }
     },
     {
-        'path': '/search-list/:name',
+        'path': '/search-list/:search',
         'component': SearchListView,
         'meta': { 'auth': true }
     },

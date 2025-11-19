@@ -33,14 +33,13 @@ onMounted(async () => {
     try {
         product.value = await findByName(route.params.name);
 
-        console.log(product.value);
-        // Si no encuentra asbolutamente NINGUIN producto, vamos a not found
-        if(product.value === 404 || product.value.length === 0) {
-            router.push('/not-found');
-            return;
-        } else if(product.value.length > 1) { // EN caso de encontrar al menos 2 o más coincidencias en la DB, vamos a la lista de productos, guardando en localStorage lso resultados.
+        if(product.value.length > 1 || product.value === 404) { // EN caso de encontrar al menos 2 o más coincidencias en la DB, vamos a la lista de productos, guardando en localStorage lso resultados.
+            localStorage.removeItem('products');
             localStorage.setItem('products', JSON.stringify(product.value));
             router.push(`/search-list/${route.params.name}`);
+            return;
+        } else if (product.value.length === 0) {
+            product.value = null;
             return;
         }
         manageLocalStorage(product.value[0].name);
@@ -91,9 +90,9 @@ console.log(safe.value, 'safe?')
 
 <template>
     <AuthLayout>
+        <Top/>
+        <Back/>
         <div v-if="charge">
-            <Top/>
-            <Back/>
             <div class="bg-white m-3 p-3">
                 <h2 class="text-center text-2xl">{{product.name}}</h2>
                 <span class="block text-center mb-5">Resultados</span>
@@ -104,6 +103,12 @@ console.log(safe.value, 'safe?')
             <div class="bg-white m-3 p-3">
                 <h2 :class="safe.isSafe ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe.isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
                 <p>{{ normalizedIngredients }}</p>
+            </div>
+        </div>
+        <div v-if="product === null">
+            <div class="bg-white m-3 p-3">
+                <h2 class="font-light text-2xl text-center">¡Lo sentimos!</h2>
+                <p class="text-center py-5">No encontramos resultados</p>
             </div>
         </div>
         </AuthLayout>
