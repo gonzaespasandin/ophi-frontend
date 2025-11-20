@@ -97,15 +97,33 @@ const initializeScanner = async () => {
     
     Dynamsoft.DCE.CameraView.defaultUIElementURL = '/templates/dce.ui.html';
     cameraView = await Dynamsoft.DCE.CameraView.createInstance();
+
+    // Configuracion del marco exterior de la region de escaneo
+    cameraView.setScanRegionMaskStyle({
+      lineWidth: 7,
+      strokeStyle: "#005B8E",
+    });
+  
     cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
 
-    // Configurar región de escaneo
+    // Configuracion de la region de escaneo
     cameraEnhancer.setScanRegion({
       x: 5,
       y: 35,
       width: 90,
       height: 30,
       isMeasuredInPercentage: true,
+    });
+
+    // Configuracion del marco interior de la region de escaneo
+    // strokeStyle: color del borde, fillStyle: color del fondo
+    Dynamsoft.DCE.DrawingStyleManager.updateDrawingStyle(3, {
+    fontFamily: "sans-serif",
+    fillStyle: "rgb(0, 145, 97, 0.5)",
+    fontSize: 25,
+    lineWidth: 5,
+    paintMode: "strokeAndFill",
+    strokeStyle: "rgb(0, 145, 97)",
     });
 
     // Agregar vista de cámara al DOM
