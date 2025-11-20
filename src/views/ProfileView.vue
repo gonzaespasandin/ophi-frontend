@@ -59,7 +59,7 @@ function handleLogUser() {
         </li>
       </ul>
 
-      <RouterLink to="/add-new-profile">Agregar nuevo perfil</RouterLink>
+      <RouterLink to="/add-new-profile" class="mt-4 block w-fit mx-auto p-2.5 rounded-full bg-[#009160] text-white font-semibold text-center">Agregar nuevo perfil</RouterLink>
     </div>
 
 
