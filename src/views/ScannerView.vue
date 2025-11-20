@@ -131,7 +131,6 @@ const initializeScanner = async () => {
     if (cameraContainer) {
       cameraContainer.append(cameraView.getUIElement());
     }
-
     // Configurar router
     cvRouter.setInput(cameraEnhancer);
 
@@ -231,9 +230,9 @@ onBeforeUnmount(async () => {
   <AuthLayout>
     <h1 class="sr-only text-4xl">Escaner</h1>
 
-    <div class="w-full h-[50%]" id="camera-view-container"></div>
+    <div class="w-full h-full" id="camera-view-container"></div>
 
-    <div class="h-[50%] overflow-y-auto" id="results">
+    <div class="overflow-y-auto" id="results">
       <div v-if="showProduct && product">
         <div class="bg-white m-3 p-3">
           <h2 class="text-center text-2xl">{{ product.name }}</h2>
@@ -270,3 +269,12 @@ onBeforeUnmount(async () => {
     </div>
   </AuthLayout>
 </template>
+
+<style scoped>
+  canvas {
+  border-radius: 12px;
+  border: 3px solid #005B8E;
+}
+
+
+</style>

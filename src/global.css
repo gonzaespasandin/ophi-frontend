@@ -13,9 +13,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Roboto Slab', serif;
-    font-weight: 500;
-    
+    font-family: 'Roboto Slab', serif;    
 }
 
 p {
@@ -221,4 +219,60 @@ p {
     border-radius: 50%;
     border: 10px solid #005a8e8f ;
   
+}
+
+
+/* LOADING */
+
+/* HTML: <div class="loader"></div> */
+/* HTML: <div class="loader"></div> */
+/* HTML: <div class="loader"></div> */
+.loader {
+  color: #005B8E;
+  width: 4px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: 19px 0 0 7px, 38px 0 0 3px, 57px 0 0 0;
+  transform: translateX(-38px);
+  animation: l21 .5s infinite alternate linear;
+}
+
+@keyframes l21 {
+  50%  {box-shadow: 19px 0 0 3px, 38px 0 0 7px, 57px 0 0 3px}
+  100% {box-shadow: 19px 0 0 0  , 38px 0 0 3px, 57px 0 0 7px}
+}
+
+
+.recomended-card-active::after {
+    content: '';
+    display: block;
+    width: 100%;
+    min-height: 150px;
+    background-color: #005a8e88;
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    border-radius: 11px;
+    transform: rotate(-3deg);
+    transition: all .2s ease-in-out;
+}
+
+.recomended-card-inactive::after {
+    content: '';
+    display: block;
+    width: 100%;
+    min-height: 100px;
+    background-color: #005a8e88;
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    border-radius: 11px;
+    transform: rotate(-3deg);
+      transition: all .2s ease-in-out;
+}
+
+
+
+.router-link-active {
+  color: #005B8E;
 }

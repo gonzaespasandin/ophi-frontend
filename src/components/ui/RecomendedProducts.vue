@@ -1,23 +1,20 @@
 <script setup>
-import { defineProps, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { getRecomendedProducts } from '../../services/product';
- // import Swiper core and required modules
-  import { A11y, Virtual } from 'swiper/modules';
+import AppLoading from "../AppLoading.vue";
+import { A11y, Virtual } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/scrollbar';
 
-  // Import Swiper Vue.js components
-  import { Swiper, SwiperSlide } from 'swiper/vue';
-
-  // Import Swiper styles
-  import 'swiper/css';
-  import 'swiper/css/navigation';
-  import 'swiper/css/pagination';
-  import 'swiper/css/scrollbar';
 
 
 const userIngredients = ref([]);
 const recomendedP = ref([]);
 const merged = ref([]);
-const i = ref([]);
+const loading = ref(true)
 
 const props = defineProps ({
     user: {
@@ -25,6 +22,7 @@ const props = defineProps ({
         required: true
     }
 });
+
 
 onMounted(async () => {
 
@@ -60,8 +58,6 @@ onMounted(async () => {
         })
     });
 
-    
-
     async function getRecomendedByUser(userName) {
         const uI = userIngredients.value.filter(i => i.name === userName);
         try {
@@ -78,6 +74,7 @@ onMounted(async () => {
         props.user.map(u => getRecomendedByUser(u.name))
     );
 
+
     recomendedP.value.forEach(userAndProducts => {
         console.log(userAndProducts)
         userAndProducts.products.map(p => {
@@ -85,48 +82,37 @@ onMounted(async () => {
         })
     })
 
-    console.log(merged.value);
+    loading.value = false;
 })
 
-const onSwiper = (swiper) => {
-    console.log(swiper)
-}
-const onSlideChange = () => {
-    console.log('slide change');
-};
-
 const modules = [A11y, Virtual];
-
-// const vSlide = Array.from({length: 15}).map(
-//     (el, index) => `Slide ${index + 1}`
-// );
 
 </script>
 
 <template>
-    <template v-if="merged.length > 0">
-       <div class="mt-25">
+    <template v-if="!loading">
+       <div class="mt-25 bg-white">
             <swiper
                 :modules="modules"
                 :slides-per-view="1.5"
-                :space-between="50"
-                @swiper="onSwiper"
-                @slideChange="onSlideChange"
+                :space-between="50"pi
                 :centered-slides="true"
                 :initial-slide="merged.length / 2"
                 :virtual="true"
                 >
-                    <swiper-slide  v-for="(p, index) of merged" :key="index" :virtual-index="index" v-slot="{ isActive }">
-                        <div :class="isActive ? 'min-h-[150px]' : 'min-h-[100px] mt-2'" class="flex bg-[#005B8E] p-5 rounded-[11px] flex-col justify-center text-white transition-all">
-                            <h3 class="text-sm">{{ p.product.name }}</h3>
-                            <span class=" text-md">{{ p.userName }}</span> 
-                            <p class="text-lg font-bold">RECOMENDADO</p>   
+                    <swiper-slide  v-for="(p, index) of merged" :key="index" :virtual-index="index" v-slot="{ isActive }" class="py-4">
+                        <div :class="isActive ? 'min-h-[150px] recomended-card-active' : 'min-h-[100px] mt-2 recomended-card-inactive'" class="flex bg-[#005B8E] p-5 rounded-[11px] flex-col justify-center text-white transition-all ">
+                            <h3 class="text-sm text-center font-regular">{{ p.product.name }}</h3>
+                            <span class=" text-lg text-center">{{ p.userName }}</span> 
+                            <p class="text-lg font-bold text-center">RECOMENDADO</p>   
                         </div>
                     </swiper-slide>
             </swiper>
        </div>
     </template>
     <template v-else>
-        <span class="block text-center mt-10">No hay productos recomendados</span>
+        <div class="flex justify-center mt-25">
+            <AppLoading/>
+        </div>
     </template>
 </template>
