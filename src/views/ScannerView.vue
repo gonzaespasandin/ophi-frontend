@@ -94,6 +94,8 @@ const initializeScanner = async () => {
   try {
     // Crear instancias
     cvRouter = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+    
+    Dynamsoft.DCE.CameraView.defaultUIElementURL = '/templates/dce.ui.html';
     cameraView = await Dynamsoft.DCE.CameraView.createInstance();
     cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
 
