@@ -88,7 +88,7 @@ function bold(productName) {
     <!-- Mensaje cuando venís del scanner -->
     <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
       <p>
-        Busquemos por nombre a <strong v-if="lastCode">{{ lastCode }}</strong>!
+        Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
       </p>
     </div>
 

@@ -27,10 +27,9 @@ onMounted(async  () => {
 </script>
 
 <template>
-  <AppLoading v-if="loading" />
-  <router-view v-slot="{ Component }">
-    <transition name="slide" mode="out-in">
+  <RouterView v-slot="{ Component }">
+    <transition >
       <component :is="Component"/>
     </transition>
-  </router-view>
+  </RouterView>
 </template>

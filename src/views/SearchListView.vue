@@ -22,13 +22,13 @@ onMounted(() => {
         <!-- <RouterLink to="/search" class="p-3 mt-4"><i class="fa-solid fa-arrow-left"></i> volver</RouterLink> -->
         <template v-if="products.length > 0">
             <div class="bg-white m-3 p-3">
-                <h2 class="font-light text-2xl text-center">Resultados para <span class=" font-black">{{ route.params.search }}</span></h2>
+                <h2 class="font-light text-2xl text-center font-regular">Resultados para <span class=" font-semibold">{{ route.params.search }}</span></h2>
             </div>
             <div class="bg-white m-3 p-3">
                 <ul>
-                    <li v-for="product of products" :key="product.id" class="bg-[#005B8E] mb-3 text-white search-list-item p-2">
+                    <li v-for="product of products" :key="product.id" class=" mb-3 border-2 border-[#009161] search-list-item p-2">
                         <RouterLink :to="`/product/${product.name}/${product.brand}`">
-                            <h3>{{ product.name }}</h3>
+                            <h3 class="">{{ product.name }}</h3>
                             <p class="text-[14px]">Marca: {{ product.brand }}</p>
                         </RouterLink>
                     </li>
