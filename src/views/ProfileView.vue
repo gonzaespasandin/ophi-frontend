@@ -45,16 +45,19 @@ function handleLogUser() {
 
     <div>
       <h3 class="py-1 px-3">Tus perfiles</h3>
-      <ul>
+      <ul class="">
         <li v-for="profile of user.profiles" :key="profile.id">
           <details class="mb-2">
             <summary class="bg-white mx-3 px-2 py-1 rounded-t">
               {{ profile.name }}
             </summary>
 
-            <p class="px-2 mx-3 py-1 rounded-b bg-white/50">
-              {{ profile.ingredients.map(i => i.name).join(', ') }}
-            </p>
+            <ul class="px-2 mx-3 py-2 rounded-b bg-white/50 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+              <li v-for="ingredient in profile.ingredients" :key="ingredient.id" class="flex items-start gap-1">
+                <span class="mt-[6px] inline-block h-1.5 w-1.5 rounded-full bg-[#009160]"></span>
+                <span>{{ ingredient.name }}</span>
+              </li>
+            </ul>
           </details>
         </li>
       </ul>
