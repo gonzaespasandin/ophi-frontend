@@ -72,6 +72,19 @@ p {
     background: linear-gradient(#005B8E , #F5F5F5 40%);
 }
 
+.square-with-gradient-success {
+    background: linear-gradient(#009161 , #F5F5F5 40%);
+}
+
+.square-with-gradient-danger {
+    background: linear-gradient(#C43B52 , #F5F5F5 40%);
+}
+
+.square-with-gradient-mix {
+    background: linear-gradient(#009161 10%, #C43B52 , #F5F5F5 40%);
+}
+
+
 #search {
     border-radius: 1.4rem;
 }
@@ -93,9 +106,6 @@ p {
         border-radius: .5rem;
         height: 70px;
         margin-bottom: .5rem;
-        i {
-            font-size: 2rem;
-        }
     }
     
 }
@@ -129,15 +139,26 @@ p {
 
 .danger-some {
     background-color: #C43B52;
+    border-radius: .8rem;
+}
+
+.danger-some-bordered {
+    background-color: #C43B52;
     border-top-left-radius: .8rem;
     border-top-right-radius: .8rem;
 }
+
 .success-some {
     background-color: #009161;
-    border-top-left-radius: .8rem;
-    border-top-right-radius: .8rem;
-   
+    border-radius: .8rem;
 }
+
+.success-some-bordered {
+    background-color: #009161;
+    border-top-left-radius: .8rem;
+    border-top-right-radius: .8rem; 
+}
+
 .true {
     li {
         border-bottom: 1px solid #009161;
@@ -193,4 +214,11 @@ p {
 /* La que sale no debe tener transición */
 .slide-leave-active {
   transition: none;
+}
+
+
+.scanner-nav {
+    border-radius: 50%;
+    border: 10px solid #005a8e8f ;
+  
 }

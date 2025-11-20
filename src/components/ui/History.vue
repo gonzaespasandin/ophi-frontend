@@ -17,7 +17,7 @@ let history = [
     },
     {
         id: 3,
-        product: 'Coca-cola de durazno y tomate cherry',
+        product: 'Coca-cola de durazno',
         result: 'success',
         unsafeIngredient: ''
     }
@@ -28,20 +28,21 @@ let history = [
 
 <template>
     <div class="bg-white p-3" id="history-component">
-        <div class="flex justify-between items-center text-[#005B8E] ">
+        <div class="flex justify-between items-center text-[#005B8E]">
             <h2 class="text-md">Tus últimos escaneos</h2>
             <RouterLink to="/" class="text-sm">Ver más <i class="fa-solid fa-arrow-right ps-1"></i></RouterLink>
         </div>
         <div class="mt-4">
             <ul class="history-list">
-                <li v-for="scan in history" :key="scan.id" :class="scan.result === 'danger' ? 'danger-border' : 'success-border'" class="flex flex-col justify-center">
-                   <div class="flex justify-around items-center">
+                <li v-for="scan in history" :key="scan.id" :class="scan.result === 'danger' ? 'danger' : 'success'" class="flex flex-col justify-center">
+                   <div class="flex justify-start px-5 items-center gap-3 text-white">
+                        <i v-if="scan.result === 'success'" class="fa-solid fa-circle-check text-[white] text-5xl"></i>
+                        <i v-else class="fa-solid fa-triangle-exclamation text-[white] text-5xl"></i>
                         <div>
                             <h3>{{ scan.product }}</h3>
-                            <p :class="scan.unsafeIngredient ? 'text-[#C43B52]' : 'text-[#009161]'" class="text-center font-medium">{{ scan.unsafeIngredient || 'Seguro' }}</p>
+                            <p class="text-md font-extralight">Detalles...</p>
                         </div>
-                        <i v-if="scan.result === 'success'" class="fa-solid fa-circle-check text-[#009161]"></i>
-                        <i v-else class="fa-solid fa-triangle-exclamation text-[#C43B52]"></i>
+                        
                    </div>
                 </li>
             </ul>

@@ -55,7 +55,7 @@ function handleIngredientsClick() {
 </script>
 
 <template>
-    <div v-if="usersTrue.length > 0" class="success-some max-w-80 m-auto flex justify-between px-5 items-center text-white h-14" @click="handleClick(true)">
+    <div v-if="usersTrue.length > 0" class=" max-w-80 m-auto flex justify-between px-5 items-center text-white h-14" :class="hiddenTrue ? 'success-some' : 'success-some-bordered'" @click="handleClick(true)">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-circle-check text-4xl"></i>
             <p>Seguro</p>
@@ -67,15 +67,15 @@ function handleIngredientsClick() {
             <span>{{ user.forWho }}</span>
         </li>
     </ul>
-    <div v-if="usersFalse.length > 0" class="danger-some max-w-80 m-auto mt-4 flex justify-between px-5 items-center text-white h-14" @click="handleClick(false)">
+    <div v-if="usersFalse.length > 0" class="max-w-80 m-auto mt-4 flex justify-between px-5 items-center text-white h-14" :class="hiddenFalse ? 'danger-some' : 'danger-some-bordered'" @click="handleClick(false)">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
             <p>Peligro</p>
         </div>
         <i class="fa-solid fa-chevron-up"></i>
     </div>
-    <ul  :class="hiddenFalse ? 'hidden' : ''" class="max-w-80 m-auto false">
-        <li v-for="user of usersFalse" :key="user.id" >
+    <ul  :class="hiddenFalse ? 'hidden' : ''" class="max-w-80 m-auto false trasition-all">
+        <li v-for="user of usersFalse" :key="user.id">
             <div class="flex flex-col">
                 <div class="flex items-center justify-between p-2" @click="handleIngredientsClick()">
                     <span>{{ user.forWho }}</span>

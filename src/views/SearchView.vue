@@ -59,9 +59,23 @@ async function getInput() {
     }
     products.value = await getMatchesByName(inputValue.value);
     console.log(products.value)
+    // Para de vuelta limpiar
+    if(inputValue.value === '') {
+      products.value = storage.value.length > 0 ? storage.value : [];
+      return;
+    }
   } catch(error) {
     console.log(error, 'Error al buscar producto');
   }
+}
+
+
+function bold(productName) {
+  if(!inputValue.value) {
+    return;
+  }
+  const regex = new RegExp(inputValue.value, "i");
+  return productName.replace(regex, match => `<span class="font-semibold">${match}</span>`);
 }
 
 </script>
@@ -74,23 +88,27 @@ async function getInput() {
     <!-- Mensaje cuando venís del scanner -->
     <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
       <p>
-      Busquemos por nombre a <strong v-if="lastCode">{{ lastCode }}</strong>!
+        Busquemos por nombre a <strong v-if="lastCode">{{ lastCode }}</strong>!
       </p>
     </div>
 
     <form class="flex justify-around items-center m-auto bg-[#dddddd] h-12" @submit.prevent="handleSubmit">
       <i class="fa-solid fa-arrow-left"></i>
-      <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" class="border-0 outline-0 w-70" @input="getInput()"/>
+      <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="getInput()"/>
       <button type="submit">
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
     </form>
 
     <ul class="SearchView-list">
-      <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? product" class="bg-[#f5f5f5]">
-        <RouterLink :to="`/product/${product.name ?? product}/${product.brand}`" class="flex justify-between items-center">
-          {{ product.name ?? product }}
-          <i v-if="!product.name" class="fa-solid fa-clock-rotate-left"></i>
+      <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
+        <RouterLink :to="`/product/${product.name}/${product.brand}`" class="flex justify-between items-center">
+          <div class="flex flex-col">
+            <span v-if="!product.barcode">{{ product.name }}</span>
+            <p v-else v-html="bold(product.name)"></p>
+            <span class="font-medium text-sm">{{ product.brand }}</span>
+          </div>
+          <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
         </RouterLink>
       </li>
     </ul>

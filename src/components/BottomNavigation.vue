@@ -4,9 +4,9 @@ import { RouterLink } from 'vue-router'
 
 <template>
   <nav>
-    <ul class="grid grid-cols-5 bg-[#ffffff] py-3 text-[#005B8E]">
+    <ul class="flex justify-around items-center py-1 bg-[#ffffff] text-[#005B8E]">
       <li>
-        <RouterLink to="/" class="flex flex-col items-center gap-2">
+        <RouterLink to="/" class="flex flex-col items-center justify-center gap-2">
           <i class="fa-solid fa-house"></i>
           Inicio
         </RouterLink>
@@ -18,9 +18,8 @@ import { RouterLink } from 'vue-router'
         </RouterLink>
       </li>
       <li>
-        <RouterLink to="/scanner" class="flex flex-col items-center gap-2">
-          <i class="fa-solid fa-barcode text-4xl"></i>
-          
+        <RouterLink to="/scanner" class="flex flex-col items-center justify-center gap-2 -translate-y-3/12 bg-[#005B8E] h-[60px] w-[60px] scanner-nav ">
+          <img src="../assets/icons/barcode.svg"></img>
         </RouterLink>
       </li>
       <li>

@@ -14,6 +14,7 @@ const router = useRouter();
 
 onMounted(() => {
   unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
+  console.log(user.value, ' USERs') 
 })
 
 onUnmounted(() => unsuscribeToAuthObserver());
@@ -33,7 +34,7 @@ function handleLogUser() {
   console.log(user.value)
 }
 
-console.log(user.value)
+
 </script>
 
 <template>

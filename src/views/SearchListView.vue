@@ -11,9 +11,7 @@ const products = ref([]);
 
 
 onMounted(() => {
-    
     products.value = JSON.parse(localStorage.getItem('products'));
-
     console.log(products.value);
 })
 </script>
