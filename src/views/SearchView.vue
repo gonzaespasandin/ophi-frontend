@@ -4,7 +4,7 @@ import Top from "../components/ui/Top.vue";
 import Back from '../components/ui/Back.vue';
 import { useRouter, useRoute } from 'vue-router';
 import { onMounted, ref, computed } from 'vue';
-import { getMatchesByName } from '../services/product';
+import { findByName, getMatchesByName } from '../services/product';
 
 
 const router = useRouter();
@@ -13,6 +13,7 @@ const route = useRoute();
 const inputValue = ref('');
 
 const products = ref([]);
+const productsForSearchListView = ref([]);
 
 //Arreglo local storage
 const storage = ref([]);
@@ -33,29 +34,35 @@ onMounted(() => {
   products.value = storage.value.length > 0 ? storage.value : [];
 }) 
 
-function handleSubmit() {
+async function handleSubmit() {
   const normalizedName = inputValue.value.trim().toLowerCase();
   if (!normalizedName) return;
-  router.push(`/product/${normalizedName}`);
+  try {
+    const result = await findByName(normalizedName);
+    if(result) {
+      productsForSearchListView.value = result;
+      localStorage.removeItem('products');
+      localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
+      router.push(`/search-list/${normalizedName}`);
+    }
+  } catch (error) {
+    console.error('Error al buscar productos por nombre', error);
+  }
+  // router.push(`/product/${normalizedName}`);
 }
 
 async function getInput() {
-
-  
   try {
     if(inputValue.value === '') {
       products.value = storage.value.length > 0 ? storage.value : [];
       return;
     }
     products.value = await getMatchesByName(inputValue.value);
+    console.log(products.value)
   } catch(error) {
     console.log(error, 'Error al buscar producto');
   }
 }
-
-// function storeInLocalStorage(normalizedName) {
-  
-// }
 
 </script>
 
@@ -81,7 +88,7 @@ async function getInput() {
 
     <ul class="SearchView-list">
       <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? product" class="bg-[#f5f5f5]">
-        <RouterLink :to="`/product/${product.name ?? product}`" class="flex justify-between items-center">
+        <RouterLink :to="`/product/${product.name ?? product}/${product.brand}`" class="flex justify-between items-center">
           {{ product.name ?? product }}
           <i v-if="!product.name" class="fa-solid fa-clock-rotate-left"></i>
         </RouterLink>

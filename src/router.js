@@ -57,7 +57,7 @@ const routes = [
         'meta': { 'auth': true }
     },
     {
-        'path': '/product/:name',
+        'path': '/product/:name/:brand',
         'component': ProductView,
         'meta': { 'auth': true }
     },
@@ -67,7 +67,7 @@ const routes = [
         'meta': { 'auth': true }
     },
     {
-        'path': '/search-list/:name',
+        'path': '/search-list/:search',
         'component': SearchListView,
         'meta': { 'auth': true }
     },
