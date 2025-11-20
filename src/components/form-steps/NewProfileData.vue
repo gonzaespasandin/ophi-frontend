@@ -4,7 +4,7 @@ const emit = defineEmits(['next', 'previous'])
 </script>
 
 <template>
-  <button type="button" @click="emit('previous')">Volver</button>
+  <!-- <button type="button" @click="emit('previous')">Volver</button> -->
 
   <h2 class="text-2xl font-semibold">¿De quién estamos hablando?</h2>
 

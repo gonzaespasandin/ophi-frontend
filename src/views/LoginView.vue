@@ -90,7 +90,4 @@ async function handleSubmit() {
     display: block;
     margin: 4rem auto;
   }
-
-
-
 </style>
