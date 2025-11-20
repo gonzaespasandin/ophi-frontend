@@ -23,7 +23,7 @@ const showProduct = ref(false);
 const showError = ref(false);
 const errorMessage = ref('');
 const safetyDataReady = ref(false);
-
+const scannedCode = ref('');
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety } = useProductSafety();
 
 const showNameFallback = ref(false);
@@ -55,7 +55,7 @@ const setupResultReceiver = () => {
           }
           
           lastScannedCode = codigo;
-          
+          scannedCode.value = codigo;
           Dynamsoft.DCE.Feedback.beep();
 
           try {
@@ -221,17 +221,7 @@ const cleanupScanner = async () => {
     console.error('Error al limpiar el escáner:', error);
   }
 };
-/*
-const goToNameSearch = () => {
-  router.push({
-    path: '/search',
-    query: {
-      from: 'scanner',
-      code: scannedCode.value || ''
-    }
-  });
-};
-*/
+
 
 // Autocompletado de nombre
 const handleNameInput = async () => {
@@ -341,6 +331,9 @@ onBeforeUnmount(async () => {
             <h2 class="text-center text-xl font-semibold mb-2">¡Lo sentimos!</h2>
             <p class="text-center text-sm text-gray-700">
               No pudimos escanear el código de barras.
+            </p>
+            <p v-if="scannedCode" class="text-center text-xs text-gray-500 mt-1">
+              Código escaneado: <strong>{{ scannedCode }}</strong>
             </p>
           </div>
 
