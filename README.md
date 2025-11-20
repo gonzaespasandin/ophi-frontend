@@ -23,6 +23,8 @@ si el alimento es apto para su consumo o no lo es.
 - Vue.js
 - Vite
 - Tailwindcss / CSS
+- Vue Router
+- Axios
 
 ### Backend (si aplica)
 - PHP
