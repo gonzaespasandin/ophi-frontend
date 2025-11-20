@@ -7,6 +7,7 @@ import { suscribeToAuthObserver } from '../services/auth';
 import { useProductSafety } from '../composables/useProductSafety.js';
 import Alert from '../components/ui/Alert.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
+import { findByName, getMatchesByName } from '../services/product';
 
 const router = useRouter();
 
@@ -22,8 +23,14 @@ const showProduct = ref(false);
 const showError = ref(false);
 const errorMessage = ref('');
 const safetyDataReady = ref(false);
-const scannedCode = ref('');
+
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety } = useProductSafety();
+
+const showNameFallback = ref(false);
+const nameSearch = ref('');
+const nameError = ref('');
+const nameMatches = ref([]);
+const productsForSearchListView = ref([]);
 
 // Inicializar licencia y cargar WASM (solo una vez)
 const initializeDynamsoft = () => {
@@ -48,7 +55,7 @@ const setupResultReceiver = () => {
           }
           
           lastScannedCode = codigo;
-          scannedCode.value = codigo;
+          
           Dynamsoft.DCE.Feedback.beep();
 
           try {
@@ -72,15 +79,28 @@ const setupResultReceiver = () => {
             
             showError.value = false;
             showProduct.value = true;
+            showNameFallback.value = false;
           } catch (err) {
             const status = err?.response?.status;
             showProduct.value = false;
             showError.value = true;
+
+            // resetear el formulario de nombre cada vez que hay error
+            nameSearch.value = '';
+            nameError.value = '';
+            nameMatches.value = [];
             
             if (status === 404) {
-              errorMessage.value = `No encontramos el código escaneado, pero hay más formas de buscarlo!`;
+              showNameFallback.value = true;
+              errorMessage.value = '';
             } else {
-              errorMessage.value = `Error al consultar: ${err?.message || 'Error desconocido'}`;
+                showNameFallback.value = false;
+                errorMessage.value = `Error al consultar: ${err?.message || 'Error desconocido'}`;
+            }if (status === 401) {
+              errorMessage.value ='Tu sesión expiró o no estás autenticado. Volvé a iniciar sesión para poder escanear.';
+            } else {
+                const backendMsg = err?.response?.data?.message;
+                errorMessage.value = `Error al consultar: ${backendMsg || err?.message || 'Error desconocido'}`;
             }
           }
         }
@@ -183,7 +203,7 @@ const cleanupScanner = async () => {
     console.error('Error al limpiar el escáner:', error);
   }
 };
-
+/*
 const goToNameSearch = () => {
   router.push({
     path: '/search',
@@ -193,6 +213,50 @@ const goToNameSearch = () => {
     }
   });
 };
+*/
+
+// Autocompletado de nombre
+const handleNameInput = async () => {
+  try {
+    const term = nameSearch.value.trim();
+    if (!term) {
+      nameMatches.value = [];
+      return;
+    }
+    nameMatches.value = await getMatchesByName(term);
+  } catch (error) {
+    console.error('Error al buscar coincidencias por nombre desde el scanner', error);
+  }
+};
+// Confirmar nombre
+const confirmNameSearch = async () => {
+  const normalizedName = nameSearch.value.trim().toLowerCase();
+  if (!normalizedName) {
+    nameError.value = 'Ingresá el nombre del producto';
+    return;
+  }
+  nameError.value = '';
+  
+  try {
+    const result = await findByName(normalizedName);
+    if (result) {
+      productsForSearchListView.value = result;
+      localStorage.removeItem('products');
+      localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
+      router.push(`/search-list/${normalizedName}`);
+    }
+  } catch (error) {
+    console.error('Error al buscar productos por nombre desde el scanner', error);
+  }
+};
+//Resaltar coincidencia copiado de SearchView
+function boldProductName(productName) {
+  if (!nameSearch.value) {
+    return productName;
+  }
+  const regex = new RegExp(nameSearch.value, "i");
+  return productName.replace(regex, match => `<span class="font-semibold">${match}</span>`);
+}
 
 // Lifecycle hooks
 onMounted(async () => {
@@ -212,51 +276,121 @@ onBeforeUnmount(async () => {
   <AuthLayout>
     <h1 class="sr-only text-4xl">Escaner</h1>
 
-    <div class="w-full h-full" id="camera-view-container"></div>
+    <!-- Cámara ocupa la parte superior -->
+    <div class="w-full h-[50%]" id="camera-view-container"></div>
 
-    <div class="overflow-y-auto" id="results">
+    <!-- Parte inferior: resultados / fallback -->
+    <div class="h-[50%] overflow-y-auto" id="results">
       <div v-if="showProduct && product">
         <div class="bg-white m-3 p-3">
           <h2 class="text-center text-2xl">{{ product.name }}</h2>
           <span class="block text-center mb-5">Resultados</span>
           <template v-if="safetyDataReady">
-            <Alert v-if="user.profiles && user.profiles.length === 1 && safe.length > 0" :safe="safe[0].isSafe"></Alert>
-            <AlertSomeUsers v-else-if="user.profiles && user.profiles.length > 1 && safe.length > 0" :safe="safe"></AlertSomeUsers>
+            <Alert
+              v-if="user.profiles && user.profiles.length === 1 && safe.length > 0"
+              :safe="safe[0].isSafe"
+            />
+            <AlertSomeUsers
+              v-else-if="user.profiles && user.profiles.length > 1 && safe.length > 0"
+              :safe="safe"
+            />
           </template>
         </div>
 
         <div v-if="safetyDataReady" class="bg-white m-3 p-3">
-          <h3 :class="safe.length > 0 && safe.some(s => !s.isSafe) ? 'text-[#C43B52]' : 'text-[#009161]'" class="text-2xl">
-            {{ safe.length > 0 && safe.some(s => !s.isSafe) ? unsafeIngredients.join(' - ') || 'Ingredientes' : 'Ingredientes' }}
+          <h3
+            :class="safe.length > 0 && safe.some(s => !s.isSafe) ? 'text-[#C43B52]' : 'text-[#009161]'"
+            class="text-2xl"
+          >
+            {{
+              safe.length > 0 && safe.some(s => !s.isSafe)
+                ? unsafeIngredients.join(' - ') || 'Ingredientes'
+                : 'Ingredientes'
+            }}
           </h3>
           <p>{{ normalizedIngredients.join(', ') }}</p>
         </div>
       </div>
 
-      <!-- <div v-else-if="showError" class="text-center w-full p-4 flex flex-col items-center justify-center min-h-full">
-        <p class="text-lg font-semibold mb-4">{{ errorMessage }}</p>
-      </div> -->
-      <div v-else-if="showError" class="text-center w-full p-4 flex flex-col items-center justify-center min-h-full">
-        <p class="text-lg font-semibold mb-4">{{ errorMessage }}</p>
+      <!-- Bloque de error / fallback -->
+      <div
+        v-else-if="showError"
+        class="w-full p-4 flex flex-col items-center justify-center min-h-full"
+      >
+        <!-- Caso: no se encontró el código (404) → panel con input de nombre -->
+        <template v-if="showNameFallback">
+          <div class="bg-white rounded-t-2xl shadow-md w-full max-w-md p-4 mb-4">
+            <h2 class="text-center text-xl font-semibold mb-2">¡Lo sentimos!</h2>
+            <p class="text-center text-sm text-gray-700">
+              No pudimos escanear el código de barras.
+            </p>
+          </div>
 
-        <button type="button" class="mt-2 px-4 py-2 rounded bg-[#005B8E] text-white font-medium" @click="goToNameSearch">
-          Buscar producto por nombre
-        </button>
+          <div class="bg-white rounded-b-2xl shadow-md w-full max-w-md p-4">
+            <label
+              for="fallbackName"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Nombre del producto
+            </label>
+            <input
+              id="fallbackName"
+              v-model="nameSearch"
+              type="text"
+              placeholder="Ej: Yogur descremado frutilla"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#009161]"
+              @input="handleNameInput"
+            />
+            <p v-if="nameError" class="mt-1 text-xs text-red-600">
+              {{ nameError }}
+            </p>
 
-        <p v-if="scannedCode" class="mt-2 text-xs text-gray-500">
-          Código escaneado: <span class="font-semibold">{{ scannedCode }}</span>
-        </p>
+            <!-- Sugerencias, igual que en SearchView -->
+            <ul
+              v-if="nameMatches.length > 0"
+              class="mt-4 w-full max-w-md"
+            >
+              <li
+                v-for="product in nameMatches"
+                :key="product.id ?? undefined"
+                class="bg-[#f5f5f5] px-3 py-2 mb-2 rounded"
+              >
+                <RouterLink
+                  :to="`/product/${product.name}/${product.brand}`"
+                  class="flex justify-between items-center"
+                >
+                  <div class="flex flex-col text-left">
+                    <span v-html="boldProductName(product.name)"></span>
+                    <span class="font-medium text-sm">{{ product.brand }}</span>
+                  </div>
+                </RouterLink>
+              </li>
+            </ul>
+
+            <button
+              type="button"
+              class="mt-4 w-full py-2 rounded-full bg-[#00A878] text-white font-semibold"
+              @click="confirmNameSearch"
+            >
+              Confirmar
+            </button>
+          </div>
+        </template>
+
+        <!-- Otros errores (auth, server, etc.) -->
+        <template v-else>
+          <p class="text-lg font-semibold mb-4 text-center">
+            {{ errorMessage }}
+          </p>
+        </template>
       </div>
-
     </div>
   </AuthLayout>
 </template>
 
 <style scoped>
-  canvas {
+canvas {
   border-radius: 12px;
   border: 3px solid #005B8E;
 }
-
-
 </style>
