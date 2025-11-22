@@ -14,7 +14,7 @@ const emit = defineEmits(['submit'])
 const router = useRouter()
 
 const currentStep = ref(0)
-const props = defineProps({steps: {type: Array, required: true}})
+const props = defineProps({steps: {type: Array, required: true}, where: String});
 const stepsDictionary = {
   'terms': TermsAndConditions,
   'new_user_data': UserData,
@@ -62,6 +62,7 @@ function handlePrevious() {
         v-model="formData"
         @next="handleNext"
         @previous="handlePrevious"
+        :where="where"
     />
   </form>
 </template>

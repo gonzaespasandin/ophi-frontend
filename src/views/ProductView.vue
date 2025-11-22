@@ -80,12 +80,12 @@ function manageLocalStorage(productName, productBrand) {
 
 <template>
     <!-- Es pero ILEGIBLE pero funca -->
-    <AuthLayout :class="(!loading) ? (user?.profiles?.length === 1) ? (safe[0]?.isSafe) ? 'square-with-gradient-success' : 'square-with-gradient-danger' : 'square-with-gradient-mix' : ''">
+    <AuthLayout :class="(!loading) ? (user?.profiles?.length === 1) ? (safe[0]?.isSafe) ? 'square-with-gradient-success' : 'square-with-gradient-danger' : '' : ''">
         <Top/>
         <!-- <Back/> -->
         <template  v-if="!loading">
             <div>
-                <div class="bg-white m-3 p-3 rounded-[.5rem]">
+                <div class="bg-white shadow-md  m-3 p-3 rounded-[.5rem]">
                     <h2 class="text-center text-2xl">{{product.name}}</h2>
                     <h3 class="text-center font-semibold">{{ product.brand }}</h3>
                     <span class="block text-center mb-5">Resultados</span>
@@ -93,14 +93,14 @@ function manageLocalStorage(productName, productBrand) {
                     <AlertSomeUsers v-else :safe="safe"></AlertSomeUsers>
                 </div>
 
-                <div class="bg-white m-3 p-3 rounded-[.5rem]">
+                <div class="bg-white shadow-md  m-3 p-3 rounded-[.5rem]">
                     <h2 v-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
                     <h2 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</h2>
                     <p>{{ normalizedIngredients }}</p>
                 </div>
             </div>
             <div v-if="product === null">
-                <div class="bg-white m-3 p-3 rounded-[.5rem]">
+                <div class="bg-white m-3 shadow-md p-3 rounded-[.5rem]">
                     <h2 class="font-light text-2xl text-center">¡Lo sentimos!</h2>
                     <p class="text-center py-5">No encontramos resultados</p>
                 </div>

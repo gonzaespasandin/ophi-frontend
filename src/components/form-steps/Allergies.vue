@@ -11,6 +11,9 @@ const emit = defineEmits(['next', 'previous'])
 const showModal = ref(false)
 const list = ref([])
 const loading = ref(true);
+const props = defineProps({
+  where: String
+})
 
 onMounted(async () => {
   try {
@@ -33,11 +36,11 @@ function handleShowFullList(argList) {
 
 <template>
     <!-- <button @click.prevent="emit('previous')">Volver</button> -->
-    <h2 class="text-2xl font-semibold">¿Tenés alguna alergia?</h2>
+    <h2 class="text-2xl font-semibold text-center">¿Tenés alguna alergia?</h2>
   <template v-if="!loading">
     
 
-    <p>Seleccioná todas las que correspondan</p>
+    <p class="text-center mb-3">Seleccioná todas las que correspondan</p>
 
     <!-- TODO: Pre-load allergies -->
     <ul class="bg-[#f5f5f5] rounded-[11px] text-[#333333] p-3">

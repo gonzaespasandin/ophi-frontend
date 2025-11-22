@@ -1,12 +1,17 @@
 <script setup>
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
+const props = defineProps({
+  where: String
+})
+
+
 </script>
 
 <template>
   <!-- <button type="button" @click="emit('previous')">Volver</button> -->
 
-  <h2 class="text-2xl font-semibold">¡Último paso!</h2>
+  <h2 class="text-2xl font-semibold text-center">¡Último paso!</h2>
 
   <div class="flex flex-col justify-center p-4 min-h-80 bg-[#005B8E]">
     <div>

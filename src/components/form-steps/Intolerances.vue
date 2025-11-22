@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref} from "vue";
+import {onMounted, ref, Text} from "vue";
 import {getListOfIntolerances} from "../../services/ingredients.js";
 import AppLoading from "../AppLoading.vue";
 
@@ -7,6 +7,11 @@ const intolerances = ref([]);
 const model = defineModel();
 const emit = defineEmits(['next', 'previous']);
 const loading = ref(true);
+const props = defineProps({
+  where: String
+})
+
+console.log(props.where);
 
 onMounted(async () => {
   try {
@@ -22,14 +27,14 @@ onMounted(async () => {
 <template>
   <div>
       <!-- <button @click.prevent="emit('previous')">Volver</button> -->
-    <h2 class="text-2xl font-semibold">¿Tenés alguna intolerancia?</h2>
+    <h2 class="text-2xl font-semibold text-center" :class="props.where === 'addNew' ? 'text-lg' : ''">¿Tenés alguna intolerancia?</h2>
 
     <template v-if="!loading">
-      <p>Seleccioná todas las que correspondan</p>
+      <p class="text-center mb-4">Seleccioná todas las que correspondan</p>
 
       <!-- TODO: Pre-load intolerances -->
       <ul class="flex flex-wrap bg-[#f5f5f5] rounded-[11px] p-4">
-        <li v-for="intolerance of intolerances" class="w-45  text-[#333333]">
+        <li v-for="intolerance of intolerances" class="text-[#333333]" :class="props.where === 'addNew' ? 'w-42' : 'w-45'">
           <label>
             <input type="checkbox" name="ingredients[]" :value="intolerance.id" v-model="model.ingredients" class="m-3">
             {{ intolerance.name }}
@@ -44,7 +49,7 @@ onMounted(async () => {
     </template>
     <template v-else>
       <div class="flex justify-center mt-30">
-        <AppLoading id="load"></AppLoading>
+        <AppLoading :id="props.where === 'addNew' ? '' : 'load'"></AppLoading>
       </div>
     </template>
   </div>

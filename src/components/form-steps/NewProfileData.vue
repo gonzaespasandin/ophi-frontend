@@ -1,25 +1,28 @@
 <script setup>
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
+const props = defineProps({
+  where: String
+})
 </script>
 
 <template>
   <!-- <button type="button" @click="emit('previous')">Volver</button> -->
 
-  <h2 class="text-2xl font-semibold">¿De quién estamos hablando?</h2>
+  <h2 class="text-2xl font-semibold text-center" :class="props.where === 'addNew' ? 'text-lg' : 'text-2xl'">¿De quién estamos hablando?</h2>
 
-  <div>
+  <div class="mt-3">
     <label for="name">Nombre</label>
     <input
         id="name"
-        class="border rounded mb-4 block w-full py-1 px-2"
+        class="block border-b-1 border-b-[#009161] text-black w-full p-2 mb-2 rounded-t-[.2rem] bg-[#f5f5f5]"
         type="text"
         name="name"
         v-model="model.name">
   </div>
 
   <button
-      class="py-2 px-4 w-full bg-blue-900 text-white disabled:bg-gray-700 disabled:opacity-50 not-disabled:cursor-pointer"
+      class="action-btn w-full"
       @click="emit('next')"
   >Agregar perfil</button>
 </template>

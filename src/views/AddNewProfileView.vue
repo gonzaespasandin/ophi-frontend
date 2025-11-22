@@ -5,6 +5,7 @@ import {ref} from "vue";
 import {storeProfile} from "../services/profiles.js";
 import {useRouter} from "vue-router";
 import {addNewProfileToAuthUser} from "../services/auth.js";
+import Top from "../components/ui/Top.vue";
 
 const router = useRouter();
 
@@ -27,10 +28,18 @@ async function handleSubmit(formData) {
 
 <template>
   <AuthLayout>
-    <StepsContainer
-        :steps="['intolerances', 'allergies', 'diets', 'new_profile']"
-        @submit="handleSubmit"
-    />
+    <Top/>
+    
+      <div class="bg-white shadow-md  p-3 m-3 rounded-[11px]">
+        <h1 class="text-center text-2xl">Agregar nuevo perfil médico</h1>
+      </div>
+      <StepsContainer
+          :steps="['intolerances', 'allergies', 'diets', 'new_profile']"
+          :where="'addNew'"
+          @submit="handleSubmit"
+          class="bg-white shadow-md p-3 m-3 rounded-[11px]"
+      />
+  
   </AuthLayout>
 </template>
 

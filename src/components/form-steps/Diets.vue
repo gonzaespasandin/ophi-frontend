@@ -7,6 +7,9 @@ const specialDiets = ref([])
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
 const loading = ref(true);
+const props = defineProps({
+  where: String
+})
 
 onMounted(async () => {
   try {
@@ -21,10 +24,10 @@ onMounted(async () => {
 
 <template>
   <!-- <button @click.prevent="emit('previous')">Volver</button> -->
-  <h2 class="text-2xl font-semibold">¿Seguís alguna dieta especial?</h2>
+  <h2 class="text-2xl font-semibold text-center">¿Seguís alguna dieta especial?</h2>
 
   <template v-if="!loading">
-    <p>Seleccioná todas las que correspondan</p>
+    <p class="mb-3 text-center">Seleccioná todas las que correspondan</p>
 
     <!-- TODO: Pre-load specialDiets -->
     <ul class="flex flex-wrap bg-[#f5f5f5] rounded-[11px] p-3 text-[#333333]">

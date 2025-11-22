@@ -27,7 +27,7 @@ let history = [
 
 
 <template>
-    <div class="bg-white p-3" id="history-component">
+    <div class="bg-white p-3 shadow-md " id="history-component">
         <div class="flex justify-between items-center text-[#005B8E]">
             <h2 class="text-md">Tus últimos escaneos</h2>
             <RouterLink to="/" class="text-sm">Ver más <i class="fa-solid fa-arrow-right ps-1"></i></RouterLink>
