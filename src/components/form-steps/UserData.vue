@@ -41,7 +41,9 @@ const props = defineProps({
           class="block border inputs text-black"
           type="password"
           name="password"
-          v-model="model.password">
+          v-model="model.password"
+      >
+      <!-- TODO: Poner los requisitos de la contraseña (incluso antes de la validación) -->
     </div>
 
     <div>

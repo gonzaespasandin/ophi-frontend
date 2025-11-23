@@ -1,5 +1,5 @@
 import axiosInstance from "../config/axios.js";
-import {getAuthUserProfiles, storeProfile} from "./profiles.js";
+import {deleteProfile, getAuthUserProfiles, storeProfile, updateProfile} from "./profiles.js";
 
 
 /** USER VARIABLES */
@@ -100,6 +100,20 @@ export async function register(data) {
 
 export async function addNewProfileToAuthUser(data) {
     await storeProfile(data)
+    user.profiles = await getAuthUserProfiles()
+
+    setUser(user)
+}
+
+export async function updateProfileFromAuthUser(profile) {
+    await updateProfile(profile)
+    user.profiles = await getAuthUserProfiles()
+
+    setUser(user)
+}
+
+export async function deleteProfileFromAuthUser(id) {
+    await deleteProfile(id)
     user.profiles = await getAuthUserProfiles()
 
     setUser(user)

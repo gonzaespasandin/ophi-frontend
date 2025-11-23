@@ -1,0 +1,41 @@
+<script setup>
+import {onMounted, ref} from "vue";
+import {getListOfSpecialDiets} from "../../services/ingredients.js";
+import InlineLoading from "../loadings/InlineLoading.vue";
+
+const props = defineProps(['where']);
+const model = defineModel();
+
+const loading = ref(false);
+const specialDiets = ref([]);
+
+onMounted(async () => {
+  loading.value = true;
+
+  try {
+    console.log({model});
+    console.log('Getting special diets')
+    specialDiets.value = await getListOfSpecialDiets();
+  } catch (error) {
+    // TODO: Handle error
+    console.log('No se pudo traer las intolerancias', error);
+  }
+
+  loading.value = false;
+})
+</script>
+
+<template>
+  <InlineLoading v-if="loading" />
+
+  <template v-else>
+    <ul class="flex flex-wrap bg-[#f5f5f5] rounded-[11px] p-3 text-[#333333]">
+      <li v-for="diet of specialDiets"  class="w-45">
+        <label>
+          <input type="checkbox" name="ingredients[]" :value="diet.id" v-model="model" class="m-3">
+          {{ diet.name }}
+        </label>
+      </li>
+    </ul>
+  </template>
+</template>

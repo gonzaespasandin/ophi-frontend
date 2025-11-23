@@ -13,6 +13,7 @@ import ProductView from './views/ProductView.vue';
 import NotFoundView from './views/NotFoundView.vue';
 import SearchListView from './views/SearchListView.vue';
 import AddNewProfileView from "./views/AddNewProfileView.vue";
+import ProfileEditView from "./views/ProfileEditView.vue";
 
 // TODO: Implement named routes
 const routes = [
@@ -39,6 +40,11 @@ const routes = [
     {
         'path': '/profile',
         'component': ProfileView,
+        'meta': { 'auth': true }
+    },
+    {
+        'path': '/profile/:id/edit',
+        'component': ProfileEditView,
         'meta': { 'auth': true }
     },
     {

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { getRecomendedProducts } from '../../services/product';
-import AppLoading from "../AppLoading.vue";
+import AppLoading from "../loadings/AppLoading.vue";
 import { A11y, Virtual } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import 'swiper/css';

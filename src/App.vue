@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 
 import axiosInstance from "./config/axios.js";
 
-import AppLoading from "./components/AppLoading.vue";
+import AppLoading from "./components/loadings/AppLoading.vue";
 
 const loading = ref(false)
 
