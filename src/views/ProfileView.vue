@@ -127,7 +127,7 @@ function handleDeleteProfile() {
                   </RouterLink>
                 </div>
                 <div class="mx-3">
-                  <span class=" block">Restricción Alimenticia</span>
+                  <span class=" block text-[#005B8E]">Restricción Alimenticia</span>
                   <p class="py-1 rounded-b bg-white/50">
                     {{ profile.ingredients.slice(0, 2).map(i => i.name).join(', ') }}...
                   </p>
