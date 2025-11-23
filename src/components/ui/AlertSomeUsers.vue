@@ -13,7 +13,7 @@ const usersTrue = ref([])
 const usersFalse = ref([]);
 const hiddenFalse = ref(true);
 const hiddenTrue = ref(true);
-const hiddenIngredienets = ref(true);
+const hiddenIngredienets = ref({forWho: null, state: false});
 
 console.log(props.safe);
 
@@ -35,7 +35,6 @@ function handleClick(which) {
             hiddenTrue.value = false;
         }
     } else {
-        
         if(!hiddenFalse.value) {
             hiddenFalse.value = true;
         } else {
@@ -44,45 +43,64 @@ function handleClick(which) {
     }
 }
 
-function handleIngredientsClick() {
-    if(hiddenIngredienets.value) {
-        hiddenIngredienets.value = false
+function handleIngredientsClick(user) {
+    if (hiddenIngredienets.value.forWho === user) {
+        hiddenIngredienets.value.state = !hiddenIngredienets.value.state;
     } else {
-        hiddenIngredienets.value = true
+        hiddenIngredienets.value = { forWho: user, state: true };
     }
 }
 
 </script>
 
 <template>
-    <div v-if="usersTrue.length > 0" class=" max-w-80 m-auto flex justify-between px-5 items-center text-white h-14" :class="hiddenTrue ? 'success-some' : 'success-some-bordered'" @click="handleClick(true)">
-        <div class="flex items-center gap-3">
+    <div v-if="usersTrue.length > 0" class=" max-w-80 m-auto flex justify-between px-5 items-center text-white h-14" :class="hiddenTrue ? 'success-some transition-all delay-400 duration-200' : 'success-some-bordered transition-all duration-100'" @click="handleClick(true)">
+        <div class="flex items-center gap-3 ">
             <i class="fa-solid fa-circle-check text-4xl"></i>
             <p>Seguro</p>
         </div>
-        <i class="fa-solid fa-chevron-up"></i>
+        <i class="fa-solid fa-chevron-up transition-all" :class="hiddenTrue ? 'rotate-0' : 'rotate-180'"></i>
     </div>
-    <ul :class="hiddenTrue ? 'hidden' : ''" class="max-w-80 m-auto true">
-        <li v-for="user of usersTrue" :key="user.id" class="bg-[#F5F5F5] p-2 ">
+    <ul :class="hiddenTrue ? 'max-h-0' : 'max-h-96 '" class="max-w-80 m-auto true overflow-hidden transition-all duration-500">
+        <li v-for="user of usersTrue" :key="user.id" class="bg-[#00916146] p-2 px-5">
             <span>{{ user.forWho }}</span>
         </li>
     </ul>
-    <div v-if="usersFalse.length > 0" class="max-w-80 m-auto mt-4 flex justify-between px-5 items-center text-white h-14" :class="hiddenFalse ? 'danger-some' : 'danger-some-bordered'" @click="handleClick(false)">
+    <div v-if="usersFalse.length > 0" class="max-w-80 m-auto mt-4 flex justify-between px-5 items-center text-white h-14" :class="hiddenFalse ? 'danger-some delay-400 duration-200' : 'danger-some-bordered transition-all duration-100'" @click="handleClick(false)">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
             <p>Peligro</p>
         </div>
-        <i class="fa-solid fa-chevron-up"></i>
+        <i class="fa-solid fa-chevron-up  transition-all" :class="hiddenFalse ? 'rotate-0' : 'rotate-180'"></i>
     </div>
-    <ul  :class="hiddenFalse ? 'hidden' : ''" class="max-w-80 m-auto false trasition-all">
+    <ul :class="hiddenFalse ? 'max-h-0' : 'max-h-96 '" class="max-w-80 m-auto false overflow-hidden transition-all duration-500 bg-[#c43b5244]">
         <li v-for="user of usersFalse" :key="user.id">
             <div class="flex flex-col">
-                <div class="flex items-center justify-between p-2" @click="handleIngredientsClick()">
+                <div class="flex items-center justify-between p-2 bg-[#c43b525b] px-5" @click="handleIngredientsClick(user.forWho)">
                     <span>{{ user.forWho }}</span>
-                    <i class="fa-solid fa-chevron-up"></i>
+                    <i class="fa-solid fa-chevron-up transition-all" :class="(hiddenIngredienets.forWho === user.forWho && hiddenIngredienets.state) ? 'rotate-180' : 'rotate-0'"></i>
                 </div>
-                <span v-for="unSafeIngredient of user.unsafeIngredients" :class="hiddenIngredienets ? 'hidden' : ''" class="px-3">- {{ unSafeIngredient }}</span>
+               <div :class="(hiddenIngredienets.forWho === user.forWho && hiddenIngredienets.state) ? 'max-h-96' : 'max-h-0'" class="px-5 overflow-hidden  transition-all duration-200 ingr">
+                 <p class="py-1">{{ user.unsafeIngredients.join(', ') }}</p>
+               </div>
             </div>
         </li>
     </ul>
 </template>
+
+
+<style scoped>
+li:last-child {
+    border-bottom-left-radius: 11px;
+    border-bottom-right-radius: 11px;
+    border-bottom: 0;
+}
+
+
+
+.false {
+    border-bottom-left-radius: 11px;
+    border-bottom-right-radius: 11px;
+}
+
+</style>

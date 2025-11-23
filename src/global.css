@@ -169,11 +169,6 @@ p {
     }
 }
 
-.false {
-    li {
-        border-bottom: 1px solid #C43B52;
-    }
-}
 
 .search-list-item {
     border-radius: .8rem;
@@ -182,7 +177,7 @@ p {
 .SearchView-list {
     li {
         border-bottom: 1px solid #009161;
-        padding: 1rem;
+        padding: .5rem 1rem;
     }
 }
 

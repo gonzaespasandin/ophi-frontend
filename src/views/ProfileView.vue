@@ -61,8 +61,7 @@ function handleClick(who) {
 <template>
   <AuthLayout>
     <Top/>
-    <Back/>
-    <SomeUserInfo :user="user"/>
+    <SomeUserInfo class="mt-15" :user="user"/>
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
@@ -89,7 +88,7 @@ function handleClick(who) {
                   <i class="fa-solid fa-pen-to-square text-[#005B8E] text-2xl"></i>
                 </div>
                 <div class="mx-3">
-                  <span class=" block">Restricción Alimenticia</span>
+                  <span class=" block text-[#005B8E] font-medium">Restricción Alimenticia</span>
                   <p class="py-1 rounded-b bg-white/50">
                     {{ profile.ingredients.slice(0, 2).map(i => i.name).join(', ') }}...
                   </p>
@@ -101,7 +100,7 @@ function handleClick(who) {
         </ul>
         <div class="mt-4">
           <p v-if="otherProfiles.length === 0" class="text-center block shadow-md  bg-white py-5 rounded-[11px] mb-5">Aún no tenés perfiles familiares</p>
-          <RouterLink to="/add-new-profile" class="action-btn"><i class="fa-solid fa-plus text-3xl"></i></RouterLink>
+          <RouterLink to="/add-new-profile" class="action-btn mb-6"><i class="fa-solid fa-plus text-3xl"></i></RouterLink>
         </div>
       </div>
       <div v-else-if="myProfile.length > 0">
@@ -116,10 +115,10 @@ function handleClick(who) {
     </div>
 
 
-    <button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button>
+    <!-- <button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button> -->
 
     <!-- Definitely not final styling, just something temporal  -->
-    <button @click="handleLogout" class="w-full py-2 bg-rose-600 hover:bg-rose-500 transition rounded mt-8 text-white cursor-pointer">Cerrar sesión</button>
+    <!-- <button @click="handleLogout" class="w-full py-2 bg-rose-600 hover:bg-rose-500 transition rounded mt-8 text-white cursor-pointer">Cerrar sesión</button> -->
   </AuthLayout>
 </template>
 

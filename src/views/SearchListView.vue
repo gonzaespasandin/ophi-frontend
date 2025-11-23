@@ -26,7 +26,7 @@ onMounted(() => {
             </div>
             <div class="bg-white m-3 p-3">
                 <ul>
-                    <li v-for="product of products" :key="product.id" class=" mb-3 border-2 border-[#009161] search-list-item p-2">
+                    <li v-for="product of products" :key="product.id" class=" mb-3 bg-[#f5f5f5] search-list-item p-2 px-3">
                         <RouterLink :to="`/product/${product.name}/${product.brand}`">
                             <h3 class="">{{ product.name }}</h3>
                             <p class="text-[14px]">Marca: {{ product.brand }}</p>
