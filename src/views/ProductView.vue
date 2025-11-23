@@ -8,7 +8,7 @@ import Top from "../components/ui/Top.vue";
 import AuthLayout from '../layouts/AuthLayout.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 import { useProductSafety } from '../composables/useProductSafety.js';
-import AppLoading from '../components/AppLoading.vue';
+import AppLoading from '../components/loadings/AppLoading.vue';
 
 let unsuscribeToAuthObserver = () => {};
 
