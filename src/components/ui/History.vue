@@ -26,7 +26,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-white p-3 rounded-lg" id="history-component">
+  <div class="bg-white p-3 shadow-md rounded-lg" id="history-component">
     <div class="flex justify-between items-center text-[#005B8E] mb-4">
       <h2 class="text-lg font-semibold">Tus últimos escaneos</h2>
       <RouterLink to="/history" class="text-sm hover:underline">

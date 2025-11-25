@@ -25,11 +25,13 @@ onMounted(() => {
 
       <ul v-if="computedList.length">
         <template v-for="item of computedList" :key="item.id">
-          <li v-if="!item.is_group">
-            <label>
+          <li v-if="!item.is_group" class="input-checkbox flex items-center justify-between">
+            <label class="w-full">
               <input type="checkbox" name="ingredients[]" :value="item.id" v-model="model">
               {{ item.name }}
+
             </label>
+            <i class="fa-solid fa-arrow-right"></i>
           </li>
         </template>
       </ul>
@@ -45,4 +47,10 @@ onMounted(() => {
   </dialog>
 </template>
 
-<style scoped></style>
+<style scoped>
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.616);
+}
+
+</style>

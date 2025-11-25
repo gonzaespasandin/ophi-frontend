@@ -41,7 +41,7 @@ const toggleResults = () => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+  <div class="bg-[#f5f5f5] rounded-lg overflow-hidden">
     <div 
       class="p-4 transition-colors"
       @click="toggleResults"
@@ -49,18 +49,18 @@ const toggleResults = () => {
       <div class="flex items-start justify-between gap-3">
 
         <div class="flex-1 min-w-0">
-          <h2 class="text-lg font-semibold text-gray-800 truncate">
+          <h2 class="text-lg font-semibold text-[#005B8E] truncate">
             {{ item.product.name }}
           </h2>
-          <p class="text-sm text-gray-500 mt-1">{{ item.product.brand }}</p>
-          <p class="text-xs text-gray-400 mt-1">
+          <p class="text-sm text-[#005B8E] mt-1">{{ item.product.brand }}</p>
+          <p class="text-xs text-[#005B8E] mt-1">
             {{ formatDate(item.scanned_at) }}
           </p>
         </div>
 
-        <div class="flex-shrink-0">
+        <div class="shrink-0">
           <i 
-            class="fa-solid fa-chevron-down text-gray-400 text-lg transition-transform duration-300"
+            class="fa-solid fa-chevron-down text-[#005B8E] text-lg transition-transform duration-300"
             :class="{ 'rotate-180': isExpanded }"
           ></i>
         </div>
@@ -72,7 +72,7 @@ const toggleResults = () => {
       :class="isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'"
     >
       <div class="px-4 pb-4 border-t border-gray-200 pt-3">
-        <h3 class="text-sm font-medium text-gray-700 mb-2">Resultados:</h3>
+        <h3 class="text-sm font-medium text-[#005B8E] mb-2">Resultados:</h3>
         
         <Alert
           v-if="item.results.length === 1"

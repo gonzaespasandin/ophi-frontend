@@ -1,14 +1,14 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import {getListOfAllergies} from "../../services/ingredients.js";
-import InlineLoading from "../loadings/InlineLoading.vue";
+import AppLoading from "../loadings/AppLoading.vue";
 import ListOfFullIngredientsModal from "./ListOfFullIngredientsModal.vue";
 
 const props = defineProps(['where']);
 const model = defineModel();
 
 const list = ref([])
-const loading = ref(false);
+const loading = ref(true);
 const allergies = ref([]);
 const showModal = ref(false)
 
@@ -29,7 +29,9 @@ function handleShowFullList(argList) {
 </script>
 
 <template>
-  <InlineLoading v-if="loading" />
+  <div v-if="loading" class="flex justify-center mt-10">
+    <AppLoading  id="load"/>
+  </div>
 
   <template v-else>
     <ul class="bg-[#f5f5f5] rounded-[11px] text-[#333333] p-3">
@@ -56,3 +58,10 @@ function handleShowFullList(argList) {
     <ListOfFullIngredientsModal @close="showModal = false" v-if="showModal" v-model="model" :list class="modal"/>
   </template>
 </template>
+
+<style scoped>
+#load {
+  color: white;
+}
+
+</style>

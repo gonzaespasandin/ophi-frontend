@@ -292,3 +292,13 @@ p {
 .roboto-slab {
     font-family: 'Roboto-slab', serif;
 }
+
+.input-checkbox {
+    border: 1px solid black;
+    border-radius: 11px;
+    padding: 1rem;
+}
+
+input[type="checkbox"]:checked {
+    background-color: red;
+}

@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {getListOfIntolerances} from "../../services/ingredients.js";
-import InlineLoading from "../loadings/InlineLoading.vue";
+import AppLoading from "../loadings/AppLoading.vue";;
 
 const props = defineProps(['where']);
 const model = defineModel();
@@ -26,7 +26,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <InlineLoading v-if="loading" />
+  <div v-if="loading" class="flex justify-center mt-10">
+    <AppLoading  id="load"/>
+  </div>
 
   <template v-else>
 
@@ -40,3 +42,10 @@ onMounted(async () => {
     </ul>
   </template>
 </template>
+
+<style scoped>
+#load {
+  color: white;
+}
+
+</style>
