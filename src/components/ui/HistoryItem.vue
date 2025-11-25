@@ -76,7 +76,7 @@ const toggleResults = () => {
         
         <Alert
           v-if="item.results.length === 1"
-          :safe="item.results[0].is_safe"
+          :safe="item.results"
         />
 
         <AlertSomeUsers

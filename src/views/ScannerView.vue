@@ -321,7 +321,7 @@ onBeforeUnmount(async () => {
           <template v-if="safetyDataReady">
             <Alert
               v-if="user.profiles && user.profiles.length === 1 && safe.length > 0"
-              :safe="safe[0].isSafe"
+              :safe="safe"
             />
             <AlertSomeUsers
               v-else-if="user.profiles && user.profiles.length > 1 && safe.length > 0"
