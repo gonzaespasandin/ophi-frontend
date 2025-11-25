@@ -75,6 +75,9 @@ const setupResultReceiver = () => {
               console.log('normalizedIngredients:', normalizedIngredients.value);
               console.log('unsafeIngredients:', unsafeIngredients.value);
               safetyDataReady.value = true;
+
+              await saveToHistory(data, safe.value);
+              console.log('Escaneo guardado en el historial correctamente');
             }
             
             showError.value = false;
@@ -265,6 +268,28 @@ function boldProductName(productName) {
   const regex = new RegExp(nameSearch.value, "i");
   return productName.replace(regex, match => `<span class="font-semibold">${match}</span>`);
 }
+
+// Guardar en el historial
+const saveToHistory = async (productData, safetyResults) => {
+  try {
+    const results = safetyResults.map(result => ({
+      profile_id: user.value.profiles.find(p => p.name === result.forWho)?.id,
+      is_safe: result.isSafe,
+      unsafe_ingredients: result.unsafeIngredients || []
+    }));
+
+    const validResults = results.filter(r => r.profile_id);
+
+    await api.post('/api/history', {
+      product_id: productData.id,
+      results: validResults,
+    });
+
+    console.log('Escaneo guardado en el historial correctamente');
+  } catch (error) {
+    console.error('Error al guardar en el historial', error);
+  }
+};
 
 // Lifecycle hooks
 onMounted(async () => {

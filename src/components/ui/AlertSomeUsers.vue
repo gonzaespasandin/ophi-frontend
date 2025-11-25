@@ -59,7 +59,7 @@ function handleIngredientsClick(user) {
             <i class="fa-solid fa-circle-check text-4xl"></i>
             <p>Seguro</p>
         </div>
-        <i class="fa-solid fa-chevron-up transition-all" :class="hiddenTrue ? 'rotate-0' : 'rotate-180'"></i>
+        <i class="fa-solid fa-chevron-down transition-all duration-300" :class="{ 'rotate-180': !hiddenTrue }"></i>
     </div>
     <ul :class="hiddenTrue ? 'max-h-0' : 'max-h-96 '" class="max-w-80 m-auto true overflow-hidden transition-all duration-500">
         <li v-for="user of usersTrue" :key="user.id" class="bg-[#00916146] p-2 px-5">
@@ -71,14 +71,14 @@ function handleIngredientsClick(user) {
             <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
             <p>Peligro</p>
         </div>
-        <i class="fa-solid fa-chevron-up  transition-all" :class="hiddenFalse ? 'rotate-0' : 'rotate-180'"></i>
+        <i class="fa-solid fa-chevron-down transition-all duration-300" :class="{ 'rotate-180': !hiddenFalse }"></i>
     </div>
     <ul :class="hiddenFalse ? 'max-h-0' : 'max-h-96 '" class="max-w-80 m-auto false overflow-hidden transition-all duration-500 bg-[#c43b5244]">
         <li v-for="user of usersFalse" :key="user.id">
             <div class="flex flex-col">
                 <div class="flex items-center justify-between p-2 bg-[#c43b525b] px-5" @click="handleIngredientsClick(user.forWho)">
                     <span>{{ user.forWho }}</span>
-                    <i class="fa-solid fa-chevron-up transition-all" :class="(hiddenIngredienets.forWho === user.forWho && hiddenIngredienets.state) ? 'rotate-180' : 'rotate-0'"></i>
+                    <i class="fa-solid fa-chevron-down transition-all duration-300" :class="{ 'rotate-180': (hiddenIngredienets.forWho === user.forWho && hiddenIngredienets.state) }"></i>
                 </div>
                <div :class="(hiddenIngredienets.forWho === user.forWho && hiddenIngredienets.state) ? 'max-h-96' : 'max-h-0'" class="px-5 overflow-hidden  transition-all duration-200 ingr">
                  <p class="py-1">{{ user.unsafeIngredients.join(', ') }}</p>
