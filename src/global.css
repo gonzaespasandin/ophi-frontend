@@ -29,7 +29,7 @@ p {
 
 .action-btn {
     background-color: var(--action);
-    border-radius: 2rem;
+    border-radius: 11px;
     color: white;
     height: 40px;
     display: flex;
@@ -40,7 +40,7 @@ p {
 .secondary-action-btn {
     background-color: white;
     border: 2px solid var(--action);
-    border-radius: 2rem;
+    border-radius: 11px;
     height: 40px;
     display: flex;
     justify-content: center;

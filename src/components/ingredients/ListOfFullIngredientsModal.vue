@@ -19,13 +19,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <dialog ref="dialog" @close="emit('close')" class="m-auto w-[min(100%-32px,388px)] min-h-[80dvh] p-4 grid">
+  <dialog ref="dialog" @close="emit('close')" class="m-auto w-[min(100%-32px,388px)] min-h-[80dvh] p-4 grid rounded-[11px]">
     <div class="grid grid-rows-[auto_1fr_auto]">
       <input class="w-full py-2 px-4 mb-4 bg-neutral-100 border border-black/10" type="text" v-model.trim="query" placeholder="Buscar...">
 
       <ul v-if="computedList.length">
         <template v-for="item of computedList" :key="item.id">
-          <li v-if="!item.is_group" class="input-checkbox flex items-center justify-between">
+          <li v-if="!item.is_group" class="input-checkbox mb-2 flex items-center justify-between">
             <label class="w-full">
               <input type="checkbox" name="ingredients[]" :value="item.id" v-model="model">
               {{ item.name }}

@@ -14,7 +14,12 @@ const emit = defineEmits(['submit'])
 const router = useRouter()
 
 const currentStep = ref(0)
-const props = defineProps({steps: {type: Array, required: true}, where: String});
+const props = defineProps({
+  steps: {type: Array, required: true}, 
+  where: String,
+  errors: {type: Object, default: () => ({})},
+  loading: {type: Boolean, default: false}
+});
 const stepsDictionary = {
   'terms': TermsAndConditions,
   'new_user_data': UserData,
@@ -63,6 +68,8 @@ function handlePrevious() {
         @next="handleNext"
         @previous="handlePrevious"
         :where="where"
+        :errors="errors"
+        :loading="loading"
     />
   </form>
 </template>

@@ -67,10 +67,10 @@ function notifyAllSuscribers() {
 export async function login(credentials) {
     const response = await axiosInstance.post('/api/login', credentials)
 
-    const data = response.data
-    data.profiles = await getAuthUserProfiles()
+    const userData = response.data.user || response.data
+    userData.profiles = await getAuthUserProfiles()
 
-    setUser(data)
+    setUser(userData)
 }
 
 export async function logout() {
@@ -86,7 +86,7 @@ export async function logout() {
 export async function register(data) {
     // Register the user
     const result = await axiosInstance.post('/api/register', data)
-    const user = result.data
+    const user = result.data.user || result.data
 
     // Login
     await login({email: user.email, password: data.password})

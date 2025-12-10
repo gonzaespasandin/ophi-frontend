@@ -13,75 +13,54 @@ const formDefaultValues = {
 }
 const formData = ref({...formDefaultValues})
 const formErrors = ref({...formDefaultValues})
-const formErrorsFront = ref({...formDefaultValues});
-const unauthorizedError = ref(null);
+const generalError = ref(null);
+
+function clearError(field) {
+  formErrors.value[field] = '';
+  generalError.value = null;
+}
 
 async function handleSubmit() {
-  let errors = false;
+  formErrors.value = {...formDefaultValues};
+  generalError.value = null;
+  
+  let hasErrors = false;
+  
   if(formData.value.email === '') {
-    formErrors.value.email = ['El email es obligatorio'];
-    errors = true;
-  } else {
-    errors = false
-    formErrors.value.email = '';
-  }
-
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-  if(!emailRegex.test(formData.value.email)) {
-    formErrors.value.email = ['El email no es válido'];
-    errors = true;
-  } else {
-    errors = false
-    formErrors.value.email = '';
+    formErrors.value.email = 'El email es obligatorio';
+    hasErrors = true;
   }
 
   if(formData.value.password === '') {
-    formErrors.value.password = ['La contraseña es obligatoria']
-    errors = true;
-  } else {
-    errors = false;
-    formErrors.value.password = '';
+    formErrors.value.password = 'La contraseña es obligatoria';
+    hasErrors = true;
   }
 
-  if(errors) {
-    confirm.log('erros')
+  if(hasErrors) {
+    return;
   }
 
   try {
-    loading.value = true
-    const data = await login(formData.value)
-    console.log('REDIRECT')
-    router.push('/')
+    loading.value = true;
+    const data = await login(formData.value);
+    router.push('/');
   } catch (error) {
-    console.log({error})
+    console.error({error});
+    
     if (error.status === 422) {
-      console.error('Error de validación', error.response.data.errors.email)
-
-      if(error.response.data.errors.email) {
-        formErrors.value.email = error.response.data.errors.email ?? ''
-      } else {
-        formErrors.value.email = ''
-      }
-
-      if(error.response.data.errors.password) {
-        formErrors.value.password = error.response.data.errors.password ?? '';
-      } else {
-        formErrors.value.password = ''
-      }
-    } else {
-      formErrors.value.email = ''
-      formErrors.value.password = ''
+      const errors = error.response?.data?.errors || {};
+      formErrors.value.email = errors.email?.[0] || '';
+      formErrors.value.password = errors.password?.[0] || '';
+    } 
+    else if (error.status === 401) {
+      generalError.value = error.response?.data?.message || 'Las credenciales no coinciden';
+    } 
+    else {
+      generalError.value = 'Ha ocurrido un error. Por favor, intenta de nuevo.';
     }
-    if (error.status === 401) {
-      console.error('No autorizado');
-      unauthorizedError.value = 'El email o la contraseña no coinciden';
-    } else {
-      unauthorizedError.value = null;
-    }
+  } finally {
+    loading.value = false;
   }
-
-  loading.value = false
 }
 </script>
 
@@ -92,30 +71,53 @@ async function handleSubmit() {
       <div class="flex flex-col justify-between flex-grow">
         <img src="../assets/img/logo.png" alt="">
         <div class="flex flex-col justify-center mb-5 px-3 h-50">
-          <h1 class="text-4xl text-center">Iniciar sesión</h1>
+          <h1 class="text-4xl mb-3 text-center">Iniciar sesión</h1>
           <p>Por favor, completá los siguientes campos.</p>
         </div>
       </div>
 
 
       <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-center p-4 min-h-80 bg-[#005B8E]">
-        <div v-if="unauthorizedError !== null" class="bg-[#C43B52] flex justify-center p-2 mb-4 rounded-[11px] text-white">
-          <p>{{ unauthorizedError }}</p>
+        <div v-if="generalError" class="bg-[#C43B52] flex justify-center p-3 mb-4 rounded-[11px] text-white">
+          <p>{{ generalError }}</p>
         </div>
+        
         <div class="mb-4">
           <label for="email" aria-label="Email"></label>
-          <input class="block border " type="text" id="email" name="email" v-model="formData.email" placeholder="Email" autofocus :class="formErrors.email ? 'inputs-wrong' : 'inputs'">
-          <p v-if="formErrors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">{{ formErrors.email.join('') ?? '' }}</p>
+          <input 
+            class="block border" 
+            type="email" 
+            id="email" 
+            name="email" 
+            v-model="formData.email" 
+            @input="clearError('email')"
+            placeholder="Email" 
+            autofocus 
+            :class="formErrors.email ? 'inputs-wrong' : 'inputs'"
+          >
+          <p v-if="formErrors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
+            {{ formErrors.email }}
+          </p>
         </div>
 
         <div>
           <label for="password" aria-label="Contraseña"></label>
-          <InputPassword id="password" name="password" v-model="formData.password" placeholder="Contraseña" :class="formErrors.password ? 'inputs-wrong' : 'inputs'" />
-          <!-- <input class="block border inputs" type="password" id="password" name="password" v-model="formData.password" placeholder="Contraseña" > -->
-          <p v-if="formErrors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">{{ formErrors.password.join('') ?? '' }}</p>
+          <InputPassword 
+            id="password" 
+            name="password" 
+            v-model="formData.password"
+            @input="clearError('password')"
+            placeholder="Contraseña" 
+            :class="formErrors.password ? 'inputs-wrong' : 'inputs'" 
+          />
+          <p v-if="formErrors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
+            {{ formErrors.password }}
+          </p>
         </div>
 
-        <button type="submit" class="action-btn mt-6">Iniciar Sesión</button>
+        <button type="submit" :disabled="loading" class="action-btn mt-6">
+          {{ loading ? 'Iniciando...' : 'Iniciar Sesión' }}
+        </button>
       </form>
     </div>
  </div>

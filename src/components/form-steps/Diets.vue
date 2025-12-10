@@ -11,16 +11,19 @@ const props = defineProps({
 
 <template>
   <!-- <button @click.prevent="emit('previous')">Volver</button> -->
-  <h2 class="text-2xl font-semibold text-center">¿Seguís alguna dieta especial?</h2>
-
-    <p class="mb-3 text-center">Seleccioná todas las que correspondan</p>
-
+  <div>
+    <h2 class="text-2xl font-semibold text-center">¿Seguís alguna dieta especial?</h2>
+    <p class="mb-3 text-center mt-2">Seleccioná todas las que correspondan</p>
+  </div>
+  
+  <div class="flex flex-col justify-between grow">
     <SpecialDietsPicker v-model="model.ingredients" />
-
+  
     <button
         class="action-btn mt-6 w-full"
         @click="emit('next')"
     >Siguiente</button>
+  </div>
 </template>
 <style scoped>
   #load {

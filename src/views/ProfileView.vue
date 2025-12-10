@@ -74,15 +74,15 @@ function handleDeleteProfile() {
 <template>
   <AuthLayout>
     <Teleport to="#modal-root">
-      <dialog ref="dialog" class="m-auto w-[min(100%-32px,388px)]  p-4 open:grid">
+      <dialog ref="dialog" class="m-auto w-[min(100%-32px,388px)] rounded-[11px] p-4 open:grid">
         <p class="text-lg font-semibold">¿Estás seguro de que querés eliminar este perfil?</p>
         <p class="mb-4">Esta acción es irreversible</p>
 
         <SomeUserInfo :user="{name: deleteProfile.name}" />
 
         <form action="#" class="grid grid-cols-2 gap-4 mt-4" @submit.prevent="handleDeleteProfile">
-          <button class="py-2 px-4 border" type="button" @click="dialog.close()">Cancelar</button>
-          <button class="py-2 px-4 bg-red-300">Eliminar</button>
+          <button class="py-2 px-4 border rounded-[11px]" type="button" @click="dialog.close()">Cancelar</button>
+          <button class="py-2 px-4 bg-red-600 rounded-[11px] text-white">Eliminar</button>
         </form>
       </dialog>
     </Teleport>
@@ -138,8 +138,8 @@ function handleDeleteProfile() {
           </li>
         </ul>
         <div class="mt-4">
-          <p v-if="otherProfiles.length === 0" class="text-center block shadow-md  bg-white py-5 rounded-[11px] mb-5">Aún no tenés perfiles familiares</p>
-          <RouterLink to="/add-new-profile" class="action-btn"><i class="fa-solid fa-plus text-3xl"></i></RouterLink>
+          <RouterLink to="/add-new-profile" class="action-btn"><i class="fa-solid fa-plus text-xl mr-2"></i>Agregar perfil</RouterLink>
+          <p v-if="otherProfiles.length === 0" class="text-center block shadow-md bg-white py-5 rounded-[11px] mt-5">Aún no tenés perfiles familiares</p>
         </div>
       </div>
       <div v-else-if="myProfile.length > 0">
@@ -154,11 +154,13 @@ function handleDeleteProfile() {
         </div>
       </div>
     </div>
+    <div class="p-3">
+      <!--<button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button>-->
 
-    <button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button>
-
-    <!-- Definitely not final styling, just something temporal  -->
-    <button @click="handleLogout" class="w-full py-2 bg-rose-600 hover:bg-rose-500 transition rounded mt-8 text-white cursor-pointer">Cerrar sesión</button>
+      <!-- Definitely not final styling, just something temporal  -->
+      <button @click="handleLogout" class="w-full py-2 bg-red-600 transition rounded-[11px] mt-8 text-white cursor-pointer"><i class="fa-solid fa-right-from-bracket text-xl mr-2"></i>Cerrar sesión</button>
+    </div>
+    
   </AuthLayout>
 </template>
 

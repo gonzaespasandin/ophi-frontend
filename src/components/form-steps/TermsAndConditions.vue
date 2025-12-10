@@ -10,7 +10,7 @@ const props = defineProps({
 <template>
   <!-- <button @click.prevent="emit('previous')">Volver</button> -->
 
-  <div class="bg-[#333333] p-4 rounded-[11px] max-h-[20rem] overflow-auto">
+  <div class="bg-[#333333] p-4 rounded-[11px] overflow-auto">
     <h2 class="text-xl font-semibold">Términos de condiciones y servicios</h2>
     <div class="mt-3">
       <h3>1. Aceptación de Términos</h3>

@@ -35,7 +35,7 @@ const productsForSearchListView = ref([]);
 // Inicializar licencia y cargar WASM (solo una vez)
 const initializeDynamsoft = () => {
   Dynamsoft.License.LicenseManager.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA0Njc1ODAyLU1UQTBOamMxT0RBeUxYZGxZaTFVY21saGJGQnliMm8iLCJtYWluU2VydmVyVVJMIjoiaHR0cHM6Ly9tZGxzLmR5bmFtc29mdG9ubGluZS5jb20iLCJvcmdhbml6YXRpb25JRCI6IjEwNDY3NTgwMiIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbSIsImNoZWNrQ29kZSI6LTE5NDg1MDM5MzV9");
-  /* Si llegasemos a usar vue tendriamos que poner la ruta de los archivos wasm, worker, etc
+  /* Si llegasemos a usar el sdk de Dynamsoft tendriamos que poner la ruta de los archivos wasm, worker, etc
   Dynamsoft.Core.CoreModule.engineResourcePaths.rootDirectory = "https://cdn.jsdelivr.net/npm/";
   */
   // Cargar el wasm por adelantado para reducir el tiempo de carga
@@ -225,7 +225,6 @@ const cleanupScanner = async () => {
   }
 };
 
-
 // Autocompletado de nombre
 const handleNameInput = async () => {
   try {
@@ -315,9 +314,10 @@ onBeforeUnmount(async () => {
     <!-- Parte inferior: resultados / fallback -->
     <div class="h-[50%] overflow-y-auto" id="results">
       <div v-if="showProduct && product">
-        <div class="bg-white m-3 p-3">
+        <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
           <h2 class="text-center text-2xl">{{ product.name }}</h2>
-          <span class="block text-center mb-5">Resultados</span>
+          <p class="text-center text-m text-gray-700">{{ product.brand }}</p>
+          <span class="block text-center mt-3 mb-3">Resultados</span>
           <template v-if="safetyDataReady">
             <Alert
               v-if="user.profiles && user.profiles.length === 1 && safe.length > 0"
@@ -330,17 +330,8 @@ onBeforeUnmount(async () => {
           </template>
         </div>
 
-        <div v-if="safetyDataReady" class="bg-white m-3 p-3">
-          <h3
-            :class="safe.length > 0 && safe.some(s => !s.isSafe) ? 'text-[#C43B52]' : 'text-[#009161]'"
-            class="text-2xl"
-          >
-            {{
-              safe.length > 0 && safe.some(s => !s.isSafe)
-                ? unsafeIngredients.join(' - ') || 'Ingredientes'
-                : 'Ingredientes'
-            }}
-          </h3>
+        <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3 rounded-[11px]">
+          <h3 class="text-xl mb-2">Ingredientes:</h3>
           <p>{{ normalizedIngredients.join(', ') }}</p>
         </div>
       </div>

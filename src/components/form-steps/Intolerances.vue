@@ -11,18 +11,22 @@ console.log(props.where);
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col grow">
       <!-- <button @click.prevent="emit('previous')">Volver</button> -->
-    <h2 class="text-2xl font-semibold text-center" :class="props.where === 'addNew' ? 'text-lg' : ''">¿Tenés alguna intolerancia?</h2>
+    <div>
+      <h2 class="text-2xl font-semibold text-center" :class="props.where === 'addNew' ? 'text-lg' : ''">¿Tenés alguna intolerancia?</h2>
+      <p class="text-center mb-4 mt-2">Seleccioná todas las que correspondan</p>
+    </div>
 
-      <p class="text-center mb-4">Seleccioná todas las que correspondan</p>
+    <div class="flex flex-col justify-between grow">
+        <IntolerancesPicker v-model="model.ingredients"/>
+    
+        <button
+            class="action-btn mt-6 w-full"
+            @click="emit('next')"
+        >Siguiente</button>
+    </div>
 
-      <IntolerancesPicker v-model="model.ingredients"/>
-
-      <button
-          class="action-btn mt-6 w-full"
-          @click="emit('next')"
-      >Siguiente</button>
   </div>
 </template>
 
