@@ -4,7 +4,6 @@ import {deleteProfile, getAuthUserProfiles, storeProfile, updateProfile} from ".
 
 /** USER VARIABLES */
 const observers = []
-// TODO: Fix this instance of an object or reference thing
 const emptyUser = {
     id: null,
     name: null,
@@ -96,6 +95,18 @@ export async function register(data) {
     user.profiles = await getAuthUserProfiles()
 
     setUser(user)
+}
+
+export async function sendEmailToResetPassword(data) {
+    const response = await axiosInstance.post('/api/forgot-password', data)
+
+    return response.data
+}
+
+export async function resetPassword(data) {
+    const response = await axiosInstance.post('/api/reset-password', data)
+
+    return response.data
 }
 
 export async function addNewProfileToAuthUser(data) {

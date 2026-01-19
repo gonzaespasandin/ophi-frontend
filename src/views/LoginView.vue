@@ -115,6 +115,10 @@ async function handleSubmit() {
           </p>
         </div>
 
+        <div>
+          <RouterLink to="/forgot-password" class="text-blue-200 underline">¿Olvidaste tu contraseña?</RouterLink>
+        </div>
+
         <button type="submit" :disabled="loading" class="action-btn mt-6">
           {{ loading ? 'Iniciando...' : 'Iniciar Sesión' }}
         </button>

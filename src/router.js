@@ -14,6 +14,8 @@ import NotFoundView from './views/NotFoundView.vue';
 import SearchListView from './views/SearchListView.vue';
 import AddNewProfileView from "./views/AddNewProfileView.vue";
 import ProfileEditView from "./views/ProfileEditView.vue";
+import ForgotPassword from "./views/ForgotPassword.vue";
+import ResetPassword from "./views/ResetPassword.vue";
 
 // TODO: Implement named routes
 const routes = [
@@ -46,6 +48,16 @@ const routes = [
         'path': '/profile/:id/edit',
         'component': ProfileEditView,
         'meta': { 'auth': true }
+    },
+    {
+        'path': '/forgot-password',
+        'component': ForgotPassword,
+        'meta': { 'auth': false }
+    },
+    {
+        'path': '/reset-password/:token/:email',
+        'component': ResetPassword,
+        'meta': { 'auth': false }
     },
     {
         'path': '/scanner',
