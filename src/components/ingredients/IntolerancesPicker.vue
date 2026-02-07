@@ -16,6 +16,7 @@ onMounted(async () => {
     console.log({model});
     console.log('Getting intolerances')
     intolerances.value = await getListOfIntolerances();
+    console.log({Intolerances: intolerances.value});
   } catch (error) {
     // TODO: Handle error
     console.log('No se pudo traer las intolerancias', error);

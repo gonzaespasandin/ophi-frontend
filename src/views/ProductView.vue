@@ -28,13 +28,13 @@ onMounted(async () => {
     try {
         product.value = await findByNameAndBrand(route.params.name, route.params.brand);
         // const brands = product.value.map(p => p.brand);
-        console.log(product.value);
+        console.log({Product: product.value});
 
         if (product.value.length === 0 || product.value === 404) {
             product.value = null;
             return;
         }
-        manageLocalStorage(product.value[0].name, product.value[0].brand);
+        manageLocalStorage(product.value[0].name, product.value[0].brand.name);
         loading.value = false;
     } catch (error) {
         console.error('No se pudo obtener el producto por nombre', error);
@@ -66,7 +66,7 @@ function manageLocalStorage(productName, productBrand) {
         p => !(p.name === productName && p.brand === productBrand)
     );
 
-    latestSearches.value.push({name: productName, brand: productBrand});
+    latestSearches.value.push({name: productName, brand: {name: productBrand}});
 
     if(latestSearches.value.length > 4) {
         latestSearches.value.shift();
@@ -87,7 +87,7 @@ function manageLocalStorage(productName, productBrand) {
             <div>
                 <div class="bg-white shadow-md  m-3 p-3 rounded-[.5rem]">
                     <h2 class="text-center text-2xl">{{product.name}}</h2>
-                    <h3 class="text-center font-semibold">{{ product.brand }}</h3>
+                    <h3 class="text-center font-semibold">{{ product.brand.name }}</h3>
                     <span class="block text-center mb-5">Resultados</span>
                     <Alert v-if="user.profiles.length === 1" :safe="safe"></Alert>
                     <AlertSomeUsers v-else :safe="safe"></AlertSomeUsers>

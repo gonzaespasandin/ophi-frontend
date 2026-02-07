@@ -52,7 +52,7 @@ const toggleResults = () => {
           <h2 class="text-lg font-semibold text-[#005B8E] truncate">
             {{ item.product.name }}
           </h2>
-          <p class="text-sm text-[#005B8E] mt-1">{{ item.product.brand }}</p>
+          <p class="text-sm text-[#005B8E] mt-1">{{ item.product.brand.name }}</p>
           <p class="text-xs text-[#005B8E] mt-1">
             {{ formatDate(item.scanned_at) }}
           </p>

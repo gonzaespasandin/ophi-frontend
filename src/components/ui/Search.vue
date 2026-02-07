@@ -2,18 +2,12 @@
 import { ref } from 'vue';
 import {useRouter} from "vue-router";
 
-
 const router = useRouter();
-
-
-
-// const inputValue = ref('');
-
+const inputValue = ref('');
 
 function handleSubmit() {
     router.push('/search');
 }
-
 
 </script>
 

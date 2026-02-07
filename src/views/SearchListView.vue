@@ -12,7 +12,7 @@ const products = ref([]);
 
 onMounted(() => {
     products.value = JSON.parse(localStorage.getItem('products'));
-    console.log(products.value);
+    console.log({ListOfProducts: products.value});
 })
 </script>
 
@@ -27,9 +27,9 @@ onMounted(() => {
             <div class="bg-white m-3 p-3">
                 <ul>
                     <li v-for="product of products" :key="product.id" class=" mb-3 bg-[#f5f5f5] search-list-item p-2 px-3">
-                        <RouterLink :to="`/product/${product.name}/${product.brand}`">
+                        <RouterLink :to="`/product/${product.name}/${product.brand.name}`">
                             <h3 class="">{{ product.name }}</h3>
-                            <p class="text-[14px]">Marca: {{ product.brand }}</p>
+                            <p class="text-[14px]">Marca: {{ product.brand.name }}</p>
                         </RouterLink>
                     </li>
                 </ul>

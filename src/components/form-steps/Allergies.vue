@@ -12,18 +12,20 @@ const props = defineProps({
 </script>
 
 <template>
-    <!-- <button @click.prevent="emit('previous')">Volver</button> -->
     <div>
-      <h2 class="text-2xl font-semibold text-center">¿Tenés alguna alergia?</h2>
-      <p class="text-center mb-3 mt-2">Seleccioná todas las que correspondan</p>
-    </div>
+      <!-- <button @click.prevent="emit('previous')">Volver</button> -->
+      <div>
+        <h2 class="text-2xl font-semibold text-center">¿Tenés alguna alergia?</h2>
+        <p class="text-center mb-3 mt-2">Seleccioná todas las que correspondan</p>
+      </div>
 
-    <div class="flex flex-col justify-between grow">
-      <AllergiesPicker v-model="model.ingredients" />
-      <button
-          class="action-btn mt-6 w-full"
-          @click="emit('next')"
-      >Siguiente</button>
+      <div class="flex flex-col justify-between grow">
+        <AllergiesPicker v-model="model.ingredients" />
+        <button
+            class="action-btn mt-6 w-full"
+            @click="emit('next')"
+        >Siguiente</button>
+      </div>
     </div>
 </template>
 

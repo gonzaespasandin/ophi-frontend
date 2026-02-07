@@ -40,7 +40,7 @@ export async function findByNameAndBrand(name, brand) {
     try {
         const result = await axiosInstance.get(`/api/products/nameandbrand/${name}/${brand}`);
 
-        console.log(result.data);
+        //console.log(result.data);
         return result.data;
     } catch(error) {
         console.error('[services/product.js] -> [findByNameAndBrand]: Error al buscar un producto por nombre y marca', error);

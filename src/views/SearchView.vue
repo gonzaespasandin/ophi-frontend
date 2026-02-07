@@ -58,7 +58,7 @@ async function getInput() {
       return;
     }
     products.value = await getMatchesByName(inputValue.value);
-    console.log(products.value)
+    console.log({ProductsMatches: products.value})
     // Para de vuelta limpiar
     if(inputValue.value === '') {
       products.value = storage.value.length > 0 ? storage.value : [];
@@ -102,11 +102,11 @@ function bold(productName) {
 
     <ul class="SearchView-list">
       <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
-        <RouterLink :to="`/product/${product.name}/${product.brand}`" class="flex justify-between items-center">
+        <RouterLink :to="`/product/${product.name}/${product.brand.name}`" class="flex justify-between items-center">
           <div class="flex flex-col">
             <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
             <p v-else v-html="bold(product.name)" class="text-sm"></p>
-            <span class="font-medium text-[13px]">{{ product.brand }}</span>
+            <span class="font-medium text-[13px]">{{ product.brand.name }}</span>
           </div>
           <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
           <i v-else class="fa-solid fa-arrow-right"></i>

@@ -316,7 +316,7 @@ onBeforeUnmount(async () => {
       <div v-if="showProduct && product">
         <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
           <h2 class="text-center text-2xl">{{ product.name }}</h2>
-          <p class="text-center text-m text-gray-700">{{ product.brand }}</p>
+          <p class="text-center text-m text-gray-700">{{ product.brand.name }}</p>
           <span class="block text-center mt-3 mb-3">Resultados</span>
           <template v-if="safetyDataReady">
             <Alert
@@ -383,12 +383,12 @@ onBeforeUnmount(async () => {
                 class="bg-[#f5f5f5] px-3 py-2 mb-2 rounded"
               >
                 <RouterLink
-                  :to="`/product/${product.name}/${product.brand}`"
+                  :to="`/product/${product.name}/${product.brand.name}`"
                   class="flex justify-between items-center"
                 >
                   <div class="flex flex-col text-left">
                     <span v-html="boldProductName(product.name)"></span>
-                    <span class="font-medium text-sm">{{ product.brand }}</span>
+                    <span class="font-medium text-sm">{{ product.brand.name }}</span>
                   </div>
                 </RouterLink>
               </li>
