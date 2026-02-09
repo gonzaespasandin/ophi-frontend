@@ -3,9 +3,12 @@ import AuthLayout from '../layouts/AuthLayout.vue'
 import Top from "../components/ui/Top.vue";
 import Back from '../components/ui/Back.vue';
 import { useRouter, useRoute } from 'vue-router';
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, onUnmounted } from 'vue';
 import { findByName, getMatchesByName } from '../services/product';
+import { suscribeToAuthObserver } from '../services/auth';
 
+let unsubscribeToAuthObserver = () => {}
+const user = ref({});
 
 const router = useRouter();
 const route = useRoute();
@@ -14,6 +17,8 @@ const inputValue = ref('');
 
 const products = ref([]);
 const productsForSearchListView = ref([]);
+
+const loading = ref(true)
 
 //Arreglo local storage
 const storage = ref([]);
@@ -32,7 +37,12 @@ const lastCode = computed(() => route.query.code || '');
 
 onMounted(() => {
   products.value = storage.value.length > 0 ? storage.value : [];
+  unsubscribeToAuthObserver = suscribeToAuthObserver((state) => {user.value = state, loading.value = false});
 }) 
+
+onUnmounted(() => {
+  unsubscribeToAuthObserver();
+})
 
 async function handleSubmit() {
   const normalizedName = inputValue.value.trim().toLowerCase();
@@ -83,35 +93,44 @@ function bold(productName) {
 
 <template>
   <AuthLayout>
-    <div class="bg-[#005B8E] h-5"></div>
+    <div v-if="!loading">
+      <template v-if="user.subscription.plan !== 'free'">
+        <div class="bg-[#005B8E] h-5"></div>
 
-    <!-- Mensaje cuando venís del scanner -->
-    <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
-      <p>
-        Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
-      </p>
+        <!-- Mensaje cuando venís del scanner -->
+        <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
+          <p>
+            Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
+          </p>
+        </div>
+
+        <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
+          <i class="fa-solid fa-arrow-left"></i>
+          <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="getInput()" autocomplete="off"/>
+          <button type="submit">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
+
+        <ul class="SearchView-list">
+          <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
+            <RouterLink :to="`/product/${product.name}/${product.brand.name}`" class="flex justify-between items-center">
+              <div class="flex flex-col">
+                <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
+                <p v-else v-html="bold(product.name)" class="text-sm"></p>
+                <span class="font-medium text-[13px]">{{ product.brand.name }}</span>
+              </div>
+              <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
+              <i v-else class="fa-solid fa-arrow-right"></i>
+            </RouterLink>
+          </li>
+        </ul>
+      </template>
+      <template v-else>
+        <div>
+          <p>Desbloqueá el premium para buscar productos!</p>
+        </div>
+      </template>
     </div>
-
-    <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
-      <i class="fa-solid fa-arrow-left"></i>
-      <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="getInput()" autocomplete="off"/>
-      <button type="submit">
-        <i class="fa-solid fa-magnifying-glass"></i>
-      </button>
-    </form>
-
-    <ul class="SearchView-list">
-      <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
-        <RouterLink :to="`/product/${product.name}/${product.brand.name}`" class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
-            <p v-else v-html="bold(product.name)" class="text-sm"></p>
-            <span class="font-medium text-[13px]">{{ product.brand.name }}</span>
-          </div>
-          <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
-          <i v-else class="fa-solid fa-arrow-right"></i>
-        </RouterLink>
-      </li>
-    </ul>
   </AuthLayout>
 </template>

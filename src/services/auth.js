@@ -1,5 +1,5 @@
 import axiosInstance from "../config/axios.js";
-import {deleteProfile, getAuthUserProfiles, storeProfile, updateProfile} from "./profiles.js";
+import {deleteProfile, getAuthUserProfiles, getSubscription, storeProfile, updateProfile} from "./profiles.js";
 
 
 /** USER VARIABLES */
@@ -13,7 +13,8 @@ const emptyUser = {
     updated_at: null,
     created_at: null,
 
-    profiles: null
+    profiles: null,
+    subscription: null
 }
 let user = {...emptyUser}
 
@@ -68,7 +69,7 @@ export async function login(credentials) {
 
     const userData = response.data.user || response.data
     userData.profiles = await getAuthUserProfiles()
-
+    userData.subscription = await getSubscription();
     setUser(userData)
 }
 

@@ -28,3 +28,8 @@ export async function deleteProfile(id) {
     const result = await axiosInstance.delete(`/api/profiles/${id}`)
     return result.data
 }
+
+export async function getSubscription() {
+    const result = await axiosInstance.get(`/api/subscription`);
+    return result.data;
+}

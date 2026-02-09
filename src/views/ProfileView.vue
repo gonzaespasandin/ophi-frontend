@@ -137,9 +137,15 @@ function handleDeleteProfile() {
             </div>
           </li>
         </ul>
-        <div class="mt-4">
+        <div class="mt-4" v-if="user.subscription.plan !== 'free'">
           <RouterLink to="/add-new-profile" class="action-btn"><i class="fa-solid fa-plus text-xl mr-2"></i>Agregar perfil</RouterLink>
           <p v-if="otherProfiles.length === 0" class="text-center block shadow-md bg-white py-5 rounded-[11px] mt-5">Aún no tenés perfiles familiares</p>
+        </div>
+        <div class="mt-4" v-else">
+          <div>
+            <p class="text-center block shadow-md bg-white py-5 px-5 rounded-[11px] mt-5">Hacete premium para desbloquear más perfiles!</p>
+            <RouterLink class="action-btn text-white mt-3">Hacerme premuim</RouterLink>
+          </div>
         </div>
       </div>
       <div v-else-if="myProfile.length > 0">
