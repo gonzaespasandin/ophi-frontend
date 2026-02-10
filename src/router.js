@@ -16,6 +16,7 @@ import AddNewProfileView from "./views/AddNewProfileView.vue";
 import ProfileEditView from "./views/ProfileEditView.vue";
 import ForgotPassword from "./views/ForgotPassword.vue";
 import ResetPassword from "./views/ResetPassword.vue";
+import SubscriptionView from './views/SubscriptionView.vue';
 
 // TODO: Implement named routes
 const routes = [
@@ -92,6 +93,11 @@ const routes = [
     {
         'path': '/add-new-profile',
         'component': AddNewProfileView,
+        'meta': { 'auth': true }
+    },
+    {
+        'path': '/subscriptions',
+        'component': SubscriptionView,
         'meta': { 'auth': true }
     }
 ]

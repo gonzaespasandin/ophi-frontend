@@ -17,9 +17,10 @@ const active1 = ref(true);
 const active2 = ref(false);
 const myProfile = ref([]);
 const otherProfiles = ref([]);
+const loadPlan = ref(false)
 
 onMounted(() => {
-  unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
+  unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
   console.log(user.value, ' USERs');
 
   myProfile.value = user.value.profiles.filter(p => p.name === user.value.name);
@@ -88,8 +89,15 @@ function handleDeleteProfile() {
     </Teleport>
 
     <Top/>
-    <Back/>
-    <SomeUserInfo :user="user"/>
+    <!-- <Back/> -->
+    <div class="flex justify-between items-start px-3 p-3 bg-white">
+      <div v-if="loadPlan">
+        <p :class="user.subscription.plan_id === 2 ? 'text-[#005B8E]' : ''">Plan {{ user.subscription.plan.plan }}</p>
+        <RouterLink to="/subscriptions" class="text-[#009161] underline text-[14px]">Cambiar plan</RouterLink>
+      </div>
+      <button @click="handleLogout" id="closeSession" class="text-1xl">Cerrar sesión<i class="fa-solid fa-arrow-right-from-bracket ps-2"></i></button>
+    </div>
+    <SomeUserInfo class="mt-8" :user="user"/>
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
@@ -98,13 +106,15 @@ function handleDeleteProfile() {
           Ya sé que es una aplicación mobile, y a lo mejor nadie va a navegar por la APP con algún
           teclado o usando su voz con comandos ("Tab", "Atrás" o lo q sea). Pero como en el "rol
           de desarrollador" pusimos de crear una APP accesible, lo dejo comentado
+
+          Ahi lo cambié, ahora sí es navegable, eran divs y ahora buttons JA PON PON
           -->
-        <div @click="handleClick('Perfil')" class="w-[50%] text-center p-3" :class="active1 ? 'togle-perfil-active' : ''">
+        <button @click="handleClick('Perfil')" class="w-[50%] text-center p-3" :class="active1 ? 'togle-perfil-active' : ''">
           <h3>MI PERFIL</h3>
-        </div>
-        <div @click="handleClick('Perfiles')" class="w-[50%] text-center p-3" :class="active2 ? 'togle-perfil-active' : ''">
+        </button>
+        <button @click="handleClick('Perfiles')" class="w-[50%] text-center p-3" :class="active2 ? 'togle-perfil-active' : ''">
           <h3>PERFIL FAMILIAR</h3>
-        </div>
+        </button>
       </div>
       <div class="line border-b-2 border-b-[#005B8E] w-[50%]" :class="active2 ? 'translate-x-full transition-all' : 'translate-x-[0%] transition-all'" id="line"></div>
     </div>
@@ -137,14 +147,17 @@ function handleDeleteProfile() {
             </div>
           </li>
         </ul>
-        <div class="mt-4" v-if="user.subscription.plan !== 'free'">
+        <div class="mt-4" v-if="user.subscription.plan_id !== 1 && user.profiles.length < 10">
           <RouterLink to="/add-new-profile" class="action-btn"><i class="fa-solid fa-plus text-xl mr-2"></i>Agregar perfil</RouterLink>
           <p v-if="otherProfiles.length === 0" class="text-center block shadow-md bg-white py-5 rounded-[11px] mt-5">Aún no tenés perfiles familiares</p>
         </div>
-        <div class="mt-4" v-else">
-          <div>
-            <p class="text-center block shadow-md bg-white py-5 px-5 rounded-[11px] mt-5">Hacete premium para desbloquear más perfiles!</p>
-            <RouterLink class="action-btn text-white mt-3">Hacerme premuim</RouterLink>
+        <div class="mt-4" v-if="user.subscription.plan_id !== 1 && user.profiles.length === 10">
+          <p class="text-center block shadow-md bg-white py-5 rounded-[11px] mt-5">Llegaste al máximo de perfiles</p>
+        </div>
+        <div class="mt-4" v-if="user.subscription.plan_id === 1">
+          <div class="text-black px-6 py-3 rounded-lg shadow-md bg-white">
+            <p class=" text-center">¡Hacete <span class="font-semibold">premium</span> para desbloquear  <span class="font-semibold">más perfiles!</span></p>
+             <RouterLink to="/subscriptions" class="action-btn text-white mt-3">Hacerme premuim</RouterLink>
           </div>
         </div>
       </div>
@@ -164,9 +177,23 @@ function handleDeleteProfile() {
       <!--<button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button>-->
 
       <!-- Definitely not final styling, just something temporal  -->
-      <button @click="handleLogout" class="w-full py-2 bg-red-600 transition rounded-[11px] mt-8 text-white cursor-pointer"><i class="fa-solid fa-right-from-bracket text-xl mr-2"></i>Cerrar sesión</button>
+      <!-- <button @click="handleLogout" class="w-full py-2 bg-red-600 transition rounded-[11px] mt-8 text-white cursor-pointer"><i class="fa-solid fa-right-from-bracket text-xl mr-2"></i>Cerrar sesión</button> -->
     </div>
     
   </AuthLayout>
 </template>
 
+<style scoped>
+  #closeSession {
+    cursor: pointer;
+    i {
+      transition: all .2s ease-out;
+    }
+  }
+  #closeSession:hover {
+    
+    i {
+      transform: translateX(3px);
+    }
+  }
+</style>

@@ -2,8 +2,11 @@
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
 const props = defineProps({
-  where: String
+  where: String,
+  errors: Object|Boolean
 })
+
+console.log('Errores de arr', props.errors)
 </script>
 
 <template>
@@ -21,7 +24,10 @@ const props = defineProps({
           name="name"
           v-model="model.name">
     </div>
-
+    <div v-if="errors">
+      <p v-if="errors.name" class="text-shadow-red-700">{{ errors.name.join('') }}</p>
+      <p v-if="errors.ingredients">{{ errors.ingredients.join('') }}</p>
+    </div>
     <button
         class="action-btn w-full"
         @click="emit('next')"

@@ -10,14 +10,19 @@ import Top from "../components/ui/Top.vue";
 const router = useRouter();
 
 const loading = ref(false);
+const formErrors = ref(false);
 
 async function handleSubmit(formData) {
   console.log('Registrando nuevo perfil mético...', formData)
   loading.value = true;
 
   try {
-    await addNewProfileToAuthUser(formData);
-    await router.push('/profile')
+    const result = await addNewProfileToAuthUser(formData);
+    if(result.created_at) {
+      await router.push('/profile')
+    } else {
+      formErrors.value = result;
+    }
   } catch (error) {
     console.error({error});
   }
@@ -36,10 +41,10 @@ async function handleSubmit(formData) {
       <StepsContainer
           :steps="['intolerances', 'allergies', 'diets', 'new_profile']"
           :where="'addNew'"
+          :errors="formErrors"
           @submit="handleSubmit"
           class="bg-white shadow-md p-3 m-3 rounded-[11px]"
       />
-  
   </AuthLayout>
 </template>
 

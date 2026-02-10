@@ -111,10 +111,11 @@ export async function resetPassword(data) {
 }
 
 export async function addNewProfileToAuthUser(data) {
-    await storeProfile(data)
+    const result = await storeProfile(data)
     user.profiles = await getAuthUserProfiles()
-
+    
     setUser(user)
+    return result;
 }
 
 export async function updateProfileFromAuthUser(profile) {

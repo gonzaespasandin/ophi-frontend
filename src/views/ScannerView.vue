@@ -34,7 +34,7 @@ const productsForSearchListView = ref([]);
 
 // Inicializar licencia y cargar WASM (solo una vez)
 const initializeDynamsoft = () => {
-  Dynamsoft.License.LicenseManager.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA0Njc1ODAyLU1UQTBOamMxT0RBeUxYZGxZaTFVY21saGJGQnliMm8iLCJtYWluU2VydmVyVVJMIjoiaHR0cHM6Ly9tZGxzLmR5bmFtc29mdG9ubGluZS5jb20iLCJvcmdhbml6YXRpb25JRCI6IjEwNDY3NTgwMiIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbSIsImNoZWNrQ29kZSI6LTE5NDg1MDM5MzV9");
+  Dynamsoft.License.LicenseManager.initLicense(import.meta.env.VITE_SCANNER_LICENSE);
   /* Si llegasemos a usar el sdk de Dynamsoft tendriamos que poner la ruta de los archivos wasm, worker, etc
   Dynamsoft.Core.CoreModule.engineResourcePaths.rootDirectory = "https://cdn.jsdelivr.net/npm/";
   */
@@ -316,7 +316,7 @@ onBeforeUnmount(async () => {
       <div v-if="showProduct && product">
         <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
           <h2 class="text-center text-2xl">{{ product.name }}</h2>
-          <p class="text-center text-m text-gray-700">{{ product.brand.name }}</p>
+          <!-- <p class="text-center text-m text-gray-700">{{ product.brand.name }}</p> -->
           <span class="block text-center mt-3 mb-3">Resultados</span>
           <template v-if="safetyDataReady">
             <Alert

@@ -9,8 +9,16 @@ export async function getAuthUserProfiles() {
 }
 
 export async function storeProfile(data) {
-    const result = await axiosInstance.post('/api/profiles', data)
-    return result.data
+    try {
+        const result = await axiosInstance.post('/api/profiles', data)
+        return result.data
+    } catch (error) {
+        if(error.response.status === 422) {
+            console.log('Errores de validacion')
+        }
+        console.log(error.response.data.errors)
+        return error.response.data.errors;
+    }
 }
 
 export async function updateProfile(data) {

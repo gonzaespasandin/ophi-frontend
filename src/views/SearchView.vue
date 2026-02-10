@@ -93,44 +93,63 @@ function bold(productName) {
 
 <template>
   <AuthLayout>
-    <div v-if="!loading">
-      <template v-if="user.subscription.plan !== 'free'">
-        <div class="bg-[#005B8E] h-5"></div>
+      <div v-if="!loading">
+        <div :class="user.subscription.plan_id === 1 ? 'trama h-[90vh]' : ''">
+          <template v-if="user.subscription.plan_id !== 1">
+            <div class="bg-[#005B8E] h-5"></div>
 
-        <!-- Mensaje cuando venís del scanner -->
-        <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
-          <p>
-            Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
-          </p>
+            <!-- Mensaje cuando venís del scanner -->
+            <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
+              <p>
+                Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
+              </p>
+            </div>
+
+            <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
+              <i class="fa-solid fa-arrow-left"></i>
+              <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="getInput()" autocomplete="off"/>
+              <button type="submit">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </form>
+
+            <ul class="SearchView-list">
+              <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
+                <RouterLink :to="`/product/${product.name}/${product.brand.name}`" class="flex justify-between items-center">
+                  <div class="flex flex-col">
+                    <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
+                    <p v-else v-html="bold(product.name)" class="text-sm"></p>
+                    <span class="font-medium text-[13px]">{{ product.brand.name }}</span>
+                  </div>
+                  <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
+                  <i v-else class="fa-solid fa-arrow-right"></i>
+                </RouterLink>
+              </li>
+            </ul>
+          </template>
+          <template v-else>
+              <Top/>
+              <div class="flex flex-col flex-1 h-[80%] justify-center">
+                <div class="p-3">
+                  <div class="text-black px-6 py-3 rounded-lg shadow-md bg-white mt-10">
+                    <p class="text-[18px] font-semibold pb-2">Hola, {{ user.name }}</p>
+                    <p class=" text-center text-gray-800">¡Hacete <span class="font-semibold">premium</span> para <span class="font-semibold">buscar productos!</span></p>
+                    <RouterLink to="/subscriptions" class="action-btn text-white mt-3">Hacerme premuim</RouterLink>
+                  </div>
+                </div>
+            </div>
+          </template>
         </div>
-
-        <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
-          <i class="fa-solid fa-arrow-left"></i>
-          <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="getInput()" autocomplete="off"/>
-          <button type="submit">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </button>
-        </form>
-
-        <ul class="SearchView-list">
-          <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
-            <RouterLink :to="`/product/${product.name}/${product.brand.name}`" class="flex justify-between items-center">
-              <div class="flex flex-col">
-                <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
-                <p v-else v-html="bold(product.name)" class="text-sm"></p>
-                <span class="font-medium text-[13px]">{{ product.brand.name }}</span>
-              </div>
-              <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
-              <i v-else class="fa-solid fa-arrow-right"></i>
-            </RouterLink>
-          </li>
-        </ul>
-      </template>
-      <template v-else>
-        <div>
-          <p>Desbloqueá el premium para buscar productos!</p>
-        </div>
-      </template>
-    </div>
+      </div>
   </AuthLayout>
 </template>
+
+
+<style scoped>
+    .trama {
+        background-image: url('../assets/img/tramas/1x/Artboard\ 1test-trama.png');
+        background-position: bottom;
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+</style>
