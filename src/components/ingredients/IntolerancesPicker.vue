@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref} from "vue";
+import {handleError, onMounted, ref} from "vue";
 import {getListOfIntolerances} from "../../services/ingredients.js";
 import AppLoading from "../loadings/AppLoading.vue";;
 
@@ -8,6 +8,7 @@ const model = defineModel();
 
 const loading = ref(false);
 const intolerances = ref([]);
+
 
 onMounted(async () => {
   loading.value = true;
@@ -24,6 +25,7 @@ onMounted(async () => {
 
   loading.value = false;
 })
+
 </script>
 
 <template>
@@ -33,9 +35,9 @@ onMounted(async () => {
 
   <template v-else>
 
-    <ul class="flex flex-wrap bg-[#f5f5f5] rounded-[11px] p-4">
-      <li v-for="intolerance of intolerances" class="text-[#333333]" :class="props.where === 'addNew' ? 'w-42' : 'w-45'">
-        <label>
+    <ul class="flex flex-wrap justify-between gap-2 bg-[#ffffff] rounded-[11px] p-4">
+      <li v-for="intolerance of intolerances" class="text-[#333333]" :class="props.where === 'addNew' ? 'w-40' : 'w-43'">
+        <label class="block w-fuul h-full  rounded-[11px] shadow-sm  font-medium" :class="model.includes(intolerance.id) ? 'bg-[#005B8E] text-white' : 'bg-[#f5f5f5] text-[#005B8E]'">
           <input type="checkbox" name="ingredients[]" :value="intolerance.id" v-model="model" class="m-3">
           {{ intolerance.name }}
         </label>
