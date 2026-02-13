@@ -105,6 +105,8 @@ function handleShowFullList(argList) {
         >
           Mostrar lista completa
         </button>
+
+        <ListOfFullIngredientsModal @close="showModal = false" v-if="showModal" v-model="model" :list class="modal"/>
       </div>
     </div>
   </li>
