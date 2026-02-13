@@ -66,7 +66,7 @@ function manageLocalStorage(productName, productBrand) {
         p => !(p.name === productName && p.brand === productBrand)
     );
 
-    latestSearches.value.push({name: productName, brand: {name: productBrand}});
+    latestSearches.value.push({name: productName, brand: productBrand});
 
     if(latestSearches.value.length > 4) {
         latestSearches.value.shift();

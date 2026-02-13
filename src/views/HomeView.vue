@@ -27,7 +27,9 @@ import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
         <img src="../assets/img/logo-positivo.png"></img>
         <RouterLink to="/profile" class="info-auth flex align-center justify-center mt-4 text-white">
           <i class="fa-solid fa-circle-user text-2xl pe-2"></i>
-          <p>{{ user.name }}</p>
+          <div>
+            <p>{{ user.name }}</p>
+          </div>
         </RouterLink>
     </div>
     <div class="mx-3 mt-4">

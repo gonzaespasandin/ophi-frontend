@@ -119,7 +119,7 @@ function bold(productName) {
                   <div class="flex flex-col">
                     <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
                     <p v-else v-html="bold(product.name)" class="text-sm"></p>
-                    <span class="font-medium text-[13px]">{{ product.brand.name }}</span>
+                    <span class="font-medium text-[13px]">{{ typeof(product.brand) === 'string' ? product.brand : product.brand.name }}</span>
                   </div>
                   <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
                   <i v-else class="fa-solid fa-arrow-right"></i>
