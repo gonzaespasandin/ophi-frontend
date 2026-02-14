@@ -4,15 +4,19 @@ export function useProductSafety() {
   const safe = ref([]);
   const unsafeIngredients = ref([]);
   const normalizedIngredients = ref([]);
+  const unrestrictedProfiles = ref([]);
+
 
   function checkAll(userProfiles, productIngredients) {
     userProfiles.forEach(userProfile => {
+      if(userProfile.ingredients.length === 0) {
+        unrestrictedProfiles.value.push(userProfile.name);
+      }
       userProfile.ingredients.forEach(uIngredients => {
         productIngredients.forEach(Pingredient => {
           if(!normalizedIngredients.value.includes(Pingredient.name)) {
             normalizedIngredients.value.push(Pingredient.name);
           }      
-          
           if(uIngredients.ingredients && uIngredients.ingredients.length > 0) {
             browseIfUserHasMoreThanOneIngredient(uIngredients.ingredients, Pingredient, userProfile); 
           } else {
@@ -81,13 +85,15 @@ export function useProductSafety() {
     safe.value = [];
     unsafeIngredients.value = [];
     normalizedIngredients.value = [];
+    unsafeIngredients.value = [];
   }
 
   return {
     safe,
-    unsafeIngredients,
     normalizedIngredients,
+    unrestrictedProfiles,
     checkAll,
-    resetSafety
+    resetSafety,
+    unsafeIngredients
   };
 }

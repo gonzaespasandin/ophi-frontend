@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 import {useRouter} from "vue-router";
-
 import TermsAndConditions from './TermsAndConditions.vue'
 import Intolerances from './Intolerances.vue'
 import Allergies from './Allergies.vue'

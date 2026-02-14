@@ -10,7 +10,7 @@ const loading = ref(true);
 const fetchRecentHistory = async () => {
   try {
     loading.value = true;
-    const { data } = await api.get('/api/history');
+    const { data } = await api.get('/api/history/1');
     history.value = data.slice(0, 3);
   } catch (err) {
     console.error('Error al obtener historial:', err);

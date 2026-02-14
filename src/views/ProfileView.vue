@@ -6,6 +6,8 @@ import {useRouter} from "vue-router";
 import SomeUserInfo from "../components/ui/SomeUserInfo.vue";
 import Top from "../components/ui/Top.vue";
 import Back from '../components/ui/Back.vue';
+import Feedback from "../components/ui/Feedback.vue";
+
 
 let unsubscribeToAuthObserver = () => {}
 
@@ -17,7 +19,11 @@ const active1 = ref(true);
 const active2 = ref(false);
 const myProfile = ref([]);
 const otherProfiles = ref([]);
-const loadPlan = ref(false)
+const loadPlan = ref(false);
+const feedback = ref({
+  message: null,
+  type: null
+});
 
 onMounted(() => {
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
@@ -29,9 +35,14 @@ onMounted(() => {
   if(myProfileIndex !== -1) {
     otherProfiles.value.splice(myProfileIndex, 1);
   }
+
+  feedback.value = sessionStorage.getItem('alert') ? JSON.parse(sessionStorage.getItem('alert')) : {message: null, type: null};
 })
 
-onUnmounted(() => unsubscribeToAuthObserver());
+onUnmounted(() => {
+  unsubscribeToAuthObserver();
+  sessionStorage.setItem('alert', []);
+});
 
 async function handleLogout() {
   try {
@@ -90,6 +101,9 @@ function handleDeleteProfile() {
 
     <Top/>
     <!-- <Back/> -->
+    <div class="relative" v-if="feedback.message !== null">
+      <Feedback :message="feedback.message" :type="feedback.type"/>
+    </div>
     <div class="flex justify-between items-start px-3 p-3 bg-white">
       <div v-if="loadPlan">
         <p :class="user.subscription.plan_id === 2 ? 'text-[#005B8E]' : ''">Plan {{ user.subscription.plan.plan }}</p>

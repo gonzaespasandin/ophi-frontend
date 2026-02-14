@@ -7,6 +7,7 @@ import HistoryItem from '../components/ui/HistoryItem.vue';
 import api from "../config/axios";
 import AppLoading from '../components/loadings/AppLoading.vue';
 import { suscribeToAuthObserver } from '../services/auth';
+import { getNewPage } from '../services/history';
 
 let unsubscribeToAuthObserver = () => {}
 
@@ -18,19 +19,30 @@ const error = ref('');
 const inputValue = ref('');
 const fullHistory = ref([]);
 const searchError = ref(false);
+const currentPage = ref(1)
+
 console.log(inputValue.value);
 
 const fetchHistory = async () => {
-  try {
-    loading.value = true;
-    const { data } = await api.get('/api/history');
-    history.value = data;
-    fullHistory.value = data;
-  } catch (err) {
-    console.error('Error al obtener historial:', err);
-    error.value = 'Error al cargar el historial';
-  } finally {
-    loading.value = false;
+  if(userLoad.value) {
+    try {
+      loading.value = true;
+      const { data } = await api.get(`/api/history?page=${currentPage.value}`);
+      if(user.value.subscription.plan_id === 1) {
+        history.value = data;
+        fullHistory.value = data;
+      } else {
+        history.value = data.data;
+        currentPage.value = data.current_page;
+        console.log(currentPage.value, 'facascs')
+        fullHistory.value = data.data;
+      }
+    } catch (err) {
+      console.error('Error al obtener historial:', err);
+      error.value = 'Error al cargar el historial';
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
@@ -61,6 +73,12 @@ function search() {
   } 
 }
 
+async function handlePaginator(direction) {
+  direction === 'sig' ? currentPage.value++ : currentPage.value--; 
+  console.log(currentPage.value)
+  await fetchHistory();
+}
+
 </script>
 
 <template>
@@ -75,9 +93,7 @@ function search() {
           <p v-if="user.subscription.plan_id === 1" class="text-center text-[14px] text-gray-600">{{ history.length }}/10 escaneos guardados</p>
           <RouterLink to="/subscriptions" v-if="history.length >= 10" class="text-center action-btn mx-20 mt-2">Hacerme premium</RouterLink>
         </div>
-        <p v-else class="text-center">{{ history.length }}/10 escaneos guardados</p>
-        
-        
+        <p v-else class="text-center">{{ history.length }} escaneos guardados</p>
       </template>
       <div v-if="fullHistory.length > 0" class="flex justify-around items-center max-w-90 bg-[#f5f5f5] m-auto h-12 mt-5 rounded-[11px]" id="search" @click="handleSubmit">
           <input type="text" id="search" name="search"  placeholder="Buscar productos..." v-model="inputValue" class=" border-0 outline-0" @input="search()">
@@ -110,5 +126,12 @@ function search() {
         />
       </div>
     </div>
+    <template v-if="userLoad && user.subscription.plan_id === 2">
+      <div class="bg-white shadow-md p-3 rounded-lg m-3">
+        <p>Päginadro</p>
+        <button @click="handlePaginator('prev')">Previo</button>
+        <button @click="handlePaginator('sig')">Siguiente</button>
+      </div>
+    </template>
   </AuthLayout>
 </template>

@@ -11,7 +11,7 @@ const props = defineProps({
 
 <template>
   <div>
-    <!-- <button @click.prevent="emit('previous')">Volver</button> -->
+    <button @click.prevent="emit('previous')"><i class="fa-solid fa-chevron-left pe-2"></i>Volver</button>
     <div>
       <h2 class="text-2xl font-semibold text-center">¿Seguís alguna dieta especial?</h2>
       <p class="mb-3 text-center mt-2">Seleccioná todas las que correspondan</p>

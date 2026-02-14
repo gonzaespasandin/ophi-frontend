@@ -66,7 +66,6 @@ async function handleSubmit() {
 
 <template>
  <div>
-    <RouterLink to="/welcome" class="p-3 mt-4"><i class="fa-solid fa-arrow-left"></i> volver</RouterLink>
     <div class="flex flex-col justify-around min-h-screen">
       <div class="flex flex-col justify-between flex-grow">
         <img src="../assets/img/logo.png" alt="">

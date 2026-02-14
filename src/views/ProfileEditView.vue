@@ -39,10 +39,12 @@ async function handleSubmit() {
   loading.value = true
 
   try {
-    await updateProfileFromAuthUser({
+    const result = await updateProfileFromAuthUser({
       id: profile.value.id,
       ingredients: model.value
     })
+    sessionStorage.setItem('alert', JSON.stringify({message: result, type: 'success'}))
+   
     await router.push('/profile')
   } catch (error) {
     console.log('[ProfileEditView.vue handleSubmit()] Error updating user profile', error)

@@ -13,7 +13,7 @@ const props = defineProps({
 
 <template>
     <div>
-      <!-- <button @click.prevent="emit('previous')">Volver</button> -->
+      <button @click.prevent="emit('previous')"><i class="fa-solid fa-chevron-left pe-2"></i>Volver</button>
       <div>
         <h2 class="text-2xl font-semibold text-center">¿Tenés alguna alergia?</h2>
         <p class="text-center mb-3 mt-2">Seleccioná todas las que correspondan</p>

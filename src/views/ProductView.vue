@@ -16,7 +16,7 @@ const route = useRoute();
 const user = ref({});
 const loading = ref(true)
 const product = ref('');
-const { safe, unsafeIngredients, normalizedIngredients, checkAll } = useProductSafety();
+const { safe, unsafeIngredients, normalizedIngredients, checkAll, unrestrictedProfiles } = useProductSafety();
 const charge = ref(false);
 
 const latestSearches = ref([]);
@@ -90,7 +90,7 @@ function manageLocalStorage(productName, productBrand) {
                     <h3 class="text-center font-semibold">{{ product.brand.name }}</h3>
                     <span class="block text-center mb-5">Resultados</span>
                     <Alert v-if="user.profiles.length === 1" :safe="safe"></Alert>
-                    <AlertSomeUsers v-else :safe="safe"></AlertSomeUsers>
+                    <AlertSomeUsers v-else :safe="safe" :unrestrictedProfiles="unrestrictedProfiles"></AlertSomeUsers>
                 </div>
 
                 <div class="bg-white shadow-md  m-3 p-3 rounded-[.5rem]">

@@ -12,7 +12,7 @@ console.log(props.where);
 
 <template>
   <div class="flex flex-col grow">
-      <!-- <button @click.prevent="emit('previous')">Volver</button> -->
+    <button @click.prevent="emit('previous')"><i class="fa-solid fa-chevron-left pe-2"></i>Volver</button>
     <div>
       <h2 class="text-2xl font-semibold text-center" :class="props.where === 'addNew' ? 'text-lg' : ''">¿Tenés alguna intolerancia?</h2>
       <p class="text-center mb-4 mt-2">Seleccioná todas las que correspondan</p>

@@ -39,7 +39,7 @@ import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
       <History></History>
     </div>
     <div>
-      <RecomendedProducts v-if="user && user.profiles" :user="user.profiles"></RecomendedProducts>
+      <RecomendedProducts v-if="user && user.profiles" :user="user.profiles" :subscription="user.subscription.plan_id"></RecomendedProducts>
     </div>
   </AuthLayout>
 </template>

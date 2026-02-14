@@ -18,8 +18,10 @@ async function handleSubmit(formData) {
 
   try {
     const result = await addNewProfileToAuthUser(formData);
-    if(result.created_at) {
+    if(result.profile.created_at) {
+      sessionStorage.setItem('alert', JSON.stringify({message: result.feedback, type: 'success'}))
       await router.push('/profile')
+      
     } else {
       formErrors.value = result;
     }

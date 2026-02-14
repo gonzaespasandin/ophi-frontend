@@ -14,18 +14,23 @@ import 'swiper/css/scrollbar';
 const userIngredients = ref([]);
 const recomendedP = ref([]);
 const merged = ref([]);
-const loading = ref(true)
+const loading = ref(true);
+const restrictedUser = ref([]);
 
 const props = defineProps ({
     user: {
         type: Object,
         required: true
+    },
+    subscription: {
+        Number
     }
 });
 
 
-onMounted(async () => {
 
+onMounted(async () => {
+    
     const check = (profiles, uI) => {
         let existsInArray = userIngredients.value.some(i => i.name === profiles.name && i.ingredient === uI.name);
         if(!existsInArray) {
@@ -71,10 +76,10 @@ onMounted(async () => {
     // Esperamos a que carguen todos los registros
     await Promise.all(
         // Map porque Promise necesita un array de promesas, y no un array vacío como si lo devuelve forEach
-        props.user.map(u => getRecomendedByUser(u.name))
+        props.user.filter(u => u.ingredients.length > 0).map(u => getRecomendedByUser(u.name))
     );
 
-
+    
     recomendedP.value.forEach(userAndProducts => {
         console.log(userAndProducts)
         userAndProducts.products.map(p => {
@@ -83,6 +88,8 @@ onMounted(async () => {
     })
 
     loading.value = false;
+
+    
 })
 
 const modules = [A11y, Virtual];
@@ -102,7 +109,12 @@ const modules = [A11y, Virtual];
                 >
                     <swiper-slide  v-for="(p, index) of merged" :key="index" :virtual-index="index" v-slot="{ isActive }" class="py-4">
                         <div :class="isActive ? 'min-h-[150px] recomended-card-active' : 'min-h-[100px] mt-2 recomended-card-inactive'" class="flex bg-[#005B8E] p-5 rounded-[11px] flex-col justify-center text-white transition-all ">
-                            <h3 class="text-sm text-center font-regular"><RouterLink :to="'/product/' + p.product.name + '/' + p.product.brand.name">{{ p.product.name }}</RouterLink></h3>
+                            <template v-if="subscription === 2">
+                                <h3 class="text-sm text-center font-regular"><RouterLink :to="'/product/' + p.product.name + '/' + p.product.brand.name">{{ p.product.name }}</RouterLink></h3>
+                            </template>
+                            <template v-else>
+                                <h3 class="text-sm text-center font-regular">{{ p.product.name }}</h3>
+                            </template>
                             <div class="bg-[#f5f5f5] text-[#005B8E] p-1 mt-1 rounded-[11px]">
                                 <span class=" text-lg block text-center" :class="p.userName.length > 15 ? 'text-sm': 'text-lg'">{{ p.userName }}</span> 
                                 <p class="text-lg font-bold text-center">RECOMENDADO</p>   

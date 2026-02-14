@@ -6,6 +6,9 @@ import { ref } from 'vue';
 const props = defineProps({
     safe: {
         String
+    },
+    unrestrictedProfiles: {
+        Array
     }
 });
 
@@ -16,6 +19,8 @@ const hiddenTrue = ref(true);
 const hiddenIngredienets = ref({forWho: null, state: false});
 
 console.log(props.safe);
+console.log(props.unrestrictedProfiles);
+
 
 props.safe.forEach(userCheck => {
     usersTrue.value.push(userCheck);
@@ -86,6 +91,12 @@ function handleIngredientsClick(user) {
             </div>
         </li>
     </ul>
+    <template v-if="unrestrictedProfiles && (unrestrictedProfiles.length > 0)">
+        <div class="flex flex-col justify-center items-center p-3 mt-3 bg-[#f5f5f5] rounded-[11px]">
+            <span>Sin restricciones cargadas aún: </span>
+            <p class="font-semibold">{{ unrestrictedProfiles.join(', ') }}</p>
+        </div>
+    </template>
 </template>
 
 

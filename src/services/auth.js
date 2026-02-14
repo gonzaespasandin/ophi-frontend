@@ -119,10 +119,13 @@ export async function addNewProfileToAuthUser(data) {
 }
 
 export async function updateProfileFromAuthUser(profile) {
-    await updateProfile(profile)
+    const result = await updateProfile(profile)
+    console.log(result, 'FASFAS');
     user.profiles = await getAuthUserProfiles()
 
     setUser(user)
+
+    return result.feedback;
 }
 
 export async function deleteProfileFromAuthUser(id) {
