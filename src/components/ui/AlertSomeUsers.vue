@@ -18,8 +18,8 @@ const hiddenFalse = ref(true);
 const hiddenTrue = ref(true);
 const hiddenIngredienets = ref({forWho: null, state: false});
 
-console.log(props.safe);
-console.log(props.unrestrictedProfiles);
+// console.log(props.safe);
+// console.log(props.unrestrictedProfiles);
 
 
 props.safe.forEach(userCheck => {
@@ -29,8 +29,8 @@ props.safe.forEach(userCheck => {
 usersTrue.value = usersTrue.value.filter(user => user.isSafe);
 usersFalse.value = usersFalse.value.filter(user => !user.isSafe);
 
-console.log('Seguro: ', usersTrue.value);
-console.log('Inseguro: ', usersFalse.value);
+// console.log('Seguro: ', usersTrue.value);
+// console.log('Inseguro: ', usersFalse.value);
 
 function handleClick(which) {
     if(which) {
