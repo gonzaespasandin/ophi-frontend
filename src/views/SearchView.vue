@@ -115,7 +115,7 @@ function bold(productName) {
 
             <ul class="SearchView-list">
               <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
-                <RouterLink :to="`/product/${product.name}/${product.brand.name}`" class="flex justify-between items-center">
+                <RouterLink :to="`/product/${product.name}/${typeof(product.brand) === 'string' ? product.brand : product.brand.name}`" class="flex justify-between items-center">
                   <div class="flex flex-col">
                     <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
                     <p v-else v-html="bold(product.name)" class="text-sm"></p>

@@ -91,6 +91,10 @@ p {
     background: linear-gradient(#009161 10%, #C43B52 , #F5F5F5 40%);
 }
 
+.square-with-gradient-gray {
+    background: linear-gradient(#b6b6b6, #F5F5F5 40%);
+}
+
 
 
 #history-component {

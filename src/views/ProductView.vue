@@ -67,6 +67,8 @@ onMounted(async () => {
     normalizedIngredients.value = normalizedIngredients.value.join(', ');
 
     unsafeIngredients.value = unsafeIngredients.value.join(' - ');
+
+    console.log({safe: safe.value})
 });
 
 function manageLocalStorage(productName, productBrand) {
@@ -91,7 +93,11 @@ function manageLocalStorage(productName, productBrand) {
 
 <template>
     <!-- Es pero ILEGIBLE pero funca -->
-    <AuthLayout :class="(!loading) ? (user?.profiles?.length === 1) ? (safe[0]?.isSafe) ? 'square-with-gradient-success' : 'square-with-gradient-danger' : '' : ''">
+    <AuthLayout :class="{
+      'square-with-gradient-success': !loading && user?.profiles?.length === 1 && safe[0]?.isSafe,
+      'square-with-gradient-danger': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe !== undefined,
+      'square-with-gradient-gray': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe === undefined,
+    }">
         <Top/>
         <!-- <Back/> -->
         <template  v-if="!loading">
