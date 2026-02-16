@@ -9,10 +9,19 @@ import AuthLayout from '../layouts/AuthLayout.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 import { useProductSafety } from '../composables/useProductSafety.js';
 import AppLoading from '../components/loadings/AppLoading.vue';
+import {Swiper, SwiperSlide} from "swiper/vue";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/scrollbar';
+import {A11y, Virtual} from "swiper/modules";
 
 let unsuscribeToAuthObserver = () => {};
 
+const modules = [A11y, Virtual];
+
 const route = useRoute();
+let safeProducts = [];
 const user = ref({});
 const loading = ref(true)
 const product = ref('');
@@ -58,7 +67,6 @@ onMounted(async () => {
     normalizedIngredients.value = normalizedIngredients.value.join(', ');
 
     unsafeIngredients.value = unsafeIngredients.value.join(' - ');
-  
 });
 
 function manageLocalStorage(productName, productBrand) {
@@ -74,6 +82,9 @@ function manageLocalStorage(productName, productBrand) {
 
 
     localStorage.setItem('latestSearches', JSON.stringify(latestSearches.value));
+
+    safeProducts = product.value.safeProducts;
+    console.log({SafeProducts: safeProducts});
 }
 
 </script>
@@ -84,6 +95,7 @@ function manageLocalStorage(productName, productBrand) {
         <Top/>
         <!-- <Back/> -->
         <template  v-if="!loading">
+          <h1 class="sr-only">Página de producto</h1>
             <div>
                 <div class="bg-white shadow-md  m-3 p-3 rounded-[.5rem]">
                     <h2 class="text-center text-2xl">{{product.name}}</h2>
@@ -98,6 +110,33 @@ function manageLocalStorage(productName, productBrand) {
                     <h2 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</h2>
                     <p>{{ normalizedIngredients }}</p>
                 </div>
+
+              <div>
+                <h2 class="text-xl px-3">También puede interesarte</h2>
+                <swiper
+                    v-if="safeProducts.length"
+                    :modules="modules"
+                    :slides-per-view="1.5"
+                    :space-between="50"
+                    :centered-slides="true"
+                    :initial-slide="safeProducts.length / 2"
+                    :virtual="true"
+                >
+                  <template v-for="(safeProduct, index) of safeProducts" :key="index">
+                    <swiper-slide :virtual-index="index" v-slot="{ isActive }" class="py-4">
+                      <div :class="isActive ? 'min-h-[150px] recomended-card-active' : 'min-h-[100px] mt-2 recomended-card-inactive'" class="flex bg-[#005B8E] p-5 rounded-[11px] flex-col justify-center text-white transition-all ">
+                        <h3 class="text-sm text-center font-regular text-white"><RouterLink :to="'/product/' + safeProduct.name + '/' + safeProduct.brand.name">{{ safeProduct.name }}</RouterLink></h3>
+                        <div class="bg-[#f5f5f5] text-[#005B8E] p-1 mt-1 rounded-[11px]">
+                          <span class="block text-center text-sm">Apto para todos</span>
+                          <p class="text-lg font-bold text-center">RECOMENDADO</p>
+                        </div>
+                      </div>
+                    </swiper-slide>
+                  </template>
+                </swiper>
+
+                <p v-else class="px-3 text-sm">Lamentablemente no pudimos encontrar otros productos similares que sean aptos para todos tus perfiles</p>
+              </div>
             </div>
             <div v-if="product === null">
                 <div class="bg-white m-3 shadow-md p-3 rounded-[.5rem]">
