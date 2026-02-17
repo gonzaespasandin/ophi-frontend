@@ -10,10 +10,19 @@ import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 import { useProductSafety } from '../composables/useProductSafety.js';
 import AppLoading from '../components/loadings/AppLoading.vue';
 import Error from '../components/ui/Error.vue';
+import {Swiper, SwiperSlide} from "swiper/vue";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/scrollbar';
+import {A11y, Virtual} from "swiper/modules";
 
 let unsuscribeToAuthObserver = () => {};
 
+const modules = [A11y, Virtual];
+
 const route = useRoute();
+let safeProducts = [];
 const user = ref({});
 const loading = ref(true)
 const product = ref(null);
@@ -62,7 +71,8 @@ onMounted(async () => {
     normalizedIngredients.value = normalizedIngredients.value.join(', ');
 
     unsafeIngredients.value = unsafeIngredients.value.join(' - ');
-  
+
+    console.log({safe: safe.value})
 });
 
 function manageLocalStorage(productName, productBrand) {
@@ -78,15 +88,23 @@ function manageLocalStorage(productName, productBrand) {
 
 
     localStorage.setItem('latestSearches', JSON.stringify(latestSearches.value));
+
+    safeProducts = product.value.safeProducts;
+    console.log({SafeProducts: safeProducts});
 }
 
 </script>
 
 <template>
     <!-- Es pero ILEGIBLE pero funca -->
-    <AuthLayout :class="(!loading) ? (user?.profiles?.length === 1) ? (safe[0]?.isSafe) ? 'square-with-gradient-success' : 'square-with-gradient-danger' : '' : ''">
+    <AuthLayout :class="{
+      'square-with-gradient-success': !loading && user?.profiles?.length === 1 && safe[0]?.isSafe,
+      'square-with-gradient-danger': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe !== undefined,
+      'square-with-gradient-gray': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe === undefined,
+    }">
         <Top/>
         <!-- <Back/> -->
+<<<<<<< HEAD
         <template v-if="loading">
             <div class="flex justify-center mt-90">
                 <AppLoading/>
@@ -102,6 +120,10 @@ function manageLocalStorage(productName, productBrand) {
             </div>
         </template>
         <template v-else>
+=======
+        <template  v-if="!loading">
+          <h1 class="sr-only">Página de producto</h1>
+>>>>>>> 0065aea473691066c9d947942dc22dee0d2d61d3
             <div>
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                     <h2 class="text-center text-2xl">{{product.name}}</h2>
@@ -116,6 +138,33 @@ function manageLocalStorage(productName, productBrand) {
                     <h2 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</h2>
                     <p>{{ normalizedIngredients }}</p>
                 </div>
+
+              <div>
+                <h2 class="text-xl px-3">También puede interesarte</h2>
+                <swiper
+                    v-if="safeProducts.length"
+                    :modules="modules"
+                    :slides-per-view="1.5"
+                    :space-between="50"
+                    :centered-slides="true"
+                    :initial-slide="safeProducts.length / 2"
+                    :virtual="true"
+                >
+                  <template v-for="(safeProduct, index) of safeProducts" :key="index">
+                    <swiper-slide :virtual-index="index" v-slot="{ isActive }" class="py-4">
+                      <div :class="isActive ? 'min-h-[150px] recomended-card-active' : 'min-h-[100px] mt-2 recomended-card-inactive'" class="flex bg-[#005B8E] p-5 rounded-[11px] flex-col justify-center text-white transition-all ">
+                        <h3 class="text-sm text-center font-regular text-white"><RouterLink :to="'/product/' + safeProduct.name + '/' + safeProduct.brand.name">{{ safeProduct.name }}</RouterLink></h3>
+                        <div class="bg-[#f5f5f5] text-[#005B8E] p-1 mt-1 rounded-[11px]">
+                          <span class="block text-center text-sm">Apto para todos</span>
+                          <p class="text-lg font-bold text-center">RECOMENDADO</p>
+                        </div>
+                      </div>
+                    </swiper-slide>
+                  </template>
+                </swiper>
+
+                <p v-else class="px-3 text-sm">Lamentablemente no pudimos encontrar otros productos similares que sean aptos para todos tus perfiles</p>
+              </div>
             </div>
 
         </template>

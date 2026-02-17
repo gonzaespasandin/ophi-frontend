@@ -1,10 +1,12 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import {useRoute} from "vue-router";
 
 import axiosInstance from "./config/axios.js";
 
 import AppLoading from "./components/loadings/AppLoading.vue";
 
+const route = useRoute();
 const loading = ref(false)
 
 /** CSRF-COOKIE */
@@ -27,7 +29,7 @@ onMounted(async  () => {
 </script>
 
 <template>
-  <RouterView v-slot="{ Component }">
+  <RouterView v-slot="{ Component }" :key="route.path">
     <transition >
       <component :is="Component"/>
     </transition>
