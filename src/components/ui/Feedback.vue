@@ -8,7 +8,7 @@ const props = defineProps({
   },
   type: {
     type: String,
-    default: 'info' // success | error | warning | info
+    default: 'info'
   }
 })
 

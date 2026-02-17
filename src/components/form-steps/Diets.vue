@@ -18,7 +18,7 @@ const props = defineProps({
     </div>
 
     <div class="flex flex-col justify-between grow">
-      <SpecialDietsPicker v-model="model.ingredients" />
+      <SpecialDietsPicker v-model="model.ingredients"  :where="where"/>
 
       <button
           class="action-btn mt-6 w-full"

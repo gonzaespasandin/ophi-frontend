@@ -19,9 +19,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <dialog ref="dialog" @close="emit('close')" class="m-auto w-[min(100%-32px,388px)] min-h-[80dvh] p-4 grid rounded-[11px]">
+  <dialog ref="dialog" @close="emit('close')" class="m-auto w-[min(100%-32px,388px)] min-h-[80dvh] p-4 rounded-[11px]">
+    <div class="flex justify-end py-3">
+      <div @click="dialog.close()" class="w-[20%] flex justify-end">
+        <i class="fa-solid fa-xmark text-lg" ></i>
+      </div>
+
+    </div>
     <div class="grid grid-rows-[auto_1fr_auto]">
-      <input class="w-full py-2 px-4 mb-4 bg-neutral-100 border border-black/10" type="text" v-model.trim="query" placeholder="Buscar...">
+      <div class="flex items-center bg-[#f5f5f5] rounded-[11px] shadow-md py-2 px-4 mb-4">
+        <input class="w-full search" type="text" v-model.trim="query" placeholder="Buscar...">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
 
       <ul v-if="computedList.length">
         <template v-for="item of computedList" :key="item.id">
@@ -40,7 +49,7 @@ onMounted(() => {
 
       <button
           @click="dialog.close()"
-          class="action-btn mt-4 w-full"
+          class="action-btn mt-4 w-full hover:cursor-pointer"
           type="button"
       >Confirmar</button>
     </div>
@@ -51,6 +60,13 @@ onMounted(() => {
 
 dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.616);
+}
+
+.search {
+  &:focus {
+    outline: none;
+    border: none;
+  }
 }
 
 </style>

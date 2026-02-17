@@ -8,6 +8,7 @@ import SpecialDietsPicker from "../components/ingredients/SpecialDietsPicker.vue
 import AuthLayout from "../layouts/AuthLayout.vue";
 import SomeUserInfo from "../components/ui/SomeUserInfo.vue";
 import Top from "../components/ui/Top.vue";
+import Error from "../components/ui/Error.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -24,6 +25,7 @@ const sections = {
 const user = ref({});
 const model = ref([]);
 const profile = ref({});
+const serverError = ref(false);
 let unsubscribeToAuthObserver = () => null
 
 onMounted(() => {
@@ -35,22 +37,20 @@ onMounted(() => {
 onUnmounted(() => unsubscribeToAuthObserver())
 
 async function handleSubmit() {
-  console.log('@handleSubmit')
   loading.value = true
-
   try {
     const result = await updateProfileFromAuthUser({
       id: profile.value.id,
       ingredients: model.value
     })
     sessionStorage.setItem('alert', JSON.stringify({message: result, type: 'success'}))
-   
     await router.push('/profile')
   } catch (error) {
     console.log('[ProfileEditView.vue handleSubmit()] Error updating user profile', error)
+    serverError.value = 'Hubo un error inesperado. Estamos solucionándolo...';
+  } finally {
+    loading.value = false;
   }
-
-  loading.value = false;
 }
 </script>
 
@@ -88,6 +88,10 @@ async function handleSubmit() {
           Dietas
         </label>
       </div>
+      
+      <template v-if="serverError">
+        <Error :errorMessage="serverError" />
+      </template>
 
       <div class="p-4">
         <component
@@ -102,9 +106,9 @@ async function handleSubmit() {
       </div>
     </form>
 
-    <button
+    <!-- <button
         class="py-2 w-full my-4 border"
         @click="console.log(profile)"
-    >Log Profile</button>
+    >Log Profile</button> -->
   </AuthLayout>
 </template>

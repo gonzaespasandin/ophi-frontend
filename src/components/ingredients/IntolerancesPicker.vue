@@ -3,12 +3,15 @@ import {handleError, onMounted, ref} from "vue";
 import {getListOfIntolerances} from "../../services/ingredients.js";
 import AppLoading from "../loadings/AppLoading.vue";;
 
-const props = defineProps(['where']);
+
 const model = defineModel();
 
 const loading = ref(false);
 const intolerances = ref([]);
 
+const props = defineProps({
+  where: String
+})
 
 onMounted(async () => {
   loading.value = true;
@@ -21,6 +24,7 @@ onMounted(async () => {
   } catch (error) {
     // TODO: Handle error
     console.log('No se pudo traer las intolerancias', error);
+    
   }
 
   loading.value = false;
@@ -36,7 +40,7 @@ onMounted(async () => {
   <template v-else>
 
     <ul class="flex flex-wrap justify-between gap-2 bg-[#ffffff] rounded-[11px] p-4">
-      <li v-for="intolerance of intolerances" class="text-[#333333]" :class="props.where === 'addNew' ? 'w-40' : 'w-43'">
+      <li v-for="intolerance of intolerances" class="text-[#333333]" :class="props.where === 'addNew' ? 'w-39' : 'w-40'">
         <label class="block w-fuul h-full  rounded-[11px] shadow-sm  font-medium" :class="model.includes(intolerance.id) ? 'bg-[#005B8E] text-white' : 'bg-[#f5f5f5] text-[#005B8E]'">
           <input type="checkbox" name="ingredients[]" :value="intolerance.id" v-model="model" class="m-3">
           {{ intolerance.name }}

@@ -65,72 +65,115 @@ function notifyAllSuscribers() {
 
 /** AUTHENTICATION */
 export async function login(credentials) {
-    const response = await axiosInstance.post('/api/login', credentials)
 
-    const userData = response.data.user || response.data
-    userData.profiles = await getAuthUserProfiles()
-    userData.subscription = await getSubscription();
-    setUser(userData)
+    try {
+        const response = await axiosInstance.post('/api/login', credentials)
+
+        const userData = response.data.user || response.data
+        userData.profiles = await getAuthUserProfiles()
+        userData.subscription = await getSubscription();
+        setUser(userData)
+    } catch (error) {
+        console.error('[auth.js] -> [login], Error: ', error);
+        throw error;
+    }
 }
 
 export async function logout() {
-    const response = await axiosInstance.post('/api/logout');
+    try {
+       const response = await axiosInstance.post('/api/logout');
 
-    console.log('Logout response: ', response)
+        console.log('Logout response: ', response)
 
-    if(response.status === 204) {
-        setUser({...emptyUser});
+        if(response.status === 204) {
+            setUser({...emptyUser});
+    }
+    } catch (error) {
+        console.error('[auth.js] -> [logout], Error: ', error);
+        throw error;
     }
 }
 
 export async function register(data) {
-    // Register the user
-    const result = await axiosInstance.post('/api/register', data)
-    const user = result.data.user || result.data
+    try {
+        // Register the user
+        const result = await axiosInstance.post('/api/register', data)
+        const user = result.data.user || result.data
 
-    // Login
-    await login({email: user.email, password: data.password})
+        // Login
+        await login({email: user.email, password: data.password})
 
-    // Register the user profile
-    await storeProfile(data)
-    user.profiles = await getAuthUserProfiles()
+        // Register the user profile
+        await storeProfile(data)
+        user.profiles = await getAuthUserProfiles()
 
-    setUser(user)
+        setUser(user)
+    } catch (error) {
+        console.error('[auth.js] -> [register], Error: ', error);
+        throw error;
+    }
 }
 
 export async function sendEmailToResetPassword(data) {
-    const response = await axiosInstance.post('/api/forgot-password', data)
+    try {
+        const response = await axiosInstance.post('/api/forgot-password', data)
 
-    return response.data
+        return response.data
+    } catch (error) {
+        console.error('[auth.js] -> [sendEmailToResetPassword], Error: ', error);
+        throw error;
+    }
 }
 
 export async function resetPassword(data) {
-    const response = await axiosInstance.post('/api/reset-password', data)
+    try {
+        const response = await axiosInstance.post('/api/reset-password', data)
 
-    return response.data
+        return response.data
+    } catch (error) {
+        console.error('[auth.js] -> [resetPassword], Error: ', error);
+        throw error;
+    }
 }
 
 export async function addNewProfileToAuthUser(data) {
-    const result = await storeProfile(data)
-    user.profiles = await getAuthUserProfiles()
-    
-    setUser(user)
-    return result;
+    try {
+        const result = await storeProfile(data)
+        user.profiles = await getAuthUserProfiles()
+        
+        setUser(user)
+        
+        return result;
+    } catch (error) {
+        console.error('[auth.js] -> [addNewProfileToAuthUser], Error: ', error);
+        throw error;
+    }
 }
 
 export async function updateProfileFromAuthUser(profile) {
-    const result = await updateProfile(profile)
-    console.log(result, 'FASFAS');
-    user.profiles = await getAuthUserProfiles()
+    try {
+        const result = await updateProfile(profile)
+        user.profiles = await getAuthUserProfiles()
 
-    setUser(user)
+        setUser(user)
 
-    return result.feedback;
+        return result.feedback;
+    } catch (error) {
+        console.error('[auth.js] -> [updateProfileFromAuthUser], Error: ', error);
+        throw error;
+    }
 }
 
 export async function deleteProfileFromAuthUser(id) {
-    await deleteProfile(id)
-    user.profiles = await getAuthUserProfiles()
+    try {
+        const result = await deleteProfile(id)
+        user.profiles = await getAuthUserProfiles()
 
-    setUser(user)
+        setUser(user)
+
+        return result.feedback;
+    } catch (error) {
+        console.error('[auth.js] -> [deleteProfileFromAuthUser], Error: ', error);
+        throw error;
+    }
 }

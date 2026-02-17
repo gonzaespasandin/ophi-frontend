@@ -7,6 +7,8 @@ import SomeUserInfo from "../components/ui/SomeUserInfo.vue";
 import Top from "../components/ui/Top.vue";
 import Back from '../components/ui/Back.vue';
 import Feedback from "../components/ui/Feedback.vue";
+import AppLoading from "../components/loadings/AppLoading.vue";
+import Error from "../components/ui/Error.vue";
 
 
 let unsubscribeToAuthObserver = () => {}
@@ -20,10 +22,13 @@ const active2 = ref(false);
 const myProfile = ref([]);
 const otherProfiles = ref([]);
 const loadPlan = ref(false);
+const loading = ref(false);
 const feedback = ref({
   message: null,
   type: null
 });
+
+const serverError = ref(false);
 
 onMounted(() => {
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
@@ -41,7 +46,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   unsubscribeToAuthObserver();
-  sessionStorage.setItem('alert', []);
+  sessionStorage.removeItem('alert');
 });
 
 async function handleLogout() {
@@ -53,12 +58,6 @@ async function handleLogout() {
     console.error(error);
   }
 }
-
-function handleLogUser() {
-  console.log('@log user')
-  console.log(user.value)
-}
-
 
 function handleClick(who) {
   if(who === 'Perfil') {
@@ -75,10 +74,20 @@ function handleConfirmDeleteProfile(profile) {
   dialog.value.showModal()
 }
 
-function handleDeleteProfile() {
-  deleteProfileFromAuthUser(deleteProfile.value.id)
-  otherProfiles.value = otherProfiles.value.filter(p => p.id !== deleteProfile.value.id)
-  dialog.value.close()
+async function handleDeleteProfile() {
+  loading.value = true;
+  try {
+    const result = await deleteProfileFromAuthUser(deleteProfile.value.id);
+    otherProfiles.value = otherProfiles.value.filter(p => p.id !==  deleteProfile.value.id)
+    dialog.value.close();
+    feedback.value = {message: result, type: 'success'};
+    setTimeout(() => feedback.value = {message: null, type: null}, 2000);
+  } catch (error) {
+    console.log('[ProvileView] -> [handleDeleteProfile], Error: ', error);
+    serverError.value = 'Ocurrió un error al eliminar el perfil';
+  } finally {
+    loading.value = false;
+  }
 }
 
 </script>
@@ -87,15 +96,32 @@ function handleDeleteProfile() {
   <AuthLayout>
     <Teleport to="#modal-root">
       <dialog ref="dialog" class="m-auto w-[min(100%-32px,388px)] rounded-[11px] p-4 open:grid">
-        <p class="text-lg font-semibold">¿Estás seguro de que querés eliminar este perfil?</p>
-        <p class="mb-4">Esta acción es irreversible</p>
+       <template v-if="loading">
+        <div class="flex justify-center items-center min-h-[250px]">
+          <AppLoading/>
+        </div>
+       </template>
+       <template v-else>
+          <template v-if="serverError">
+            <div class="flex justify-end text-2xl p-3">
+              <i class="fa-solid fa-xmark"></i>
+            </div>
+            <Error :errorMessage="serverError"></Error>
+            <button class="action-btn mt-4" type="button" @click="dialog.close()">Aceptar</button>
+          </template>
+          <template v-else>
+              <p class="text-lg font-semibold">¿Estás seguro de que querés eliminar este perfil?</p>
+              <p class="mb-4">Esta acción es irreversible</p>
 
-        <SomeUserInfo :user="{name: deleteProfile.name}" />
+              <SomeUserInfo :user="{name: deleteProfile.name}" />
 
-        <form action="#" class="grid grid-cols-2 gap-4 mt-4" @submit.prevent="handleDeleteProfile">
-          <button class="py-2 px-4 border rounded-[11px]" type="button" @click="dialog.close()">Cancelar</button>
-          <button class="py-2 px-4 bg-red-600 rounded-[11px] text-white">Eliminar</button>
-        </form>
+              <form action="#" class="grid grid-cols-2 gap-4 mt-4" @submit.prevent="handleDeleteProfile">
+                <button class="py-2 px-4 border rounded-[11px]" type="button" @click="dialog.close()">Cancelar</button>
+                <button class="py-2 px-4 bg-red-600 rounded-[11px] text-white">Eliminar</button>
+              </form>
+          </template>
+       </template>
+       
       </dialog>
     </Teleport>
 
@@ -115,14 +141,6 @@ function handleDeleteProfile() {
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
-        <!-- TODO: Esto no es navegable con teclado (Mi perfil / Perfil familiar) -->
-        <!--
-          Ya sé que es una aplicación mobile, y a lo mejor nadie va a navegar por la APP con algún
-          teclado o usando su voz con comandos ("Tab", "Atrás" o lo q sea). Pero como en el "rol
-          de desarrollador" pusimos de crear una APP accesible, lo dejo comentado
-
-          Ahi lo cambié, ahora sí es navegable, eran divs y ahora buttons JA PON PON
-          -->
         <button @click="handleClick('Perfil')" class="w-[50%] text-center p-3" :class="active1 ? 'togle-perfil-active' : ''">
           <h3>MI PERFIL</h3>
         </button>
@@ -189,9 +207,6 @@ function handleDeleteProfile() {
     </div>
     <div class="p-3">
       <!--<button @click="handleLogUser" class="w-full py-2 bg-green-600 hover:bg-green-500 transition rounded mt-8 text-white cursor-pointer">Log Usuario</button>-->
-
-      <!-- Definitely not final styling, just something temporal  -->
-      <!-- <button @click="handleLogout" class="w-full py-2 bg-red-600 transition rounded-[11px] mt-8 text-white cursor-pointer"><i class="fa-solid fa-right-from-bracket text-xl mr-2"></i>Cerrar sesión</button> -->
     </div>
     
   </AuthLayout>

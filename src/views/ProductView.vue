@@ -46,9 +46,14 @@ onMounted(async () => {
         }
         loading.value = false;
     } catch (err) {
-        console.error('[ProductView] -> No se pudo obtener el producto por nombre', err);
-        error.value = true;
-        errorMessage.value = 'Error al obtener el producto';
+       if(err.response?.status === 404) {
+            console.log('Product NOT FOUND')
+            product.value = null;
+       } else {
+            console.error('[ProductView] -> No se pudo obtener el producto por nombre', err);
+            error.value = true;
+            errorMessage.value = 'Error al obtener el producto';
+       }
     } finally {
         loading.value = false;
     }
@@ -56,23 +61,23 @@ onMounted(async () => {
     unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
 
 
-    // EN caso de que sea UN PRODUCTO
-    product.value = product.value[0];
+   if(product.value) {
+        // EN caso de que sea UN PRODUCTO
+        product.value = product.value[0];
 
-    // Obtengo todos los perifles médicos del usuario.
-    const userProfiles = user.value.profiles;
+        // Obtengo todos los perifles médicos del usuario.
+        const userProfiles = user.value.profiles;
 
-    // Obtengo los ingredientes del producto
-    const productIngredeints = product.value.ingredients;
+        // Obtengo los ingredientes del producto
+        const productIngredeints = product.value.ingredients;
 
-    // Chequeo (funcion aparte).
-    checkAll(userProfiles, productIngredeints);    
-  
-    normalizedIngredients.value = normalizedIngredients.value.join(', ');
+        // Chequeo (funcion aparte).
+        checkAll(userProfiles, productIngredeints);    
+    
+        normalizedIngredients.value = normalizedIngredients.value.join(', ');
 
-    unsafeIngredients.value = unsafeIngredients.value.join(' - ');
-
-    console.log({safe: safe.value})
+        unsafeIngredients.value = unsafeIngredients.value.join(' - ');
+   }
 });
 
 function manageLocalStorage(productName, productBrand) {
@@ -104,7 +109,6 @@ function manageLocalStorage(productName, productBrand) {
     }">
         <Top/>
         <!-- <Back/> -->
-<<<<<<< HEAD
         <template v-if="loading">
             <div class="flex justify-center mt-90">
                 <AppLoading/>
@@ -120,10 +124,6 @@ function manageLocalStorage(productName, productBrand) {
             </div>
         </template>
         <template v-else>
-=======
-        <template  v-if="!loading">
-          <h1 class="sr-only">Página de producto</h1>
->>>>>>> 0065aea473691066c9d947942dc22dee0d2d61d3
             <div>
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                     <h2 class="text-center text-2xl">{{product.name}}</h2>
@@ -139,7 +139,7 @@ function manageLocalStorage(productName, productBrand) {
                     <p>{{ normalizedIngredients }}</p>
                 </div>
 
-              <div>
+              <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                 <h2 class="text-xl px-3">También puede interesarte</h2>
                 <swiper
                     v-if="safeProducts.length"
@@ -163,7 +163,7 @@ function manageLocalStorage(productName, productBrand) {
                   </template>
                 </swiper>
 
-                <p v-else class="px-3 text-sm">Lamentablemente no pudimos encontrar otros productos similares que sean aptos para todos tus perfiles</p>
+                <p v-else class="px-3 text-sm">No hay productos similares aptos para todos tus perfiles.</p>
               </div>
             </div>
 
