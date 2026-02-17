@@ -6,6 +6,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { onMounted, ref, computed, onUnmounted } from 'vue';
 import { findByName, getMatchesByName } from '../services/product';
 import { suscribeToAuthObserver } from '../services/auth';
+import Error from '../components/ui/Error.vue';
 
 let unsubscribeToAuthObserver = () => {}
 const user = ref({});
@@ -19,6 +20,9 @@ const products = ref([]);
 const productsForSearchListView = ref([]);
 
 const loading = ref(true)
+
+const error = ref(false);
+const errorMessage = ref('');
 
 //Arreglo local storage
 const storage = ref([]);
@@ -45,20 +49,23 @@ onUnmounted(() => {
 })
 
 async function handleSubmit() {
+  error.value = false;
+  errorMessage.value = '';
   const normalizedName = inputValue.value.trim().toLowerCase();
   if (!normalizedName) return;
   try {
     const result = await findByName(normalizedName);
-    if(result) {
+    if(result && result.length > 0) {
       productsForSearchListView.value = result;
       localStorage.removeItem('products');
       localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
       router.push(`/search-list/${normalizedName}`);
     }
-  } catch (error) {
-    console.error('Error al buscar productos por nombre', error);
+  } catch (err) {
+    console.error('Error al buscar productos por nombre', err);
+    error.value = true;
+    errorMessage.value = 'Estamos teniendo problemas para buscar el producto...';
   }
-  // router.push(`/product/${normalizedName}`);
 }
 
 async function getInput() {
@@ -94,7 +101,10 @@ function bold(productName) {
 <template>
   <AuthLayout>
       <div v-if="!loading">
-        <div :class="user.subscription.plan_id === 1 ? 'trama h-[90vh]' : ''">
+        <template v-if="error">
+          <Error :errorMessage="errorMessage"/>
+        </template>
+        <div v-else :class="user.subscription.plan_id === 1 ? 'trama h-[90vh]' : ''">
           <template v-if="user.subscription.plan_id !== 1">
             <div class="bg-[#005B8E] h-5"></div>
 
@@ -115,7 +125,7 @@ function bold(productName) {
 
             <ul class="SearchView-list">
               <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
-                <RouterLink :to="`/product/${product.name}/${product.brand.name}`" class="flex justify-between items-center">
+                <RouterLink :to="`/product/${product.name}/${typeof(product.brand) === 'string' ? product.brand : product.brand.name}`" class="flex justify-between items-center">
                   <div class="flex flex-col">
                     <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
                     <p v-else v-html="bold(product.name)" class="text-sm"></p>

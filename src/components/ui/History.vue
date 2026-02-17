@@ -2,19 +2,25 @@
 import { ref, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import HistoryItem from './HistoryItem.vue';
-import api from '../../config/axios';
+import { getLatestScans } from '../../services/history';
+import Error from './Error.vue';
 
-const history = ref([]);
+
+const history = ref(null);
 const loading = ref(true);
+const error = ref(false);
+const errorMessage = ref('');
+
 
 const fetchRecentHistory = async () => {
   try {
     loading.value = true;
-    const { data } = await api.get('/api/history/latest');
-    history.value = data;
+    const result = await getLatestScans();
+    history.value = result.length === 0 ? null : result;
   } catch (err) {
     console.error('Error al obtener historial:', err);
-    history.value = [];
+    error.value = true;
+    errorMessage.value = 'No se pudo obtener el historial';
   } finally {
     loading.value = false;
   }
@@ -22,6 +28,7 @@ const fetchRecentHistory = async () => {
 
 onMounted(() => {
   fetchRecentHistory();
+
 });
 </script>
 
@@ -38,16 +45,24 @@ onMounted(() => {
       <p class="text-sm">Cargando...</p>
     </div>
 
-    <div v-else-if="history.length === 0" class="text-center text-gray-500 py-4">
+    <template v-else-if="error">
+      <Error :errorMessage="errorMessage"/>
+    </template>
+
+    <div v-else-if="history !== null && !error" class="text-center text-gray-500 py-4">
       <p class="text-sm">No hay escaneos todavía</p>
     </div>
 
-    <div v-else class="space-y-3">
-      <HistoryItem 
-        v-for="item in history" 
-        :key="item.id"
-        :item="item"
-      />
-    </div>
+    
+
+    <template v-else>
+      <div class="space-y-3">
+        <HistoryItem 
+          v-for="item in history" 
+          :key="item.id"
+          :item="item"
+        />
+      </div>
+    </template>
   </div>
 </template>

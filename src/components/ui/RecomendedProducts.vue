@@ -8,6 +8,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
+import Error from './Error.vue';
 
 
 
@@ -15,7 +16,8 @@ const userIngredients = ref([]);
 const recomendedP = ref([]);
 const merged = ref([]);
 const loading = ref(true);
-const restrictedUser = ref([]);
+const errorMessage = ref('');
+const error = ref(false);
 
 const props = defineProps ({
     user: {
@@ -64,12 +66,18 @@ onMounted(async () => {
     });
 
     async function getRecomendedByUser(userName) {
+        if(error.value) {
+            return;
+        }
         const uI = userIngredients.value.filter(i => i.name === userName);
         try {
             const result = await getRecomendedProducts(uI);
             recomendedP.value.push({userName: userName, products: result});
-        } catch (error) {
-            console.log('ERR', error);
+        } catch (err) {
+            console.log('[HomeView] -> [RecomendedProducts], err: ', err);
+
+            error.value = true;
+            errorMessage.value = 'Error al cargar los productos recomendados';
         }
     }
 
@@ -78,6 +86,7 @@ onMounted(async () => {
         // Map porque Promise necesita un array de promesas, y no un array vacío como si lo devuelve forEach
         props.user.filter(u => u.ingredients.length > 0).map(u => getRecomendedByUser(u.name))
     );
+
 
     
     recomendedP.value.forEach(userAndProducts => {
@@ -97,7 +106,7 @@ const modules = [A11y, Virtual];
 </script>
 
 <template>
-    <template v-if="!loading">
+    <template v-if="!loading && !error">
        <div class="mt-10">
             <swiper
                 :modules="modules"
@@ -124,9 +133,12 @@ const modules = [A11y, Virtual];
             </swiper>
        </div>
     </template>
-    <template v-else>
+    <template v-else-if="loading && !error">
         <div class="flex justify-center mt-25">
             <AppLoading/>
         </div>
+    </template>
+    <template v-else-if="error">
+        <Error :errorMessage="errorMessage"/>
     </template>
 </template>

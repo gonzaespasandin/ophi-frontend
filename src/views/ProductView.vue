@@ -1,7 +1,7 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { findByNameAndBrand } from '../services/product';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import Alert from '../components/ui/Alert.vue';
 import { suscribeToAuthObserver } from '../services/auth';
 import Top from "../components/ui/Top.vue";
@@ -9,15 +9,17 @@ import AuthLayout from '../layouts/AuthLayout.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 import { useProductSafety } from '../composables/useProductSafety.js';
 import AppLoading from '../components/loadings/AppLoading.vue';
+import Error from '../components/ui/Error.vue';
 
 let unsuscribeToAuthObserver = () => {};
 
 const route = useRoute();
 const user = ref({});
 const loading = ref(true)
-const product = ref('');
+const product = ref(null);
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, unrestrictedProfiles } = useProductSafety();
-const charge = ref(false);
+const error = ref(false);
+const errorMessage = ref('');
 
 const latestSearches = ref([]);
 if(localStorage.getItem('latestSearches')) {
@@ -26,18 +28,20 @@ if(localStorage.getItem('latestSearches')) {
 
 onMounted(async () => {
     try {
-        product.value = await findByNameAndBrand(route.params.name, route.params.brand);
-        // const brands = product.value.map(p => p.brand);
-        console.log({Product: product.value});
-
-        if (product.value.length === 0 || product.value === 404) {
+        const result = await findByNameAndBrand(route.params.name, route.params.brand);
+        if (!result || result.length === 0) {
             product.value = null;
-            return;
+        } else {
+            product.value = result;
+            manageLocalStorage(product.value[0].name, product.value[0].brand.name);
         }
-        manageLocalStorage(product.value[0].name, product.value[0].brand.name);
         loading.value = false;
-    } catch (error) {
-        console.error('No se pudo obtener el producto por nombre', error);
+    } catch (err) {
+        console.error('[ProductView] -> No se pudo obtener el producto por nombre', err);
+        error.value = true;
+        errorMessage.value = 'Error al obtener el producto';
+    } finally {
+        loading.value = false;
     }
 
     unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
@@ -83,9 +87,23 @@ function manageLocalStorage(productName, productBrand) {
     <AuthLayout :class="(!loading) ? (user?.profiles?.length === 1) ? (safe[0]?.isSafe) ? 'square-with-gradient-success' : 'square-with-gradient-danger' : '' : ''">
         <Top/>
         <!-- <Back/> -->
-        <template  v-if="!loading">
+        <template v-if="loading">
+            <div class="flex justify-center mt-90">
+                <AppLoading/>
+            </div>
+        </template>
+        <template v-else-if="error">
+            <Error :errorMessage="errorMessage"/>
+        </template>
+        <template v-else-if="!product">
+            <div class="bg-white m-3 shadow-md p-3 rounded-lg">
+                <h2 class="font-light text-2xl text-center">¡Lo sentimos!</h2>
+                <p class="text-center py-5">No encontramos resultados</p>
+            </div>
+        </template>
+        <template v-else>
             <div>
-                <div class="bg-white shadow-md  m-3 p-3 rounded-[.5rem]">
+                <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                     <h2 class="text-center text-2xl">{{product.name}}</h2>
                     <h3 class="text-center font-semibold">{{ product.brand.name }}</h3>
                     <span class="block text-center mb-5">Resultados</span>
@@ -93,23 +111,14 @@ function manageLocalStorage(productName, productBrand) {
                     <AlertSomeUsers v-else :safe="safe" :unrestrictedProfiles="unrestrictedProfiles"></AlertSomeUsers>
                 </div>
 
-                <div class="bg-white shadow-md  m-3 p-3 rounded-[.5rem]">
+                <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                     <h2 v-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
                     <h2 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</h2>
                     <p>{{ normalizedIngredients }}</p>
                 </div>
             </div>
-            <div v-if="product === null">
-                <div class="bg-white m-3 shadow-md p-3 rounded-[.5rem]">
-                    <h2 class="font-light text-2xl text-center">¡Lo sentimos!</h2>
-                    <p class="text-center py-5">No encontramos resultados</p>
-                </div>
-            </div>
+
         </template>
-        <template v-else>
-            <div class="flex justify-center mt-90">
-                <AppLoading/>
-            </div>
-        </template>
+
     </AuthLayout>
 </template>

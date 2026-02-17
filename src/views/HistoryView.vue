@@ -7,7 +7,7 @@ import HistoryItem from '../components/ui/HistoryItem.vue';
 import api from "../config/axios";
 import AppLoading from '../components/loadings/AppLoading.vue';
 import { suscribeToAuthObserver } from '../services/auth';
-import { getAmountOfHistory } from '../services/history';
+import { getAmountOfHistory, searchByName } from '../services/history';
 
 let unsubscribeToAuthObserver = () => {}
 
@@ -24,6 +24,7 @@ const amountOfScans = ref(0);
 const disableNextButton = ref(false);
 const disablePrevButton = ref(false);
 const threePages = ref([1, 2, '...']);
+const timeout = ref(null);
 
 
 
@@ -92,23 +93,27 @@ onUnmounted(() => {
 }) 
 
 
-function search() {
-  // const nomralizedValue = inputValue.value.trim().toLowerCase();
-
-  // if(nomralizedValue !== '') {
-  //   history.value = fullHistory.value.filter(h => h.product.name_normalized.includes(nomralizedValue));
-  //   console.log(history.value);
-  //   if(history.value.length === 0) {
-  //     searchError.value = true;
-  //   } else {
-  //     searchError.value = false;
-  //   }
-  // } else {
-  //   history.value = fullHistory.value;
-  //   console.log(history.value);
-  // } 
-
-  
+async function search() {
+  const nomralizedValue = inputValue.value.trim().toLowerCase();
+  if(nomralizedValue === '') {
+    searchError.value = false;
+    history.value = fullHistory.value;
+    return;
+  }
+  try {
+    const result = await searchByName(nomralizedValue);
+    history.value = result;
+    console.log(result, 'RESSS')
+    if(result.length === 0) {
+      console.log('CERO')
+      searchError.value = true;
+    } else {
+      searchError.value = false;
+    }
+  } catch (error) {
+    history.value = fullHistory.value;
+    console.log('[HistoryView] -> [search] -> Error: ', error);
+  }  
 }
 
 async function handlePaginator(direction, page = null) {
@@ -152,6 +157,14 @@ function calculatePages(data) {
 }
 
 
+function time() {
+  clearTimeout(timeout);
+  timeout.value = setTimeout(() => {
+    search();
+  }, 300);
+}
+
+
 </script>
 
 <template>
@@ -168,8 +181,8 @@ function calculatePages(data) {
         </div>
         <p v-else class="text-center">{{ amountOfScans }} escaneos guardados</p>
       </template>
-      <div v-if="fullHistory.length > 0" class="flex justify-around items-center max-w-90 bg-[#f5f5f5] m-auto h-12 mt-5 rounded-[11px]" id="search" @click="handleSubmit">
-          <input type="text" id="search" name="search"  placeholder="Buscar productos..." v-model="inputValue" class=" border-0 outline-0" @input="search()">
+      <div v-if="userLoad && (fullHistory.length > 0 && user.subscription.plan_id !== 1)" class="flex justify-around items-center max-w-90 bg-[#f5f5f5] m-auto h-12 mt-5 rounded-[11px]" id="search" @click="handleSubmit">
+          <input type="text" id="search" name="search"  placeholder="Buscar productos..." v-model="inputValue" class=" border-0 outline-0" @input="time()">
           <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
       </div>
     </div>
