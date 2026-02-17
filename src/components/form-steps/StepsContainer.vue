@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
-import {useRouter} from "vue-router";
+import { ref, onMounted } from 'vue'
+import {useRoute, useRouter} from "vue-router";
 import TermsAndConditions from './TermsAndConditions.vue'
 import Intolerances from './Intolerances.vue'
 import Allergies from './Allergies.vue'
@@ -12,14 +12,16 @@ import SkipToLastStep from "./SkipToLastStep.vue";
 const emit = defineEmits(['submit'])
 
 const router = useRouter()
+const route = useRoute()
 
 const currentStep = ref(0)
 const props = defineProps({
-  steps: {type: Array, required: true}, 
+  steps: {type: Array, required: true},
   where: String,
   errors: {type: Object, default: () => ({})},
   loading: {type: Boolean, default: false}
 });
+
 const stepsDictionary = {
   'terms': TermsAndConditions,
   'new_user_data': UserData,
@@ -40,28 +42,53 @@ const formData = ref({
   avatar: '',
 })
 
+onMounted(loadCurrentStep)
+
+function changeStep(step) {
+  localStorage.setItem('ophi-step-form', JSON.stringify(formData.value))
+
+  router.push(generateRouteForStep(props.steps[step]))
+}
+
+function loadCurrentStep() {
+  formData.value = JSON.parse(localStorage.getItem('ophi-step-form')) ?? {
+    terms_and_conditions: false,
+    ingredients: [],
+    name: '',
+    email: '',
+    password: '',
+    confirm_password: '',
+    avatar: '',
+  }
+  const stepName = route.params.step ? route.params.step : props.steps[0]
+
+  currentStep.value = props.steps.indexOf(stepName)
+}
+
+function generateRouteForStep(step) {
+  const baseUrl = route.matched[0].path
+  return baseUrl.replace(':step?', step)
+}
+
 function handleNext() {
   if(currentStep.value >= (props.steps.length - 1)) {
     //  Execute action
+    localStorage.removeItem('ophi-step-form')
     emit('submit', formData.value)
     return
   }
 
   currentStep.value += 1
+  changeStep(currentStep.value)
 }
 
 function handlePrevious() {
-  if(currentStep.value <= 0) {
-    //  Execute action
-    router.back()
-    return
-  }
-
-  currentStep.value -= 1
+  router.back()
 }
 
 function goToLastStep() {
   currentStep.value = props.steps.length - 1
+  changeStep(currentStep.value)
 }
 </script>
 
@@ -72,6 +99,7 @@ function goToLastStep() {
     ><span>{{ currentStep + 1 }} / {{ steps.length }}</span></div>
 
     <component
+        :key="currentStep"
         :is="stepsDictionary[steps[currentStep]]"
         v-model="formData"
         @next="handleNext"
