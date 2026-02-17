@@ -56,7 +56,7 @@ async function handleSubmit(formData) {
       </div>
 
       <StepsContainer
-        :steps="['terms', 'intolerances', 'allergies', 'diets', 'new_user_data']"
+        :steps="['terms', 'skip_to_last_step', 'intolerances', 'allergies', 'diets', 'new_user_data']"
         @submit="handleSubmit"
         :where="'register'"
         :errors="registrationErrors"
@@ -71,7 +71,7 @@ async function handleSubmit(formData) {
 
 <style scoped>
   div > div > div:first-child {
-    background-image: url(../assets/img/tramas/Artboard\ 1trama-1.png);
+    background-image: url('../assets/img/tramas/Artboard\ 1trama-1.png');
 
     background-repeat: no-repeat;
     background-size: 175%;

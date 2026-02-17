@@ -104,7 +104,6 @@ function manageLocalStorage(productName, productBrand) {
     }">
         <Top/>
         <!-- <Back/> -->
-<<<<<<< HEAD
         <template v-if="loading">
             <div class="flex justify-center mt-90">
                 <AppLoading/>
@@ -120,10 +119,8 @@ function manageLocalStorage(productName, productBrand) {
             </div>
         </template>
         <template v-else>
-=======
         <template  v-if="!loading">
           <h1 class="sr-only">Página de producto</h1>
->>>>>>> 0065aea473691066c9d947942dc22dee0d2d61d3
             <div>
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                     <h2 class="text-center text-2xl">{{product.name}}</h2>
@@ -167,6 +164,7 @@ function manageLocalStorage(productName, productBrand) {
               </div>
             </div>
 
+        </template>
         </template>
 
     </AuthLayout>
