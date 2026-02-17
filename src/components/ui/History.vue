@@ -49,7 +49,7 @@ onMounted(() => {
       <Error :errorMessage="errorMessage"/>
     </template>
 
-    <div v-else-if="history !== null && !error" class="text-center text-gray-500 py-4">
+    <div v-else-if="history === null && !error" class="text-center text-gray-500 py-4">
       <p class="text-sm">No hay escaneos todavía</p>
     </div>
 

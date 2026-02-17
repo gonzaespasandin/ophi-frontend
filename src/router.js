@@ -31,7 +31,7 @@ const routes = [
         'meta': { 'auth': false }
     },
     {
-        'path': '/register',
+        'path': '/register/:step?',
         'component': RegisterView,
         'meta': { 'auth': false }
     },
@@ -91,7 +91,7 @@ const routes = [
         'meta': { 'auth': true }
     },
     {
-        'path': '/add-new-profile',
+        'path': '/add-new-profile/:step?',
         'component': AddNewProfileView,
         'meta': { 'auth': true }
     },

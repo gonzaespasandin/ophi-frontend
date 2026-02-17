@@ -6,6 +6,26 @@ const props = defineProps({
   errors: {type: Object, default: () => ({})},
   loading: {type: Boolean, default: false}
 })
+
+function getUserNameFromEmail(e) {
+  const email = e.currentTarget.value
+
+  if (email === '' || !email.includes('@') || email[email.length - 1] !== '@' || email[0] === '@') return
+
+  let name = email.split('@')[0]
+
+  // Separating dots "."
+  if (name.includes('.')) {
+    name = name.split('.')[0]
+  }
+
+  // Making the first letter uppercase
+  name = name[0].toUpperCase() +  name.slice(1)
+
+  // Saving it
+  model.value.name = name
+  console.log({name})
+}
 </script>
 
 <template>
@@ -17,20 +37,6 @@ const props = defineProps({
     <div class="flex flex-col justify-between grow p-4 min-h-80 bg-[#005B8E]">
       <div>
         <div class="mb-3">
-          <label for="name">Nombre</label>
-          <input
-              id="name"
-              :class="[errors.name ? 'inputs-wrong' : 'inputs', 'block border text-black']"
-              type="text"
-              name="name"
-              placeholder="Ej: Juan Pérez"
-              v-model="model.name">
-          <p v-if="errors.name" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
-            {{ errors.name[0] }}
-          </p>
-        </div>
-
-        <div class="mb-3">
           <label for="email">Email</label>
           <input
               id="email"
@@ -38,7 +44,9 @@ const props = defineProps({
               type="email"
               name="email"
               placeholder="tu@email.com"
-              v-model="model.email">
+              v-model="model.email"
+              @input="getUserNameFromEmail"
+          >
           <p v-if="errors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
             {{ errors.email[0] }}
           </p>
