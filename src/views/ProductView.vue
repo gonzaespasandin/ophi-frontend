@@ -1,7 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { findByNameAndBrand } from '../services/product';
 import { useRoute } from 'vue-router';
+import api from '../config/axios';
+import BarcodeSuggestionAlert from '../components/ui/BarcodeSuggestionAlert.vue';
 import Alert from '../components/ui/Alert.vue';
 import { suscribeToAuthObserver } from '../services/auth';
 import Top from "../components/ui/Top.vue";
@@ -24,6 +26,8 @@ const modules = [A11y, Virtual];
 const route = useRoute();
 let safeProducts = [];
 const user = ref({});
+const pendingBarcode = ref(null);
+const showSuggestionAlert = ref(false);
 const loading = ref(true)
 const product = ref(null);
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, unrestrictedProfiles } = useProductSafety();
@@ -78,6 +82,26 @@ onMounted(async () => {
 
         unsafeIngredients.value = unsafeIngredients.value.join(' - ');
    }
+
+   const storedBarcode = localStorage.getItem('pending_scan_barcode');
+   if(storedBarcode && product.value && !product.value.barcode) {
+    try {
+        const { data } = await api.get('/api/scanner/can-suggest', {
+                params: {
+                    barcode: storedBarcode,
+                    product_id: product.value.id,
+                }
+            });
+        if(data.can_suggest) {
+            pendingBarcode.value = storedBarcode;
+            showSuggestionAlert.value = true;
+        } else {
+            clearSuggestionFlow();
+        }
+    } catch (err) {
+        console.error('[ProductView] -> Error al verificar si se puede sugerir el código', err);
+    }
+   }
 });
 
 function manageLocalStorage(productName, productBrand) {
@@ -98,6 +122,32 @@ function manageLocalStorage(productName, productBrand) {
     console.log({SafeProducts: safeProducts});
 }
 
+function clearSuggestionFlow() {
+    localStorage.removeItem('pending_scan_barcode');
+    showSuggestionAlert.value = false;
+    api.delete('/api/scanner/clear-pending-barcode').catch(() => {});
+}
+
+async function handleConfirm(){
+    try {
+        await api.post('/api/scanner/suggest', {
+            barcode: pendingBarcode.value,
+            product_id: product.value.id
+        });
+    } catch (err) {
+        console.error('[ProductView] -> Error al sugerir el código', err);
+    } finally {
+        clearSuggestionFlow();
+    }
+}
+
+function handleDismiss(){
+    clearSuggestionFlow();
+}
+
+onBeforeUnmount(() => {
+    clearSuggestionFlow();
+});
 </script>
 
 <template>
@@ -134,6 +184,13 @@ function manageLocalStorage(productName, productBrand) {
                     <Alert v-if="user.profiles.length === 1" :safe="safe"></Alert>
                     <AlertSomeUsers v-else :safe="safe" :unrestrictedProfiles="unrestrictedProfiles"></AlertSomeUsers>
                 </div>
+
+                <BarcodeSuggestionAlert
+                    v-if="showSuggestionAlert && pendingBarcode"
+                    :barcode="pendingBarcode"
+                    @confirm="handleConfirm"
+                    @dismiss="handleDismiss"
+                />
 
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                     <h2 v-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>

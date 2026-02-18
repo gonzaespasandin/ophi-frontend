@@ -40,6 +40,7 @@ const fromScanner = computed(() => route.query.from === 'scanner');
 const lastCode = computed(() => route.query.code || '');
 
 onMounted(() => {
+  localStorage.removeItem('pending_scan_barcode');
   products.value = storage.value.length > 0 ? storage.value : [];
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => {user.value = state, loading.value = false});
 }) 

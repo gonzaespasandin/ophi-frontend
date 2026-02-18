@@ -96,6 +96,7 @@ const setupResultReceiver = () => {
             if (status === 404) {
               showNameFallback.value = true;
               errorMessage.value = '';
+              localStorage.setItem('pending_scan_barcode', codigo);
             } else {
                 showNameFallback.value = false;
                 errorMessage.value = `Error al consultar: ${err?.message || 'Error desconocido'}`;

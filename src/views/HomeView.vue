@@ -12,6 +12,7 @@ import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
   const userNameLength = ref(3);
 
   onMounted(() => {
+    localStorage.removeItem('pending_scan_barcode');
     unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
     userNameLength.value = user.value.name.length;
   })

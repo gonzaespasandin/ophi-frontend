@@ -83,6 +83,7 @@ function disableButtons(which, data) {
 } 
 
 onMounted(() => {
+  localStorage.removeItem('pending_scan_barcode');
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, userLoad.value = true);
   countHistory();
   fetchHistory();

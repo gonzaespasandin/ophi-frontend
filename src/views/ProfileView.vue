@@ -31,6 +31,7 @@ const feedback = ref({
 const serverError = ref(false);
 
 onMounted(() => {
+  localStorage.removeItem('pending_scan_barcode');
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
   console.log(user.value, ' USERs');
 
