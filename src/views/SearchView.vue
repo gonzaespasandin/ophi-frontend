@@ -24,6 +24,8 @@ const loading = ref(true)
 const error = ref(false);
 const errorMessage = ref('');
 
+const timeout = ref(null);
+
 //Arreglo local storage
 const storage = ref([]);
 const rawStorage = localStorage.getItem('latestSearches');
@@ -96,6 +98,13 @@ function bold(productName) {
   return productName.replace(regex, match => `<span class="font-semibold">${match}</span>`);
 }
 
+function time() {
+  clearTimeout(timeout.value);
+  timeout.value = setTimeout(() => {
+    getInput();
+  }, 300);
+}
+
 </script>
 
 
@@ -118,7 +127,7 @@ function bold(productName) {
 
             <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
               <i class="fa-solid fa-arrow-left"></i>
-              <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="getInput()" autocomplete="off"/>
+              <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="time()" autocomplete="off"/>
               <button type="submit">
                 <i class="fa-solid fa-magnifying-glass"></i>
               </button>
@@ -130,7 +139,7 @@ function bold(productName) {
                   <div class="flex flex-col">
                     <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
                     <p v-else v-html="bold(product.name)" class="text-sm"></p>
-                    <span class="font-medium text-[13px]">{{ typeof(product.brand) === 'string' ? product.brand : product.brand.name }}</span>
+                    <span class="text-[12px] text-gray-600">{{ typeof(product.brand) === 'string' ? product.brand : product.brand.name }}</span>
                   </div>
                   <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
                   <i v-else class="fa-solid fa-arrow-right"></i>

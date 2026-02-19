@@ -11,8 +11,12 @@ const props = defineProps({
 
 function getUserNameFromEmail(e) {
   const email = e.currentTarget.value
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
-  if (email === '' || !email.includes('@') || email[email.length - 1] !== '@' || email[0] === '@') return
+  if (!emailRegex.test(email)) return
+
+
+  console.log('Me ejecuttteeeee')
 
   let name = email.split('@')[0]
 
@@ -73,6 +77,7 @@ function getUserNameFromEmail(e) {
           <label for="confirm_password">Confirmar contraseña</label>
           <input
               id="confirm_password"
+              class=" text-black"
               :class="props.errors.confirm_password ? 'inputs-wrong' : 'inputs', 'block border text-black'"
               type="password"
               name="confirm_password"

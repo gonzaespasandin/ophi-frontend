@@ -7,10 +7,12 @@ const props = defineProps({
         default: [{isSafe: true}]
     }
 })
-const isSafe = props.safe[0]?.isSafe;
+console.log(props.safe[0], ' SSSAF')
+const isSafe = props.safe[0]?.is_safe;
 
 console.log('[Alert.vue]');
 console.log({isSafe});
+
 
 </script>
 

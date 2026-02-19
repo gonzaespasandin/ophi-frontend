@@ -180,12 +180,23 @@ p {
 
 .SearchView-list {
     li {
-        border-bottom: 1px solid #009161;
         padding: .5rem 1rem;
     }
 }
 
+.SearchView-list li {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e6e6e6;
+  transition: background 0.2s ease;
+}
 
+.SearchView-list li:hover {
+  background: var(--action);
+  color: white;
+  span {
+    color: white;
+  }
+}
 .view {
   position: absolute;
   width: 100%;
