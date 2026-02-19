@@ -18,6 +18,7 @@ const currentStep = ref(0)
 const props = defineProps({
   steps: {type: Array, required: true},
   where: String,
+  errors: {type: Object},
   loading: {type: Boolean, default: false}
 });
 
@@ -107,6 +108,7 @@ function goToLastStep() {
         @golast="goToLastStep"
         :where="where"
         :loading="loading"
+        :errors="errors"
     />
   </form>
 </template>

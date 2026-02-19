@@ -19,6 +19,7 @@ function handleSubmitt() {
     return;
   }
   nameError.value = null;
+  console.log(model.value.ingredients);
   emit('next');
 }
 </script>

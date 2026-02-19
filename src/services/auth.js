@@ -157,7 +157,7 @@ export async function updateProfileFromAuthUser(profile) {
 
         setUser(user)
 
-        return result.feedback;
+        return result.message;
     } catch (error) {
         console.error('[auth.js] -> [updateProfileFromAuthUser], Error: ', error);
         throw error;
@@ -171,7 +171,7 @@ export async function deleteProfileFromAuthUser(id) {
 
         setUser(user)
 
-        return result.feedback;
+        return result.message;
     } catch (error) {
         console.error('[auth.js] -> [deleteProfileFromAuthUser], Error: ', error);
         throw error;

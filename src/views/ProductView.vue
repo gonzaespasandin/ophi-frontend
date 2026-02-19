@@ -40,6 +40,8 @@ if(localStorage.getItem('latestSearches')) {
 }
 
 onMounted(async () => {
+
+    console.log(safe);
     try {
         const result = await findByNameAndBrand(route.params.name, route.params.brand);
         if (!result || result.length === 0) {
@@ -114,12 +116,9 @@ function manageLocalStorage(productName, productBrand) {
     if(latestSearches.value.length > 4) {
         latestSearches.value.shift();
     } 
-
-
     localStorage.setItem('latestSearches', JSON.stringify(latestSearches.value));
 
     safeProducts = product.value.safeProducts;
-    console.log({SafeProducts: safeProducts});
 }
 
 function clearSuggestionFlow() {
@@ -156,6 +155,7 @@ onBeforeUnmount(() => {
       'square-with-gradient-success': !loading && user?.profiles?.length === 1 && safe[0]?.isSafe,
       'square-with-gradient-danger': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe !== undefined,
       'square-with-gradient-gray': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe === undefined,
+      'square-with-gradient-mix': !loading && user?.profiles?.length !== 1 && !safe[0]?.isSafe
     }">
         <Top/>
         <!-- <Back/> -->

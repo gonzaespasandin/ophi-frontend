@@ -7,10 +7,16 @@ const props = defineProps({
   loading: {type: Boolean, default: false}
 })
 
+
+
 function getUserNameFromEmail(e) {
   const email = e.currentTarget.value
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
-  if (email === '' || !email.includes('@') || email[email.length - 1] !== '@' || email[0] === '@') return
+  if (!emailRegex.test(email)) return
+
+
+  console.log('Me ejecuttteeeee')
 
   let name = email.split('@')[0]
 
@@ -40,15 +46,15 @@ function getUserNameFromEmail(e) {
           <label for="email">Email</label>
           <input
               id="email"
-              :class="[errors.email ? 'inputs-wrong' : 'inputs', 'block border text-black']"
+              :class="[props.errors.email ? 'inputs-wrong' : 'inputs', 'block border text-black']"
               type="email"
               name="email"
               placeholder="tu@email.com"
               v-model="model.email"
               @input="getUserNameFromEmail"
           >
-          <p v-if="errors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
-            {{ errors.email[0] }}
+          <p v-if="props.errors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
+            {{props.errors.email[0] }}
           </p>
         </div>
 
@@ -56,13 +62,13 @@ function getUserNameFromEmail(e) {
           <label for="password">Contraseña</label>
           <input
               id="password"
-              :class="[errors.password ? 'inputs-wrong' : 'inputs', 'block border text-black']"
+              :class="[props.errors.password ? 'inputs-wrong' : 'inputs', 'block border text-black']"
               type="password"
               name="password"
               v-model="model.password"
           >
-          <p v-if="errors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
-            {{ errors.password[0] }}
+          <p v-if="props.errors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
+            {{ props.errors.password[0] }}
           </p>
           <p class="text-xs text-gray-300 mt-1">Mínimo 8 caracteres, al menos 1 mayúscula y 1 minúscula</p>
         </div>
@@ -71,12 +77,13 @@ function getUserNameFromEmail(e) {
           <label for="confirm_password">Confirmar contraseña</label>
           <input
               id="confirm_password"
-              :class="[errors.confirm_password ? 'inputs-wrong' : 'inputs', 'block border text-black']"
+              class=" text-black"
+              :class="props.errors.confirm_password ? 'inputs-wrong' : 'inputs', 'block border text-black'"
               type="password"
               name="confirm_password"
               v-model="model.confirm_password">
-          <p v-if="errors.confirm_password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
-            {{ errors.confirm_password[0] }}
+          <p v-if="props.errors.confirm_password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
+            {{ props.errors.confirm_password[0] }}
           </p>
         </div>
       </div>
