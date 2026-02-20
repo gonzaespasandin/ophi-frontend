@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AuthLayout from "../layouts/AuthLayout.vue";
 import api from "../config/axios";
@@ -8,6 +8,7 @@ import { useProductSafety } from '../composables/useProductSafety.js';
 import Alert from '../components/ui/Alert.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 import { findByName, getMatchesByName } from '../services/product';
+import Top from '../components/ui/Top.vue';
 
 const router = useRouter();
 
@@ -41,6 +42,9 @@ const initializeDynamsoft = () => {
   // Cargar el wasm por adelantado para reducir el tiempo de carga
   Dynamsoft.Core.CoreModule.loadWasm();
 };
+
+
+
 
 // Configurar el receptor de resultados de códigos de barras
 const setupResultReceiver = () => {
@@ -291,6 +295,41 @@ const saveToHistory = async (productData, safetyResults) => {
   }
 };
 
+
+const touchStart = ref(0);
+const currentPosition = ref();
+const translateY = ref(0);
+
+const getTouch = (e) => {
+  if (!(showProduct.value || showError.value)) return;
+  touchStart.value = e.touches[0].clientY;
+
+  console.log(touchStart.value);
+}
+
+const moveTouch = (e) => {
+  if (!(showProduct.value || showError.value)) return;
+  currentPosition.value =  e.touches[0].clientY;
+  const move = currentPosition.value - touchStart.value;
+  
+  if(move > 0) {
+    translateY.value = move;
+  }
+}
+
+
+const endTouch = (e) => {
+  if (!(showProduct.value || showError.value)) return;
+
+  if (translateY.value > 120) {
+    showProduct.value = false;
+    showError.value = false;
+  }
+
+  translateY.value = 0
+}
+
+
 // Lifecycle hooks
 onMounted(async () => {
   unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
@@ -307,110 +346,117 @@ onBeforeUnmount(async () => {
 
 <template>
   <AuthLayout>
-    <h1 class="sr-only text-4xl">Escaner</h1>
+    <div class="relative h-900vh" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
+      <div class="square-with-gradient-scanner scanner-top">
+        <img src="../assets/img/logo-positivo.png" class="m-auto mt-20">
+      </div>
+      <h1 class="sr-only text-4xl">Escaner</h1>
 
-    <!-- Cámara ocupa la parte superior -->
-    <div class="w-full h-[50%]" id="camera-view-container"></div>
+      <!-- Cámara ocupa la parte superior -->
+      <div class="w-full h-full" id="camera-view-container"></div>
 
-    <!-- Parte inferior: resultados / fallback -->
-    <div class="h-[50%] overflow-y-auto" id="results">
-      <div v-if="showProduct && product">
-        <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
-          <h2 class="text-center text-2xl">{{ product.name }}</h2>
-          <!-- <p class="text-center text-m text-gray-700">{{ product.brand.name }}</p> -->
-          <span class="block text-center mt-3 mb-3">Resultados</span>
-          <template v-if="safetyDataReady">
-            <Alert
-              v-if="user.profiles && user.profiles.length === 1 && safe.length > 0"
-              :safe="safe"
-            />
-            <AlertSomeUsers
-              v-else-if="user.profiles && user.profiles.length > 1 && safe.length > 0"
-              :safe="safe"
-            />
+      <!-- Parte inferior: resultados / fallback -->
+      <div id="results"  class="h-full absolute bottom-0 w-full  flex items-end justify-center transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
+        <div v-if="showProduct && product" class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out" :style="{ transform: `translateY(${translateY}px)`}">
+          <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
+          <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
+            <h2 class="text-center text-2xl">{{ product.name }}</h2>
+            <!-- <p class="text-center text-m text-gray-700">{{ product.brand.name }}</p> -->
+            <span class="block text-center mt-3 mb-3">Resultados</span>
+            <template v-if="safetyDataReady">
+              <Alert
+                v-if="user.profiles && user.profiles.length === 1 && safe.length > 0"
+                :safe="safe"
+              />
+              <AlertSomeUsers
+                v-else-if="user.profiles && user.profiles.length > 1 && safe.length > 0"
+                :safe="safe"
+              />
+            </template>
+          </div>
+
+          <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3 rounded-[11px]">
+            <h3 class="text-xl mb-2">Ingredientes:</h3>
+            <p>{{ normalizedIngredients.join(', ') }}</p>
+          </div>
+        </div>
+
+        <!-- Bloque de error / fallback -->
+        <div
+          v-else-if="showError"
+          class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out min-h-[35vh]" :style="{ transform: `translateY(${translateY}px)`}"
+        >
+          <!-- Caso: no se encontró el código (404) → panel con input de nombre -->
+          <template v-if="showNameFallback">
+            <div>
+              <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
+              <h2 class="text-center text-xl font-semibold mb-2">¡Lo sentimos!</h2>
+              <p class="text-center text-sm text-gray-700">
+                No pudimos escanear el código de barras.
+              </p>
+              <p v-if="scannedCode" class="text-center text-xs text-gray-500 mt-1">
+                Código escaneado: <strong>{{ scannedCode }}</strong>
+              </p>
+            </div>
+
+            <div class="bg-white rounded-b-2xl shadow-md w-full max-w-md p-4">
+              <label
+                for="fallbackName"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Nombre del producto
+              </label>
+              <input
+                id="fallbackName"
+                v-model="nameSearch"
+                type="text"
+                placeholder="Ej: Yogur descremado frutilla"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#009161]"
+                @input="handleNameInput"
+              />
+              <p v-if="nameError" class="mt-1 text-xs text-red-600">
+                {{ nameError }}
+              </p>
+
+              <!-- Sugerencias, igual que en SearchView -->
+              <ul
+                v-if="nameMatches.length > 0"
+                class="mt-4 w-full max-w-md"
+              >
+                <li
+                  v-for="product in nameMatches"
+                  :key="product.id ?? undefined"
+                  class="bg-[#f5f5f5] px-3 py-2 mb-2 rounded"
+                >
+                  <RouterLink
+                    :to="`/product/${product.name}/${product.brand.name}`"
+                    class="flex justify-between items-center"
+                  >
+                    <div class="flex flex-col text-left">
+                      <span v-html="boldProductName(product.name)"></span>
+                      <span class="font-medium text-sm">{{ product.brand.name }}</span>
+                    </div>
+                  </RouterLink>
+                </li>
+              </ul>
+
+              <button
+                type="button"
+                class="mt-4 w-full py-2 rounded-full bg-[#00A878] text-white font-semibold"
+                @click="confirmNameSearch"
+              >
+                Confirmar
+              </button>
+            </div>
+          </template>
+
+          <!-- Otros errores (auth, server, etc.) -->
+          <template v-else>
+            <p class="text-lg font-semibold mb-4 text-center">
+              {{ errorMessage }}
+            </p>
           </template>
         </div>
-
-        <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3 rounded-[11px]">
-          <h3 class="text-xl mb-2">Ingredientes:</h3>
-          <p>{{ normalizedIngredients.join(', ') }}</p>
-        </div>
-      </div>
-
-      <!-- Bloque de error / fallback -->
-      <div
-        v-else-if="showError"
-        class="w-full p-4 flex flex-col items-center justify-center min-h-full"
-      >
-        <!-- Caso: no se encontró el código (404) → panel con input de nombre -->
-        <template v-if="showNameFallback">
-          <div class="bg-white rounded-t-2xl shadow-md w-full max-w-md p-4 mb-4">
-            <h2 class="text-center text-xl font-semibold mb-2">¡Lo sentimos!</h2>
-            <p class="text-center text-sm text-gray-700">
-              No pudimos escanear el código de barras.
-            </p>
-            <p v-if="scannedCode" class="text-center text-xs text-gray-500 mt-1">
-              Código escaneado: <strong>{{ scannedCode }}</strong>
-            </p>
-          </div>
-
-          <div class="bg-white rounded-b-2xl shadow-md w-full max-w-md p-4">
-            <label
-              for="fallbackName"
-              class="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Nombre del producto
-            </label>
-            <input
-              id="fallbackName"
-              v-model="nameSearch"
-              type="text"
-              placeholder="Ej: Yogur descremado frutilla"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#009161]"
-              @input="handleNameInput"
-            />
-            <p v-if="nameError" class="mt-1 text-xs text-red-600">
-              {{ nameError }}
-            </p>
-
-            <!-- Sugerencias, igual que en SearchView -->
-            <ul
-              v-if="nameMatches.length > 0"
-              class="mt-4 w-full max-w-md"
-            >
-              <li
-                v-for="product in nameMatches"
-                :key="product.id ?? undefined"
-                class="bg-[#f5f5f5] px-3 py-2 mb-2 rounded"
-              >
-                <RouterLink
-                  :to="`/product/${product.name}/${product.brand.name}`"
-                  class="flex justify-between items-center"
-                >
-                  <div class="flex flex-col text-left">
-                    <span v-html="boldProductName(product.name)"></span>
-                    <span class="font-medium text-sm">{{ product.brand.name }}</span>
-                  </div>
-                </RouterLink>
-              </li>
-            </ul>
-
-            <button
-              type="button"
-              class="mt-4 w-full py-2 rounded-full bg-[#00A878] text-white font-semibold"
-              @click="confirmNameSearch"
-            >
-              Confirmar
-            </button>
-          </div>
-        </template>
-
-        <!-- Otros errores (auth, server, etc.) -->
-        <template v-else>
-          <p class="text-lg font-semibold mb-4 text-center">
-            {{ errorMessage }}
-          </p>
-        </template>
       </div>
     </div>
   </AuthLayout>
@@ -421,4 +467,13 @@ canvas {
   border-radius: 12px;
   border: 3px solid #005B8E;
 }
+
+.scanner-top  {
+  position: absolute;
+  z-index: 3;
+  width: 100%;
+  height: 650px;
+}
+
+
 </style>

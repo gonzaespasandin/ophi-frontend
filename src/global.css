@@ -79,6 +79,10 @@ p {
     background: linear-gradient(#005B8E , #F5F5F5 40%);
 }
 
+.square-with-gradient-scanner {
+    background: linear-gradient(#005B8E , #f5f5f500 40%);
+}
+
 .square-with-gradient-success {
     background: linear-gradient(#009161 , #F5F5F5 40%);
 }
