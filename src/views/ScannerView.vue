@@ -7,6 +7,7 @@ import { suscribeToAuthObserver } from '../services/auth';
 import { useProductSafety } from '../composables/useProductSafety.js';
 import Alert from '../components/ui/Alert.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
+import AppLoading from '../components/loadings/AppLoading.vue';
 import { findByName, getMatchesByName } from '../services/product';
 import Top from '../components/ui/Top.vue';
 
@@ -25,6 +26,8 @@ const showError = ref(false);
 const errorMessage = ref('');
 const safetyDataReady = ref(false);
 const scannedCode = ref('');
+const lastFailedCode = ref('');
+const isProcessing = ref(false);
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety } = useProductSafety();
 
 const showNameFallback = ref(false);
@@ -44,8 +47,6 @@ const initializeDynamsoft = () => {
 };
 
 
-
-
 // Configurar el receptor de resultados de códigos de barras
 const setupResultReceiver = () => {
   cvRouter.addResultReceiver({
@@ -60,6 +61,9 @@ const setupResultReceiver = () => {
           
           lastScannedCode = codigo;
           scannedCode.value = codigo;
+          isProcessing.value = true;
+          showError.value = false;
+          showProduct.value = false;
           Dynamsoft.DCE.Feedback.beep();
 
           try {
@@ -98,6 +102,7 @@ const setupResultReceiver = () => {
             nameMatches.value = [];
             
             if (status === 404) {
+              lastFailedCode.value = codigo;
               showNameFallback.value = true;
               errorMessage.value = '';
               localStorage.setItem('pending_scan_barcode', codigo);
@@ -110,6 +115,8 @@ const setupResultReceiver = () => {
                 const backendMsg = err?.response?.data?.message;
                 errorMessage.value = `Error al consultar: ${backendMsg || err?.message || 'Error desconocido'}`;
             }
+          } finally {
+            isProcessing.value = false;
           }
         }
       }
@@ -356,7 +363,10 @@ onBeforeUnmount(async () => {
       <div class="w-full h-full" id="camera-view-container"></div>
 
       <!-- Parte inferior: resultados / fallback -->
-      <div id="results"  class="h-full absolute bottom-0 w-full  flex items-end justify-center transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
+      <div id="results" class="h-full absolute bottom-0 w-full  flex items-end justify-center transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError || isProcessing) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
+        <div v-if="isProcessing" class="bg-[#f5f5f5] w-full rounded-t-[11px] flex justify-center items-center py-10">
+          <AppLoading />
+        </div>
         <div v-if="showProduct && product" class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out" :style="{ transform: `translateY(${translateY}px)`}">
           <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
           <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
@@ -387,15 +397,15 @@ onBeforeUnmount(async () => {
           class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out min-h-[35vh]" :style="{ transform: `translateY(${translateY}px)`}"
         >
           <!-- Caso: no se encontró el código (404) → panel con input de nombre -->
-          <template v-if="showNameFallback">
-            <div>
+          <template v-if="showNameFallback" >
+            <div class="mb-5">
               <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
               <h2 class="text-center text-xl font-semibold mb-2">¡Lo sentimos!</h2>
               <p class="text-center text-sm text-gray-700">
                 No pudimos escanear el código de barras.
               </p>
-              <p v-if="scannedCode" class="text-center text-xs text-gray-500 mt-1">
-                Código escaneado: <strong>{{ scannedCode }}</strong>
+              <p v-if="lastFailedCode" class="text-center text-xs text-gray-500 mt-1">
+                Código escaneado: <strong>{{ lastFailedCode }}</strong>
               </p>
             </div>
 
