@@ -42,7 +42,7 @@ onMounted(() => {
     otherProfiles.value.splice(myProfileIndex, 1);
   }
 
-  feedback.value = sessionStorage.getItem('alert') ? JSON.parse(sessionStorage.getItem('alert')) : {message: null, type: null};
+  setTimeout(() => feedback.value = sessionStorage.getItem('alert') ? JSON.parse(sessionStorage.getItem('alert')) : {message: null, type: null}, 500);
 })
 
 onUnmounted(() => {
@@ -79,9 +79,10 @@ async function handleDeleteProfile() {
   loading.value = true;
   try {
     const result = await deleteProfileFromAuthUser(deleteProfile.value.id);
+    feedback.value = {message: null, type: null};
     otherProfiles.value = otherProfiles.value.filter(p => p.id !==  deleteProfile.value.id)
     dialog.value.close();
-    feedback.value = {message: result, type: 'success'};
+    setTimeout(() => feedback.value = {message: result, type: 'success'}, 300);
     setTimeout(() => feedback.value = {message: null, type: null}, 2000);
   } catch (error) {
     console.log('[ProvileView] -> [handleDeleteProfile], Error: ', error);

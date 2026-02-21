@@ -18,7 +18,7 @@ const hiddenFalse = ref(true);
 const hiddenTrue = ref(true);
 const hiddenIngredienets = ref({forWho: null, state: false});
 
-// console.log(props.safe);
+console.log(props.safe);
 // console.log(props.unrestrictedProfiles);
 
 

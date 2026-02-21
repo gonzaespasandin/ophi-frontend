@@ -58,8 +58,8 @@ async function handleSubmit() {
   if (!normalizedName) return;
   try {
     const result = await findByName(normalizedName);
-    if(result && result.length > 0) {
-      productsForSearchListView.value = result;
+    if(result && result.data?.length > 0) {
+      productsForSearchListView.value = result.data;
       localStorage.removeItem('products');
       localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
       router.push(`/search-list/${normalizedName}`);
@@ -128,6 +128,9 @@ function time() {
             <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
               <i class="fa-solid fa-arrow-left"></i>
               <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="time()" autocomplete="off"/>
+              <button>
+                <i class="fa-solid fa-filter"></i>
+              </button>
               <button type="submit">
                 <i class="fa-solid fa-magnifying-glass"></i>
               </button>

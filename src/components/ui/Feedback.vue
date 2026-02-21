@@ -34,6 +34,7 @@ const typeClasses = computed(() => {
 
 <template>
   <Transition
+    appear
     enter-active-class="transition duration-300 ease-out"
     enter-from-class="opacity-0 -translate-y-3"
     enter-to-class="opacity-100 translate-y-0"
