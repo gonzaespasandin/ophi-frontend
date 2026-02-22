@@ -1,10 +1,10 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import Top from '../components/ui/Top.vue';
 import Back from '../components/ui/Back.vue';
 import AuthLayout from '../layouts/AuthLayout.vue';
-import { findByName } from '../services/product';
+import {  search } from '../services/product';
 import AppLoading from '../components/loadings/AppLoading.vue';
 
 const route = useRoute();
@@ -17,25 +17,35 @@ const threePages = ref([1, 2, '...']);
 const loading = ref(false);
 const showFilterDrawer = ref(false);
 const filters = ref('');
-const brands = ref([]);
-const origins = ref([]);
-const categories = ref([]);
+const filtersValues = ref({
+  brands: [],
+  categories: [],
+  origins: []
+});
 const selectedBrands = ref([]);
 const selectedCategories = ref([]);
 const selectedOrigins = ref([]);
+const noResults = ref(null);
+const searchedBrand = ref('');
+const searchedCategory = ref('');
+const searchedOrigin = ref('');
 
 async function getNewPage() {
     try {
         loading.value = true;
-        const result = await findByName(route.params.search, currentPage.value, filters.value);
+        const result = await search(route.params.search, currentPage.value, filters.value);
         if(result && result.data.length > 0) {
-            products.value = result.data;
-            console.log(products.value)
-            disableButtons('prev', result);
-            disableButtons('next', result);
-            calculatePages(result);
-            showFilterDrawer.value = false;
-        } 
+          products.value = result.data;
+          console.log(products.value)
+          disableButtons('prev', result);
+          disableButtons('next', result);
+          calculatePages(result);
+          showFilterDrawer.value = false;
+          noResults.value = null;
+        } else {
+          showFilterDrawer.value = false;
+          noResults.value = 'No encontramos resultados para esos filtros';
+        }
     } catch (err) {
         console.log('[SearchListView] -> getNewPage(), Error: ', err);
     } finally {
@@ -141,7 +151,6 @@ function handleSubmit() {
   let query = '';
   currentPage.value = 1;
   if(selectedBrands.value.length > 0) {
-    
     query += '&brands='
     query += selectedBrands.value.join(',')
   }
@@ -160,12 +169,35 @@ function handleSubmit() {
   getNewPage();
 }
 
+function searchFront(which, searched) {
+  if(searched === '') {
+     filtersValues.value[which] = JSON.parse(sessionStorage.getItem(which));
+  }
+  const result = filtersValues.value[which].filter(v =>
+    v.name.toLowerCase().includes(searched.toLowerCase())
+  )
+  if(result.length > 0) {
+    filtersValues.value[which]= result;
+  }
+}
+
+function checkSomeSelectedValue() {
+  const param = route.params.search?.toLowerCase();
+  if (!filtersValues.value?.brands || !param) return;
+  let selectedBrand = filtersValues.value.brands.filter(v => v.name.toLowerCase() === param);
+  selectedBrands.value = selectedBrand.map(v => v.id);
+  console.log(selectedBrands.value, 'AHREX');
+}
+
+
 
 onMounted(() => {
   getNewPage();
-  brands.value = JSON.parse(sessionStorage.getItem('brands'));
-  origins.value = JSON.parse(sessionStorage.getItem('origins'));
-  categories.value = JSON.parse(sessionStorage.getItem('categories'));
+  filtersValues.value.brands = JSON.parse(sessionStorage.getItem('brands'));
+  filtersValues.value.origins = JSON.parse(sessionStorage.getItem('origins'));
+  filtersValues.value.categories = JSON.parse(sessionStorage.getItem('categories'));
+
+  checkSomeSelectedValue();
 })
 
 onUnmounted(() => {
@@ -189,6 +221,9 @@ onUnmounted(() => {
                     <button class="action-btn p-4 mt-4" @click="createFilterDrawer()">
                       <i class="fa-solid fa-filter"></i>
                     </button>
+                    <div v-if="noResults">
+                        <p>{{ noResults }}</p>
+                    </div>
                 </div>
                 <div class="bg-white shadow-md rounded-[11px] m-3 p-3">
                     <ul>
@@ -219,63 +254,73 @@ onUnmounted(() => {
                     <div class="px-3 py-3" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
                       <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
                     </div>
-                    <form @submit.prevent="handleSubmit()" class="px-3 overflow-auto">
-                      <!-- Brands -->
-                      <div v-if="brands && brands.length > 0" class="my-3">
-                        <ul>
-                          <li v-for="(brand, i) of brands" :key="i">
-                             <input
-                              type="checkbox"
-                              :id="`brand-${brand.id}`"
-                              :value="brand.id"
-                              v-model="selectedBrands"
-                            />
-
-                            <label :for="`brand-${brand.id}`">
-                              {{ brand.name }}
-                            </label>
-                          </li>
-                        </ul>
+                    <form @submit.prevent="handleSubmit()" class="flex overflow-auto h-full scroll-smooth">
+                      <div class="sticky left-0 top-0 flex flex-col justify-around w-[30%] p-4 h-[100%] bg-[#f5f5f5] shadow-md">
+                        <a href="#brands" class="h-[30%]">Marcas</a>
+                        <a href="#categories" class="h-[30%]">Categorías</a>
+                        <a href="#origins" class="h-[30%]">Origen</a>
                       </div>
-                      <!-- Categories -->
-                      <div v-if="categories && categories.length > 0" class="my-3">
-                        <span>Categorias</span>
-                        <ul>
-                          <li v-for="(category, i) of categories" :key="i">
-                             <input
-                              type="checkbox"
-                              :id="`category-${category.id}`"
-                              :value="category.id"
-                              v-model="selectedCategories"
-                            />
-
-                            <label :for="`category-${category.id}`">
-                              {{ category.name }}
-                            </label>
-                          </li>
-                        </ul>
+                      <div class="flex flex-col w-[70%] overflow-y-auto scroll-smooth">
+                        <!-- Brands -->
+                        <div v-if="filtersValues.brands && filtersValues.brands.length > 0" class="my-3 flex flex-col gap-4 justify-around" id="brands">
+                          
+                          <ul class="flex flex-wrap justify-center gap-3">
+                            <input type="search" class="bg-[#f5f5f5] rounded-[11px] p-2" @input="searchFront('brands', searchedBrand)" v-model="searchedBrand">
+                            <li v-for="(brand, i) of filtersValues.brands" :key="i">
+                              <label :for="`brand-${brand.id}`" class=" px-3 py-1 rounded-[11px] shadow-md cursor-pointer transition"
+                                :class="selectedBrands.includes(brand.id) ? 'bg-[#005B8E] text-white' : 'bg-white text-[#005B8E]'">
+                                <input
+                                  type="checkbox"
+                                  :id="`brand-${brand.id}`"
+                                  :value="brand.id"
+                                  v-model="selectedBrands"
+                                />
+                                {{ brand.name }}                                
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                        <!-- Categories -->
+                        <div v-if="filtersValues.categories && filtersValues.categories.length > 0" class="my-10 flex gap-4 justify-around" id="categories">
+                          <ul  class="flex flex-wrap justify-center gap-3 w-[70%]">
+                            <input type="search" class="bg-[#f5f5f5] rounded-[11px] p-2" @input="searchFront('categories', searchedCategory)" v-model="searchedCategory">
+                            <li v-for="(category, i) of filtersValues.categories" :key="i">
+                              <label :for="`category-${category.id}`" class=" px-3 py-1 rounded-[11px] shadow-md cursor-pointer transition"
+                                :class="selectedCategories.includes(category.id) ? 'bg-[#005B8E] text-white' : 'bg-white text-[#005B8E]'">
+                                <input
+                                  type="checkbox"
+                                  :id="`category-${category.id}`"
+                                  :value="category.id"
+                                  v-model="selectedCategories"
+                                />
+                                {{ category.name }}
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                        <!-- Origins -->
+                        <div v-if="filtersValues.origins && filtersValues.origins.length > 0" class="flex flex-col  gap-4 justify-around" id="origins">
+                          <ul class="flex flex-wrap justify-center gap-3 w-[70%]">
+                            <input type="search" class="bg-[#f5f5f5] rounded-[11px] p-2" @input="searchFront('origins', searchedOrigin)" v-model="searchedOrigin">
+                            <li v-for="(origin, i) of filtersValues.origins" :key="i">
+                              <label :for="`origin-${i}`"  class="px-3 py-1 rounded-[11px] shadow-md cursor-pointer transition"
+                                :class="selectedOrigins.includes(origin.name) ? 'bg-[#005B8E] text-white' : 'bg-white text-[#005B8E]'">
+                                <input
+                                  type="checkbox"
+                                  :id="`origin-${i}`"
+                                  :value="origin.name"
+                                  v-model="selectedOrigins"
+                                />
+                                {{ origin.name }}
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                        <div class="flex justify-center items-center mb-10 mt-10">
+                         <button type="submit" class="action-btn w-[80%]">Aplicar</button>
+                        </div>
                       </div>
-                      <!-- Origins -->
-                      <div v-if="origins && origins.length > 0" class="my-3">
-                        <span>Origen</span>
-                        <ul>
-                          <li v-for="(origin, i) of origins" :key="i">
-                             <input
-                              type="checkbox"
-                              :id="`origin-${i}`"
-                              :value="origin.name"
-                              v-model="selectedOrigins"
-                            />
-
-                            <label :for="`origin-${origin.name}`">
-                              {{ origin.name }}
-                            </label>
-                          </li>
-                        </ul>
-                      </div>
-                      <div>
-                        <button type="submit">Aplicar</button>
-                      </div>
+                     
                     </form>
                   </div>
                 </template>

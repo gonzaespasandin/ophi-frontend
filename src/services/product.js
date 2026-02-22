@@ -23,9 +23,9 @@ export async function findByBarcode(barcode) {
 }
 
 
-export async function findByName(name, currentPage, filters) {
+export async function search(query, currentPage, filters) {
     try {
-        const result = await axiosInstance.get(`/api/products/name/${name}?page=${currentPage}${filters}`);
+        const result = await axiosInstance.get(`/api/products/search?q=${query}&page=${currentPage}${filters}`);
         return result.data;
     } catch(error) {
         console.error('[services/product.js] -> [findByName]: Error al buscar un producto por nombre', error);
