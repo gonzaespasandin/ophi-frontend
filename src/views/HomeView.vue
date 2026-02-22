@@ -5,16 +5,63 @@ import {onMounted, onUnmounted, ref} from "vue";
 import Search from "../components/ui/Search.vue";
 import History from "../components/ui/History.vue";
 import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
+import { getBrands, getCategory, getOrigins } from "../services/product.js";
 
   let unsuscribeToAuthObserver = () => {}
 
   const user = ref({});
   const userNameLength = ref(3);
 
+  async function loadBrands() {
+    try {
+      const result = await getBrands();
+      if(result && result.data.length > 0) {
+        sessionStorage.removeItem('brands');
+        sessionStorage.setItem('brands', JSON.stringify(result.data));
+      }
+    } catch (error) {
+      console.error('[HomeView] -> loadBrands(), Error:', error);
+    }
+  }
+
+  async function loadOirigns() {
+    try {
+      const result = await getOrigins();
+      if(result && result.data.length > 0) {
+        sessionStorage.removeItem('origins');
+        sessionStorage.setItem('origins', JSON.stringify(result.data));
+      }
+    } catch (error) {
+      console.error('[HomeView] -> loadOirigns(), Error:', error);
+    }
+  }
+
+  async function loadCategories() {
+    try {
+      const result = await getCategory();
+      if(result && result.data.length > 0) {
+        sessionStorage.removeItem('categories');
+        sessionStorage.setItem('categories', JSON.stringify(result.data));
+      }
+    } catch (error) {
+      console.error('[HomeView] -> loadCategories(), Error:', error);
+    }
+  }
+
   onMounted(() => {
     localStorage.removeItem('pending_scan_barcode');
     unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
     userNameLength.value = user.value.name.length;
+
+    
+
+    if(!sessionStorage.getItem('brands') && !sessionStorage.getItem('categories') && !sessionStorage.getItem('origins')) {
+      Promise.allSettled([
+        loadBrands(),
+        loadOirigns(),
+        loadCategories(),
+      ]);
+    }
   })
   
 
