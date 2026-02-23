@@ -35,7 +35,7 @@ async function handleSubmit(formData) {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-screen">
+  <div class="flex flex-col h-dvh overflow-y-auto">
 
     <!-- HEADER -->
     <div class="flex flex-col">
