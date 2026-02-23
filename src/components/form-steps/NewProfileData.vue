@@ -49,7 +49,12 @@ function handleSubmitt() {
       <button
           class="action-btn w-full"
           @click="handleSubmitt()"
-      >Agregar perfil</button>
+          :disabled="props.loading"
+          :class="props.loading ? 'opacity-60 cursor-not-allowed' : ''"
+      >
+        <span v-if="props.loading"><i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...</span>
+        <span v-else>Agregar perfil</span>
+      </button>
     </div>
 
 </template>

@@ -31,8 +31,9 @@ function handleShowFullList(argList) {
 
 <template>
   <div v-if="loading" class="flex justify-center mt-10">
-    <AppLoading  id="load"/>
+    <AppLoading id="load"/>
   </div>
+
 
   <!-- <template v-else>
     <ul class="bg-[#f5f5f5] rounded-[11px] text-[#333333] p-3">
@@ -58,7 +59,7 @@ function handleShowFullList(argList) {
 
     <ListOfFullIngredientsModal @close="showModal = false" v-if="showModal" v-model="model" :list class="modal"/>
   </template> -->
-  <ul class="space-y-3 p-3 rounded-[11px] bg-white">
+  <ul v-else class="space-y-3 p-3 rounded-[11px] bg-white">
   <li v-for="allergy of allergies" :key="allergy.id">
     <div class=" text-[#005B8E] bg-[#f5f5f5] rounded-[11px] shadow-sm overflow-hidden">
 
@@ -116,6 +117,6 @@ function handleShowFullList(argList) {
 
 <style scoped>
   #load {
-    color: white;
+    color: #005B8E;
   }
 </style>
