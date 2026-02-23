@@ -65,6 +65,7 @@ function notifyAllSuscribers() {
 
 /** AUTHENTICATION */
 export async function login(credentials) {
+    
 
     try {
         const response = await axiosInstance.post('/api/login', credentials)

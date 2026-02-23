@@ -4,7 +4,7 @@ import Top from "../components/ui/Top.vue";
 import Back from '../components/ui/Back.vue';
 import { useRouter, useRoute } from 'vue-router';
 import { onMounted, ref, computed, onUnmounted } from 'vue';
-import { findByName, getMatchesByName } from '../services/product';
+import { getMatchesByName, search } from '../services/product';
 import { suscribeToAuthObserver } from '../services/auth';
 import Error from '../components/ui/Error.vue';
 
@@ -57,9 +57,9 @@ async function handleSubmit() {
   const normalizedName = inputValue.value.trim().toLowerCase();
   if (!normalizedName) return;
   try {
-    const result = await findByName(normalizedName);
-    if(result && result.length > 0) {
-      productsForSearchListView.value = result;
+    const result = await search(normalizedName);
+    if(result && result.data?.length > 0) {
+      productsForSearchListView.value = result.data;
       localStorage.removeItem('products');
       localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
       router.push(`/search-list/${normalizedName}`);
@@ -146,6 +146,9 @@ function time() {
                 </RouterLink>
               </li>
             </ul>
+            <div v-if="products.length === 0" class="mt-4">
+                <p class="text-center">No hay resultados</p>
+            </div>
           </template>
           <template v-else>
               <Top/>

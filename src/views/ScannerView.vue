@@ -8,7 +8,7 @@ import { useProductSafety } from '../composables/useProductSafety.js';
 import Alert from '../components/ui/Alert.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 import AppLoading from '../components/loadings/AppLoading.vue';
-import { findByName, getMatchesByName } from '../services/product';
+import { getMatchesByName, search } from '../services/product';
 import Top from '../components/ui/Top.vue';
 
 const router = useRouter();
@@ -260,7 +260,7 @@ const confirmNameSearch = async () => {
   nameError.value = '';
   
   try {
-    const result = await findByName(normalizedName);
+    const result = await search(normalizedName);
     if (result) {
       productsForSearchListView.value = result;
       localStorage.removeItem('products');

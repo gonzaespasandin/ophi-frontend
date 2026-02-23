@@ -23,9 +23,9 @@ export async function findByBarcode(barcode) {
 }
 
 
-export async function findByName(name) {
+export async function search(query, currentPage, filters) {
     try {
-        const result = await axiosInstance.get(`/api/products/name/${name}`);
+        const result = await axiosInstance.get(`/api/products/search?q=${query}&page=${currentPage}${filters}`);
         return result.data;
     } catch(error) {
         console.error('[services/product.js] -> [findByName]: Error al buscar un producto por nombre', error);
@@ -66,3 +66,33 @@ export async function getRecomendedProducts(userIngredients) {
         throw error;
     }
 }
+
+export async function getBrands() {
+   try {
+        const result = await axiosInstance.get(`/api/brands`);
+        return result;
+    } catch(error) {
+        console.error('[services/product.js] -> [getBrands], Error: ', error);
+        throw error;
+    }
+}
+
+export async function getOrigins() {
+    try {
+        const result = await axiosInstance.get(`/api/origins`);
+        return result;
+    } catch(error) {
+        console.error('[services/product.js] -> [getOrigins], Error: ', error);
+        throw error;
+    }
+}
+
+export async function getCategory() {
+    try {
+        const result = await axiosInstance.get(`/api/categories`);
+        return result;
+    } catch(error) {
+        console.error('[services/product.js] -> [getCategory], Error: ', error);
+        throw error;
+    }
+} 
