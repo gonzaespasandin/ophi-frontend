@@ -117,6 +117,6 @@ function handleShowFullList(argList) {
 
 <style scoped>
   #load {
-    color: #005B8E;
+    color: white;
   }
 </style>
