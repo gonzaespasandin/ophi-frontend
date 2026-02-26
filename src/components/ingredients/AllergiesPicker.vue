@@ -79,9 +79,9 @@ function handleShowFullList(argList) {
  
       <div v-if="allergy.open" class="p-4 border-t max-h-0 desplegar" :class="allergy.open ? 'max-h-full transition-all delay-400 duration-200' : 'transition-all duration-100'">
         <ul class="flex flex-wrap gap-2">
-          <template v-for="(ingredient, i) of allergy.ingredients" :key="i">
+          <template v-for="(ingredient, i) of allergy.ingredients.slice(0, 5)" :key="i">
             <li
-              v-if="ingredient && (ingredient.is_group || model.includes(ingredient.id))"
+              v-if="ingredient"
             >
             <label
                 class="flex items-center gap-2 px-3 py-1 rounded-[11px] shadow-md
