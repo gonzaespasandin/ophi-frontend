@@ -17,12 +17,12 @@ console.log({isSafe});
 </script>
 
 <template>
-    <div v-if="isSafe !== undefined" :class="!isSafe ? 'danger' : 'success' "  class="max-w-80 m-auto flex justify-around items-center text-white h-14">
-        <template v-if="!isSafe">
+    <div v-if="!props.safe[0]?.isSafe !== undefined" :class="!props.safe[0]?.isSafe ? 'danger' : 'success' "  class="max-w-80 m-auto flex justify-around items-center text-white h-14">
+        <template v-if="!props.safe[0]?.isSafe">
             <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
             <p class="w-60">No apto para tu consumo</p>
         </template>
-        <template v-if="isSafe">
+        <template v-if="props.safe[0]?.isSafe">
             <i class="fa-solid fa-circle-check text-4xl"></i>
             <p class="w-60">Apto para tu consumo</p>
         </template>

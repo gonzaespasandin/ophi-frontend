@@ -1,11 +1,14 @@
 export const pwaConfig = {
-  mode: 'development',
+  mode: 'production',
   registerType: 'autoUpdate',
   manifest: {
     name: 'ophi',
     short_name: 'ophi',
     description: 'La mejor aplicación para tener precaución con los alimentos que comprás',
     theme_color: '#005b8e',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#ffffff',
     icons: [
       {
         src: '/web-app-manifest-192x192.png',
@@ -15,7 +18,8 @@ export const pwaConfig = {
       {
         src: '/web-app-manifest-512x512.png',
         sizes: '512x512',
-        type: 'image/png'
+        type: 'image/png',
+        purpose: 'any maskable'
       }
     ]
   },

@@ -65,14 +65,17 @@ function notifyAllSuscribers() {
 
 /** AUTHENTICATION */
 export async function login(credentials) {
-    
-
     try {
+        // Pedir cookie CSRF
+        await axiosInstance.get('/sanctum/csrf-cookie')
+
+        // Hacer login
         const response = await axiosInstance.post('/api/login', credentials)
 
         const userData = response.data.user || response.data
         userData.profiles = await getAuthUserProfiles()
-        userData.subscription = await getSubscription();
+        userData.subscription = await getSubscription()
+
         setUser(userData)
     } catch (error) {
         console.error('[auth.js] -> [login], Error: ', error);
