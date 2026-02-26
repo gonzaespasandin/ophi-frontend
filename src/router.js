@@ -17,6 +17,7 @@ import ProfileEditView from "./views/ProfileEditView.vue";
 import ForgotPassword from "./views/ForgotPassword.vue";
 import ResetPassword from "./views/ResetPassword.vue";
 import SubscriptionView from './views/SubscriptionView.vue';
+import Instalar from './views/Instalar.vue';
 
 // TODO: Implement named routes
 const routes = [
@@ -99,6 +100,11 @@ const routes = [
         'path': '/subscriptions',
         'component': SubscriptionView,
         'meta': { 'auth': true }
+    },
+    {
+        path: '/instalar',
+        name: 'instalar',
+        component: Instalar,
     }
 ]
 
