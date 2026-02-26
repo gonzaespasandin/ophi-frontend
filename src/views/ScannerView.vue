@@ -133,13 +133,16 @@ const initializeScanner = async () => {
     Dynamsoft.DCE.CameraView.defaultUIElementURL = '/templates/dce.ui.html';
     cameraView = await Dynamsoft.DCE.CameraView.createInstance();
 
-    // Configuracion del marco exterior de la region de escaneo
+    // Configuracion del marco exterior de la region de escaneo y si la camara usa cover o contain
     cameraView.setScanRegionMaskStyle({
       lineWidth: 7,
       strokeStyle: "#005B8E",
     });
+    cameraView.setVideoFit("cover");
   
     cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
+
+    cameraEnhancer.setResolution({width:1080, height:1920});
 
     // Configuracion de la region de escaneo
     cameraEnhancer.setScanRegion({
@@ -310,8 +313,6 @@ const translateY = ref(0);
 const getTouch = (e) => {
   if (!(showProduct.value || showError.value)) return;
   touchStart.value = e.touches[0].clientY;
-
-  console.log(touchStart.value);
 }
 
 const moveTouch = (e) => {
@@ -485,5 +486,8 @@ canvas {
   height: 650px;
 }
 
+#results {
+  z-index: 10;
+}
 
 </style>
