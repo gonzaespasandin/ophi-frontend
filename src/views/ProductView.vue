@@ -33,6 +33,8 @@ const product = ref(null);
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, unrestrictedProfiles } = useProductSafety();
 const error = ref(false);
 const errorMessage = ref('');
+// Cuando NO tenemos perfiles con restricciones, normalizedIngredients === [], entonces, creamos esta variable como backup por si el profile NO tiene ingredients. 
+const noProfileRestrictionsNormalizedIngredients = [];
 
 const latestSearches = ref([]);
 if(localStorage.getItem('latestSearches')) {
@@ -70,6 +72,7 @@ onMounted(async () => {
    if(product.value) {
         // EN caso de que sea UN PRODUCTO
         product.value = product.value[0];
+        console.log(product.value.ingredients);
 
         // Obtengo todos los perifles médicos del usuario.
         const userProfiles = user.value.profiles;
@@ -81,6 +84,13 @@ onMounted(async () => {
         checkAll(userProfiles, productIngredeints);    
     
         normalizedIngredients.value = normalizedIngredients.value.join(', ');
+        
+        product.value.ingredients.forEach(pI => {
+            if(!noProfileRestrictionsNormalizedIngredients.includes(pI.name)) {
+                noProfileRestrictionsNormalizedIngredients.push(pI.name);
+            }
+        });
+        
 
         unsafeIngredients.value = unsafeIngredients.value.join(' - ');
    }
@@ -193,9 +203,10 @@ onBeforeUnmount(() => {
                 />
 
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
-                    <h2 v-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
+                    <h2 v-if="normalizedIngredients.length === 0" class="text-2xl">Ingredientes</h2>
+                    <h2 v-else-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
                     <h2 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</h2>
-                    <p>{{ normalizedIngredients }}</p>
+                    <p>{{ (normalizedIngredients.length === 0) ? noProfileRestrictionsNormalizedIngredients.join(', ') : normalizedIngredients }}</p>
                 </div>
 
               <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
