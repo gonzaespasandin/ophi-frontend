@@ -332,6 +332,7 @@ const endTouch = (e) => {
   if (translateY.value > 120) {
     showProduct.value = false;
     showError.value = false;
+    lastScannedCode = null;
   }
 
   translateY.value = 0
