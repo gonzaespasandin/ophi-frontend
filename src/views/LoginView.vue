@@ -67,7 +67,7 @@ async function handleSubmit() {
 <template>
  <div>
     <div class="flex flex-col justify-around min-h-screen">
-      <div class="flex flex-col justify-between flex-grow">
+      <div class="flex flex-col justify-between grow">
         <img src="../assets/img/logo.png" alt="">
         <div class="flex flex-col justify-center mb-5 px-3 h-50">
           <h1 class="text-4xl mb-3 text-center">Iniciar sesión</h1>
