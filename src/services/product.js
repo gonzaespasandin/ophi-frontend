@@ -68,7 +68,7 @@ export async function getRecomendedProducts(userIngredients) {
 }
 
 export async function getBrands() {
-   try {
+    try {
         const result = await axiosInstance.get(`/api/brands`);
         return result;
     } catch(error) {
@@ -77,22 +77,34 @@ export async function getBrands() {
     }
 }
 
-export async function getOrigins() {
+// export async function getOrigins() {
+//     try {
+//         const result = await axiosInstance.get(`/api/origins`);
+//         return result;
+//     } catch(error) {
+//         console.error('[services/product.js] -> [getOrigins], Error: ', error);
+//         throw error;
+//     }
+// }
+
+// export async function getCategory() {
+//     try {
+//         const result = await axiosInstance.get(`/api/categories`);
+//         return result;
+//     } catch(error) {
+//         console.error('[services/product.js] -> [getCategory], Error: ', error);
+//         throw error;
+//     }
+// } 
+
+
+
+export async function getBrandsByName(name) {
     try {
-        const result = await axiosInstance.get(`/api/origins`);
+        const result = await axiosInstance.get(`/api/brands/${name}`);
         return result;
     } catch(error) {
-        console.error('[services/product.js] -> [getOrigins], Error: ', error);
+        console.error('[services/product.js] -> [getBrandsByName], Error: ', error);
         throw error;
     }
 }
-
-export async function getCategory() {
-    try {
-        const result = await axiosInstance.get(`/api/categories`);
-        return result;
-    } catch(error) {
-        console.error('[services/product.js] -> [getCategory], Error: ', error);
-        throw error;
-    }
-} 

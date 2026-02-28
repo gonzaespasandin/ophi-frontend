@@ -24,29 +24,29 @@ import { getBrands, getCategory, getOrigins } from "../services/product.js";
     }
   }
 
-  async function loadOirigns() {
-    try {
-      const result = await getOrigins();
-      if(result && result.data.length > 0) {
-        sessionStorage.removeItem('origins');
-        sessionStorage.setItem('origins', JSON.stringify(result.data));
-      }
-    } catch (error) {
-      console.error('[HomeView] -> loadOirigns(), Error:', error);
-    }
-  }
+  // async function loadOirigns() {
+  //   try {
+  //     const result = await getOrigins();
+  //     if(result && result.data.length > 0) {
+  //       sessionStorage.removeItem('origins');
+  //       sessionStorage.setItem('origins', JSON.stringify(result.data));
+  //     }
+  //   } catch (error) {
+  //     console.error('[HomeView] -> loadOirigns(), Error:', error);
+  //   }
+  // }
 
-  async function loadCategories() {
-    try {
-      const result = await getCategory();
-      if(result && result.data.length > 0) {
-        sessionStorage.removeItem('categories');
-        sessionStorage.setItem('categories', JSON.stringify(result.data));
-      }
-    } catch (error) {
-      console.error('[HomeView] -> loadCategories(), Error:', error);
-    }
-  }
+  // async function loadCategories() {
+  //   try {
+  //     const result = await getCategory();
+  //     if(result && result.data.length > 0) {
+  //       sessionStorage.removeItem('categories');
+  //       sessionStorage.setItem('categories', JSON.stringify(result.data));
+  //     }
+  //   } catch (error) {
+  //     console.error('[HomeView] -> loadCategories(), Error:', error);
+  //   }
+  // }
 
   onMounted(() => {
     localStorage.removeItem('pending_scan_barcode');
@@ -55,11 +55,9 @@ import { getBrands, getCategory, getOrigins } from "../services/product.js";
 
     
 
-    if(!sessionStorage.getItem('brands') && !sessionStorage.getItem('categories') && !sessionStorage.getItem('origins')) {
+    if(!sessionStorage.getItem('brands')) {
       Promise.allSettled([
         loadBrands(),
-        loadOirigns(),
-        loadCategories(),
       ]);
     }
   })

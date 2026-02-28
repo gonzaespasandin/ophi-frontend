@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import Top from '../components/ui/Top.vue';
 import Back from '../components/ui/Back.vue';
 import AuthLayout from '../layouts/AuthLayout.vue';
-import {  search } from '../services/product';
+import {  getBrandsByName, search } from '../services/product';
 import AppLoading from '../components/loadings/AppLoading.vue';
 
 const route = useRoute();
@@ -155,15 +155,15 @@ function handleSubmit() {
     query += selectedBrands.value.join(',')
   }
 
-  if(selectedCategories.value.length > 0) {
-    query += '&categories='
-    query += selectedCategories.value.join(',')
-  }
+  // if(selectedCategories.value.length > 0) {
+  //   query += '&categories='
+  //   query += selectedCategories.value.join(',')
+  // }
 
-  if(selectedOrigins.value.length > 0) {
-    query += '&origins='
-    query += selectedOrigins.value.join(',')
-  }
+  // if(selectedOrigins.value.length > 0) {
+  //   query += '&origins='
+  //   query += selectedOrigins.value.join(',')
+  // }
 
   filters.value = query;
   getNewPage();
@@ -178,6 +178,20 @@ function searchFront(which, searched) {
   )
   if(result.length > 0) {
     filtersValues.value[which]= result;
+  } else {
+    searchBack();
+  }
+}
+
+async function searchBack() {
+  try {
+    const result = await getBrandsByName(searchedBrand.value);
+    console.log(result.data);
+    if(result && result.data.length > 0) {
+      filtersValues.value.brands = result.data;
+    }
+  } catch (error) {
+    console.log('[SearchListView] -> [searchBack] -> Error: ', error);
   }
 }
 
@@ -194,8 +208,8 @@ function checkSomeSelectedValue() {
 onMounted(() => {
   getNewPage();
   filtersValues.value.brands = JSON.parse(sessionStorage.getItem('brands'));
-  filtersValues.value.origins = JSON.parse(sessionStorage.getItem('origins'));
-  filtersValues.value.categories = JSON.parse(sessionStorage.getItem('categories'));
+  // filtersValues.value.origins = JSON.parse(sessionStorage.getItem('origins'));
+  // filtersValues.value.categories = JSON.parse(sessionStorage.getItem('categories'));
 
   checkSomeSelectedValue();
 })
@@ -254,18 +268,21 @@ onUnmounted(() => {
                     <div class="px-3 py-3" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
                       <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
                     </div>
-                    <form @submit.prevent="handleSubmit()" class="flex overflow-auto h-full scroll-smooth">
-                      <div class="sticky left-0 top-0 flex flex-col justify-around w-[30%] p-4 h-[100%] bg-[#f5f5f5] shadow-md">
-                        <a href="#brands" class="h-[30%]">Marcas</a>
-                        <a href="#categories" class="h-[30%]">Categorías</a>
-                        <a href="#origins" class="h-[30%]">Origen</a>
+                    <form @submit.prevent="handleSubmit()" class="flex flex-col overflow-auto h-full scroll-smooth">
+                      <div class="w-full flex justify-center text-[25px]">
+                        <a href="#brands">Marcas</a>
+                        <!-- <a href="#categories" class="h-[30%]">Categorías</a>
+                        <a href="#origins" class="h-[30%]">Origen</a> -->
                       </div>
-                      <div class="flex flex-col w-[70%] overflow-y-auto scroll-smooth">
+                      <div class="flex flex-col w-full p-3 overflow-y-auto scroll-smooth">
                         <!-- Brands -->
-                        <div v-if="filtersValues.brands && filtersValues.brands.length > 0" class="my-3 flex flex-col gap-4 justify-around" id="brands">
+                        <div v-if="filtersValues.brands && filtersValues.brands.length > 0" class="my-3 flex flex-col gap-10 justify-around" id="brands">
                           
                           <ul class="flex flex-wrap justify-center gap-3">
-                            <input type="search" class="bg-[#f5f5f5] rounded-[11px] p-2" @input="searchFront('brands', searchedBrand)" v-model="searchedBrand">
+                            <div class="bg-[#f5f5f5] rounded-[11px] p-3 mb-3 w-[85%] shadow-md flex items-center justify-around">
+                              <input type="search" class=" focus:outline-0" @input="searchFront('brands', searchedBrand)" v-model="searchedBrand" placeholder="Buscar marca...">
+                              <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
                             <li v-for="(brand, i) of filtersValues.brands" :key="i">
                               <label :for="`brand-${brand.id}`" class=" px-3 py-1 rounded-[11px] shadow-md cursor-pointer transition"
                                 :class="selectedBrands.includes(brand.id) ? 'bg-[#005B8E] text-white' : 'bg-white text-[#005B8E]'">
@@ -281,7 +298,7 @@ onUnmounted(() => {
                           </ul>
                         </div>
                         <!-- Categories -->
-                        <div v-if="filtersValues.categories && filtersValues.categories.length > 0" class="my-10 flex gap-4 justify-around" id="categories">
+                        <!-- <div v-if="filtersValues.categories && filtersValues.categories.length > 0" class="my-10 flex gap-4 justify-around" id="categories">
                           <ul  class="flex flex-wrap justify-center gap-3 w-[70%]">
                             <input type="search" class="bg-[#f5f5f5] rounded-[11px] p-2" @input="searchFront('categories', searchedCategory)" v-model="searchedCategory">
                             <li v-for="(category, i) of filtersValues.categories" :key="i">
@@ -297,9 +314,9 @@ onUnmounted(() => {
                               </label>
                             </li>
                           </ul>
-                        </div>
+                        </div> -->
                         <!-- Origins -->
-                        <div v-if="filtersValues.origins && filtersValues.origins.length > 0" class="flex flex-col  gap-4 justify-around" id="origins">
+                        <!-- <div v-if="filtersValues.origins && filtersValues.origins.length > 0" class="flex flex-col  gap-4 justify-around" id="origins">
                           <ul class="flex flex-wrap justify-center gap-3 w-[70%]">
                             <input type="search" class="bg-[#f5f5f5] rounded-[11px] p-2" @input="searchFront('origins', searchedOrigin)" v-model="searchedOrigin">
                             <li v-for="(origin, i) of filtersValues.origins" :key="i">
@@ -316,11 +333,11 @@ onUnmounted(() => {
                             </li>
                           </ul>
                         </div>
+                      -->
                         <div class="flex justify-center items-center mb-10 mt-10">
                          <button type="submit" class="action-btn w-[80%]">Aplicar</button>
                         </div>
                       </div>
-                     
                     </form>
                   </div>
                 </template>
