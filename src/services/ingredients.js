@@ -18,7 +18,7 @@ export async function getListOfIntolerances(forceFetch = false) {
 
         const result = await axiosInstance.get('/api/intolerances')
 
-        sessionStorage.setItem('ophi-intolerances', JSON.stringify(result.data));
+        //sessionStorage.setItem('ophi-intolerances', JSON.stringify(result.data));
 
         return result.data
     } catch (error) {
@@ -35,7 +35,7 @@ export async function getListOfAllergies(forceFetch = false) {
 
         const result = await axiosInstance.get('/api/allergies')
 
-        sessionStorage.setItem('ophi-allergies', JSON.stringify(result.data));
+        //sessionStorage.setItem('ophi-allergies', JSON.stringify(result.data));
 
         return result.data
     } catch (error) {
@@ -53,7 +53,7 @@ export async function getListOfSpecialDiets(forceFetch = false) {
 
         const result  = await axiosInstance.get('/api/special-diets')
 
-        sessionStorage.setItem('ophi-special-diets', JSON.stringify(result.data));
+        //sessionStorage.setItem('ophi-special-diets', JSON.stringify(result.data));
 
         return result.data
     } catch (error) {
