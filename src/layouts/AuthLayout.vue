@@ -14,8 +14,8 @@ import BottomNavigation from "../components/BottomNavigation.vue";
 
 <style scoped>
 #container {
-  height: 100%;
   display: grid;
+  height: 100dvh;
   grid-template-rows: 1fr auto;
 }
 

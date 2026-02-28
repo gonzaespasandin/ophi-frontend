@@ -13,29 +13,13 @@
     --danger: #C43B52;
 }
 
-html, body {
-    overflow: hidden;
-    height: 100%;
-}
-
 body {
-    background-color: var(--main-bg);
+    background-color: black;
     font-family: 'Poppins', sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Roboto Slab', serif;    
-}
-
-p {
-    font: 1rem;
-}
-
-#app {
-    max-width: 420px;
-    height: 100dvh;
-    margin-inline: auto;
-    border: 1px solid red;
 }
 
 .action-btn {
@@ -58,11 +42,9 @@ p {
     align-items: center;
 }
 
-
 .bg-components {
     background-color: var(--secondary-bg);
 }
-
 
 .inputs  {
     border: none;
@@ -109,8 +91,6 @@ p {
 .square-with-gradient-gray {
     background: linear-gradient(#b6b6b6, #F5F5F5 40%);
 }
-
-
 
 #history-component {
     border-radius: .5rem;
@@ -187,7 +167,6 @@ p {
         border-bottom: 1px solid #009161;
     }
 }
-
 
 .search-list-item {
     border-radius: .8rem;
