@@ -19,7 +19,7 @@ const props = defineProps({
     </div>
 
     <div class="flex flex-col justify-between grow">
-        <IntolerancesPicker v-model="model.ingredients" :where="where"/>
+        <IntolerancesPicker loading-theme="white" v-model="model.ingredients" :where="where"/>
     
         <button
             class="action-btn mt-6 w-full"
@@ -29,10 +29,3 @@ const props = defineProps({
 
   </div>
 </template>
-
-<style scoped>
-  #load {
-    color: white;
-  }
-
-</style>

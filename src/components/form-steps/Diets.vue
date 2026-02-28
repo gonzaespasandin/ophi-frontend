@@ -10,7 +10,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col grow">
     <button @click.prevent="emit('previous')"><i class="fa-solid fa-chevron-left pe-2"></i>Volver</button>
     <div>
       <h2 class="text-2xl font-semibold text-center">¿Seguís alguna dieta especial?</h2>
@@ -18,7 +18,7 @@ const props = defineProps({
     </div>
 
     <div class="flex flex-col justify-between grow">
-      <SpecialDietsPicker v-model="model.ingredients"  :where="where"/>
+      <SpecialDietsPicker loading-theme="white" v-model="model.ingredients"  :where="where"/>
 
       <button
           class="action-btn mt-6 w-full"
@@ -27,9 +27,3 @@ const props = defineProps({
     </div>
   </div>
 </template>
-<style scoped>
-  #load {
-    color: white;
-  }
-
-</style>

@@ -12,7 +12,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <div>
+    <div class="flex flex-col grow">
       <button @click.prevent="emit('previous')"><i class="fa-solid fa-chevron-left pe-2"></i>Volver</button>
       <div>
         <h2 class="text-2xl font-semibold text-center">¿Tenés alguna alergia?</h2>
@@ -20,7 +20,7 @@ const props = defineProps({
       </div>
 
       <div class="flex flex-col justify-between grow">
-        <AllergiesPicker v-model="model.ingredients" />
+        <AllergiesPicker loading-theme="white" v-model="model.ingredients" />
         <button
             class="action-btn mt-6 w-full"
             @click="emit('next')"
@@ -32,10 +32,6 @@ const props = defineProps({
 
 
 <style scoped>
-  #load {
-    color: white;
-  }
-
   .modal {
     margin: auto;
     padding: 14px;

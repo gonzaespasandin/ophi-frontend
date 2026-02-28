@@ -7,7 +7,11 @@ import AppLoading from "../loadings/AppLoading.vue";
 const model = defineModel();
 
 const props = defineProps({
-  where: String
+  where: String,
+  loadingTheme: {
+    type: String,
+    default: 'blue'
+  },
 })
 
 const loading = ref(false);
@@ -31,14 +35,14 @@ onMounted(async () => {
 
 <template>
   <div v-if="loading" class="flex justify-center mt-10">
-    <AppLoading  id="load"/>
+    <AppLoading  id="load" :class="props.loadingTheme"/>
   </div>
 
   <template v-else>
-    <ul class="flex flex-wrap gap-2 justify-between bg-white rounded-[11px] p-3 text-[#333333]">
-      <li v-for="diet of specialDiets"  :class="props.where === 'addNew' ? 'w-42' : 'w-44'">
-        <label class="block w-full h-full  rounded-[11px] shadow-sm  font-medium" :class="model.includes(diet.id) ? 'bg-[#005B8E] text-white' : 'bg-[#f5f5f5] text-[#005B8E]'">
-          <input type="checkbox" name="ingredients[]" :value="diet.id" v-model="model" class="m-3">
+    <ul class="grid xs:grid-cols-2 gap-2 bg-[#ffffff] rounded-[11px] p-2 text-[#333333]">
+      <li v-for="diet of specialDiets">
+        <label class="flex gap-2 py-3 px-2 h-full rounded-[11px] shadow-sm font-medium" :class="model.includes(diet.id) ? 'bg-[#005B8E] text-white' : 'bg-[#f5f5f5] text-[#005B8E]'">
+          <input type="checkbox" name="ingredients[]" :value="diet.id" v-model="model">
           {{ diet.name }}
         </label>
       </li>
@@ -47,8 +51,11 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-#load {
-  color: white;
+#load.blue {
+  color: #005b8e;
 }
 
+#load.white {
+  color: white;
+}
 </style>

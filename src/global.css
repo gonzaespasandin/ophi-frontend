@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+    --breakpoint-xs: 25.5rem;
+
+    --font-family-roboto-slab: "Roboto Slab", sans-serif;
+}
+
 :root {
     --main-bg: #F5F5F5;
     --secondary-bg: #005B8E;

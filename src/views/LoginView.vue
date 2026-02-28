@@ -80,6 +80,8 @@ async function handleSubmit() {
         <div v-if="generalError" class="bg-[#C43B52] flex justify-center p-3 mb-4 rounded-[11px] text-white">
           <p>{{ generalError }}</p>
         </div>
+
+        <p class="text-white mb-4">¿No tenés cuenta? <RouterLink class="text-blue-200 underline" to="/register">Registrate</RouterLink></p>
         
         <div class="mb-4">
           <label for="email" aria-label="Email"></label>
