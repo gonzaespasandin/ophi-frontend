@@ -12,6 +12,8 @@ const props = defineProps({
   <div>
     <!-- <button @click.prevent="emit('previous')">Volver</button> -->
 
+    <p class="text-white mb-4">¿Ya tenés una cuenta? <RouterLink class="text-blue-200 underline" to="/login">Iniciá sesión</RouterLink></p>
+
     <TermsAndConditionsContent />
     <div class="p-1 text-center mt-4 rounded-[11px] bg-[#ffffff] text-[#333333]">
       <label>
