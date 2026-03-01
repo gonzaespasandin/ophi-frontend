@@ -5,7 +5,7 @@ import {onMounted, onUnmounted, ref} from "vue";
 import Search from "../components/ui/Search.vue";
 import History from "../components/ui/History.vue";
 import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
-import { getBrands, getCategory, getOrigins } from "../services/product.js";
+import { getBrands } from "../services/product.js";
 
   let unsuscribeToAuthObserver = () => {}
 

@@ -38,7 +38,7 @@ async function handleSubmit(formData) {
   <div class="flex flex-col h-dvh overflow-y-auto">
 
     <!-- HEADER -->
-    <div class="flex flex-col">
+    <div class="flex flex-col bg-texture">
       <img src="../assets/img/logo.png" alt="">
       <div class="flex flex-col justify-center mb-5 px-3 h-30">
         <h1 class="text-3xl text-center">Registro</h1>
@@ -70,11 +70,10 @@ async function handleSubmit(formData) {
 
 
 <style scoped>
-  div > div > div:first-child {
+  .bg-texture {
     background-image: url('../assets/img/tramas/Artboard\ 1trama-1.png');
 
     background-repeat: no-repeat;
-    background-size: 175%;
   }
 
   img {
