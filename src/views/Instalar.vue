@@ -1,11 +1,13 @@
 <template>
   <div class="min-h-screen bg-[#0b5c8f] flex flex-col">
     <header class="p-6 flex justify-center">
-    <img
-        src="../assets/img/logo-positivo.png"
-        alt="ophi"
-        class="h-17 md:h-16 object-contain"
-    />
+      <RouterLink to="/welcome">
+        <img
+            src="../assets/img/logo-positivo.png"
+            alt="ophi"
+            class="h-17 md:h-16 object-contain"
+        />
+      </RouterLink>
     </header>
 
     <main class="flex-1 flex flex-col items-center justify-evenly px-6 text-center text-white">
@@ -19,7 +21,7 @@
 
       <div class="bg-white rounded-2xl shadow-lg p-6 max-w-md w-full text-gray-800">
         <div class="mb-4">
-          <h2 class="text-xl font-semibold mb-2">Elegí, escaneá, disfrutá.</h2>
+          <h2 class="text-xl font-semibold mb-2">Elegí, Escaneá, Disfrutá.</h2>
           <p class="text-sm text-gray-600">
             Instalá la app para escanear productos y saber al instante si son aptos para tu consumo.
           </p>
@@ -30,7 +32,7 @@
         @click="install"
         class="w-full py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
         >
-        Instalar OPHI ahora
+        Instalar <span class="font-bold">ophi</span> ahora
         </button>
 
         <!-- ESTADOS -->
@@ -38,14 +40,14 @@
         v-else-if="status === 'installing'"
         class="w-full py-3 rounded-xl bg-green-100 text-green-800 font-semibold text-center"
         >
-        Instalando OPHI… por favor esperá
+        Instalando <span class="font-bold">ophi</span>… por favor esperá
         </div>
 
         <div
         v-else-if="status === 'installed'"
         class="w-full py-3 rounded-xl bg-blue-100 text-blue-800 font-semibold text-center"
         >
-        OPHI ya está instalada en tu dispositivo ✅
+        <span class="font-bold">ophi</span> ya está instalada en tu dispositivo ✅
         </div>
 
         <div v-else-if="status === 'manual'" class="text-sm text-gray-600">

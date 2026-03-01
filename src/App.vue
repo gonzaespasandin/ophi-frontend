@@ -5,6 +5,7 @@ import {useRoute} from "vue-router";
 import axiosInstance from "./config/axios.js";
 
 import AppLoading from "./components/loadings/AppLoading.vue";
+import AppContainer from "./layouts/AppContainer.vue";
 
 const route = useRoute();
 const loading = ref(false)
@@ -29,9 +30,11 @@ onMounted(async  () => {
 </script>
 
 <template>
-  <RouterView v-slot="{ Component }" :key="route.path">
-    <transition >
-      <component :is="Component"/>
-    </transition>
-  </RouterView>
+  <AppContainer>
+    <RouterView v-slot="{ Component }" :key="route.path">
+      <transition >
+        <component :is="Component"/>
+      </transition>
+    </RouterView>
+  </AppContainer>
 </template>

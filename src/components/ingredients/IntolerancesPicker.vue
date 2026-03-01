@@ -10,7 +10,11 @@ const loading = ref(false);
 const intolerances = ref([]);
 
 const props = defineProps({
-  where: String
+  where: String,
+  loadingTheme: {
+    type: String,
+    default: 'blue'
+  },
 })
 
 onMounted(async () => {
@@ -34,15 +38,15 @@ onMounted(async () => {
 
 <template>
   <div v-if="loading" class="flex justify-center mt-10">
-    <AppLoading  id="load"/>
+    <AppLoading  id="load" :class="props.loadingTheme"/>
   </div>
 
   <template v-else>
 
-    <ul class="flex flex-wrap justify-between gap-2 bg-[#ffffff] rounded-[11px] p-4">
-      <li v-for="intolerance of intolerances" class="text-[#333333]" :class="props.where === 'addNew' ? 'w-39' : 'w-40'">
-        <label class="block w-fuul h-full  rounded-[11px] shadow-sm  font-medium" :class="model.includes(intolerance.id) ? 'bg-[#005B8E] text-white' : 'bg-[#f5f5f5] text-[#005B8E]'">
-          <input type="checkbox" name="ingredients[]" :value="intolerance.id" v-model="model" class="m-3">
+    <ul class="grid xs:grid-cols-2 gap-2 bg-[#ffffff] rounded-[11px] p-2 text-[#333333]">
+      <li v-for="intolerance of intolerances">
+        <label class="flex gap-2 py-3 px-2 h-full rounded-[11px] shadow-sm font-medium" :class="model.includes(intolerance.id) ? 'bg-[#005B8E] text-white' : 'bg-[#f5f5f5] text-[#005B8E]'">
+          <input type="checkbox" name="ingredients[]" :value="intolerance.id" v-model="model">
           {{ intolerance.name }}
         </label>
       </li>
@@ -51,8 +55,11 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-#load {
-  color: white;
+#load.blue {
+  color: #005b8e;
 }
 
+#load.white {
+  color: white;
+}
 </style>
