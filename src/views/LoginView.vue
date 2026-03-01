@@ -65,67 +65,65 @@ async function handleSubmit() {
 </script>
 
 <template>
- <div>
-    <div class="flex flex-col justify-around min-h-screen">
-      <div class="flex flex-col justify-between flex-grow">
-        <img src="../assets/img/logo.png" alt="">
-        <div class="flex flex-col justify-center mb-5 px-3 h-50">
-          <h1 class="text-4xl mb-3 text-center">Iniciar sesión</h1>
-          <p>Por favor, completá los siguientes campos.</p>
-        </div>
+  <div class="grid grid-rows-[auto_1fr]">
+    <div class="flex flex-col justify-between">
+      <img src="../assets/img/logo.png" alt="">
+      <div class="flex flex-col justify-center mb-5 px-3 h-50">
+        <h1 class="text-4xl mb-3 text-center">Iniciar sesión</h1>
+        <p>Por favor, completá los siguientes campos.</p>
+      </div>
+    </div>
+
+
+    <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-end p-4 bg-[#005B8E]">
+      <div v-if="generalError" class="bg-[#C43B52] flex justify-center p-3 mb-4 rounded-[11px] text-white">
+        <p>{{ generalError }}</p>
       </div>
 
+      <p class="text-white mb-4">¿No tenés cuenta? <RouterLink class="text-blue-200 underline" to="/register">Registrate</RouterLink></p>
 
-      <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-center p-4 min-h-80 bg-[#005B8E]">
-        <div v-if="generalError" class="bg-[#C43B52] flex justify-center p-3 mb-4 rounded-[11px] text-white">
-          <p>{{ generalError }}</p>
-        </div>
+      <div class="mb-4">
+        <label for="email" aria-label="Email"></label>
+        <input
+          class="block border"
+          type="email"
+          id="email"
+          name="email"
+          v-model="formData.email"
+          @input="clearError('email')"
+          placeholder="Email"
+          autofocus
+          :class="formErrors.email ? 'inputs-wrong' : 'inputs'"
+        >
+        <p v-if="formErrors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
+          {{ formErrors.email }}
+        </p>
+      </div>
 
-        <p class="text-white mb-4">¿No tenés cuenta? <RouterLink class="text-blue-200 underline" to="/register">Registrate</RouterLink></p>
-        
-        <div class="mb-4">
-          <label for="email" aria-label="Email"></label>
-          <input 
-            class="block border" 
-            type="email" 
-            id="email" 
-            name="email" 
-            v-model="formData.email" 
-            @input="clearError('email')"
-            placeholder="Email" 
-            autofocus 
-            :class="formErrors.email ? 'inputs-wrong' : 'inputs'"
-          >
-          <p v-if="formErrors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
-            {{ formErrors.email }}
-          </p>
-        </div>
+      <div>
+        <label for="password" aria-label="Contraseña"></label>
+        <InputPassword
+          id="password"
+          name="password"
+          v-model="formData.password"
+          @input="clearError('password')"
+          placeholder="Contraseña"
+          :class="formErrors.password ? 'inputs-wrong' : 'inputs'"
+        />
+        <p v-if="formErrors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
+          {{ formErrors.password }}
+        </p>
+      </div>
 
-        <div>
-          <label for="password" aria-label="Contraseña"></label>
-          <InputPassword 
-            id="password" 
-            name="password" 
-            v-model="formData.password"
-            @input="clearError('password')"
-            placeholder="Contraseña" 
-            :class="formErrors.password ? 'inputs-wrong' : 'inputs'" 
-          />
-          <p v-if="formErrors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
-            {{ formErrors.password }}
-          </p>
-        </div>
+      <div class="mt-2">
+        <RouterLink to="/forgot-password" class="text-blue-200 underline">¿Olvidaste tu contraseña?</RouterLink>
+      </div>
 
-        <div>
-          <RouterLink to="/forgot-password" class="text-blue-200 underline">¿Olvidaste tu contraseña?</RouterLink>
-        </div>
-
-        <button type="submit" :disabled="loading" class="action-btn mt-6">
-          {{ loading ? 'Iniciando...' : 'Iniciar Sesión' }}
-        </button>
-      </form>
-    </div>
- </div>
+      <button type="submit" :disabled="loading" class="action-btn mt-6">
+        {{ loading ? 'Iniciando...' : 'Iniciar Sesión' }}
+      </button>
+    </form>
+  </div>
 </template>
 
 
