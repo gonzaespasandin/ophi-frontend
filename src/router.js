@@ -105,6 +105,12 @@ const routes = [
         path: '/instalar',
         name: 'instalar',
         component: Instalar,
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: NotFoundView,
+        meta: { 'auth': false },
     }
 ]
 

@@ -132,14 +132,26 @@ async function handleDeleteProfile() {
     <div class="relative" v-if="feedback.message !== null">
       <Feedback :message="feedback.message" :type="feedback.type"/>
     </div>
-    <div class="flex justify-between items-start px-3 p-3 bg-white">
+    <div class="flex justify-between items-center px-3 p-3 bg-white">
       <div v-if="loadPlan">
+        <RouterLink
+          class="text-1xl py-2 px-4 border bg-green-100 cursor-pointer rounded-[11px] border-green-400 text-green-700"
+          to="/subscriptions"
+        >
+          Cambiar plan <i class="fa-solid fa-dollar-sign ps-2"></i>
+        </RouterLink>
+        <!--
         <p :class="user.subscription.plan_id === 2 ? 'text-[#005B8E]' : ''">Plan {{ user.subscription.plan.plan }}</p>
         <RouterLink to="/subscriptions" class="text-[#009161] underline text-[14px]">Cambiar plan</RouterLink>
+        -->
       </div>
-      <button @click="handleLogout" id="closeSession" class="text-1xl">Cerrar sesión<i class="fa-solid fa-arrow-right-from-bracket ps-2"></i></button>
+      <button
+          @click="handleLogout"
+          id="closeSession"
+          class="text-1xl py-2 px-4 border bg-red-100 rounded-[11px] border-red-400 text-red-700"
+      >Cerrar sesión <i class="fa-solid fa-arrow-right-from-bracket ps-2"></i></button>
     </div>
-    <SomeUserInfo class="mt-8" :user="user"/>
+    <SomeUserInfo class="mt-8" :user="user" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
@@ -217,12 +229,13 @@ async function handleDeleteProfile() {
 <style scoped>
   #closeSession {
     cursor: pointer;
+
     i {
       transition: all .2s ease-out;
     }
   }
+
   #closeSession:hover {
-    
     i {
       transform: translateX(3px);
     }
