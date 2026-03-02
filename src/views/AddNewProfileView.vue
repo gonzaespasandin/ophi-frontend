@@ -22,6 +22,7 @@ async function handleSubmit(formData) {
   try {
     const result = await addNewProfileToAuthUser(formData);
     sessionStorage.setItem('alert', JSON.stringify({message: result.message, type: 'success'}));
+    localStorage.removeItem('ophi-step-form')
     await router.push('/profile');
   } catch (error) {
     console.error({error});
