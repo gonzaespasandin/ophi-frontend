@@ -6,6 +6,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { onMounted, ref, computed, onUnmounted } from 'vue';
 import { suscribeToAuthObserver } from '../services/auth';
 import AppLoading from '../components/loadings/AppLoading.vue';
+import { giveFree, givePremium } from '../services/subscription';
 
 let unsubscribeToAuthObserver = () => {}
 const user = ref({});
@@ -14,6 +15,22 @@ const router = useRouter();
 const route = useRoute();
 
 const loading = ref(true)
+
+async function handlePremiumSubmit() {
+    try {
+        await givePremium();
+    } catch (error) {
+        console.log('[SubscriptionView] -> [handlePremiumSubmit], Error: ', error);
+    }
+}
+
+async function handleFreeSubmit() {
+    try {
+        await giveFree();
+    } catch (error) {
+        console.log('[SubscriptionView] -> [handleFreeSubmit], Error: ', error);
+    }
+}
 
 onMounted(() => {
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => {user.value = state, loading.value = false});
@@ -46,7 +63,7 @@ onUnmounted(() => {
 
                 <p class="text-3xl pb-2">$0</p>
 
-                <button class=" text-white font-semibold px-6 py-2 rounded-[11px]  transition-colors" :class="user.subscription.plan_id === 1 ? 'bg-gray-400' : 'bg-[#009161] hover:bg-[#007a50]'">
+                <button @click="handleFreeSubmit()" class=" text-white font-semibold px-6 py-2 rounded-[11px]  transition-colors" :class="user.subscription.plan_id === 1 ? 'bg-gray-400' : 'bg-[#009161] hover:bg-[#007a50]'">
                 {{ user.subscription.plan_id === 1 ? 'Tu plan actual' : 'Cambiar a free'  }}
                 </button>
             </div>
@@ -65,7 +82,7 @@ onUnmounted(() => {
 
                 <p class="pb-2"><span class="text-3xl">$4999</span> por mes</p>
 
-                <button class="text-white font-semibold px-6 py-2 rounded-[11px] cursor-pointer transition-colors" :class="user.subscription.plan_id === 2 ? 'bg-gray-400' : 'bg-[#009161] hover:bg-[#007a50]'">
+                <button @click="handlePremiumSubmit()" class="text-white font-semibold px-6 py-2 rounded-[11px] cursor-pointer transition-colors" :disabled="user.subscription.plan_id === 2" :class="user.subscription.plan_id === 2 ? 'bg-gray-400 disabled' : 'bg-[#009161] hover:bg-[#007a50]'">
                 {{ user.subscription.plan_id === 2 ? 'Tu plan actual' : 'Activar premium'  }}
                 </button>
             </div>
