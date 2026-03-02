@@ -6,7 +6,7 @@
     <div class="flex flex-col justify-between">
       <img src="../assets/img/logo.png" alt="" class="mt-6">
       <div class="flex flex-col justify-center mb-5 px-3 h-50">
-        <h1 class="text-4xl text-center mb-3">Bienvenido/a</h1>
+        <h1 class="text-4xl text-center mb-3">Te damos la bienvenida</h1>
         <p>Somos <span class="font-semibold">ophi</span> y queremos ayudarte a comer sin preocupaciones</p>
       </div>
     </div>

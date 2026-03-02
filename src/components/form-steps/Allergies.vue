@@ -14,6 +14,7 @@ const props = defineProps({
 <template>
     <div class="flex flex-col grow">
       <button
+          type="button"
           class="border border-black/20 hover:bg-black/10 hover:border-black/30 transition cursor-pointer inline-flex items-center py-2 px-4 gap-2 me-auto mb-2 rounded-[11px]"
           @click.prevent="emit('previous')"
       ><i class="fa-solid fa-chevron-left pe-2"></i> Volver</button>
