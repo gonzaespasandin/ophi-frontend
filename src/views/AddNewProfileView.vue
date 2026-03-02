@@ -28,6 +28,7 @@ async function handleSubmit(formData) {
     console.error({error});
     if (error.response.status === 422) {
       formErrors.value = error.response.data.errors
+      console.log(formErrors.value)
     } else {
       serverError.value = 'Ocurrió un error inesperado. Estamos solucionándolo...'
     }
@@ -54,8 +55,11 @@ async function handleSubmit(formData) {
             @submit="handleSubmit"
             class="bg-white shadow-md p-3 m-3 rounded-[11px]"
         />
-      <div v-if="formErrors">
+      <div v-if="formErrors && formErrors.name">
         <Error :errorMessage="formErrors.name?.join('')"></Error>
+      </div>
+      <div v-else-if="formErrors && formErrors">
+        <Error :errorMessage="formErrors"></Error>
       </div>
       <div v-if="serverError">
         <Error :errorMessage="serverError"></Error>

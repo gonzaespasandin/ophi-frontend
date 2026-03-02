@@ -1,10 +1,12 @@
 <script setup>
-import {  ref } from 'vue';
+import {  onMounted, ref } from 'vue';
 import AppLoading from '../loadings/AppLoading.vue';
 
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
 const nameError = ref(null); 
+const userProfiles = ref([]);
+const repeatedNameError = ref(null);
 
 const props = defineProps({
   where: String,
@@ -13,15 +15,28 @@ const props = defineProps({
 })
 
 function handleSubmit() {
+  nameError.value = null;
+  repeatedNameError.value = null;
   if(model.value.name === '') {
     nameError.value = 'El nombre es obligatorio';
-    console.log('aa', 'REFACHAREFACAH')
+    return;
+  }
+  userProfiles.value.forEach(profile => {
+    if(profile.name === model.value.name) {
+      repeatedNameError.value = 'Ya tenés un perfil con ese nombre';
+    }
+  });
+  if(repeatedNameError.value) {
     return;
   }
   nameError.value = null;
-  console.log(model.value.ingredients);
+  repeatedNameError.value = null;
   emit('next');
 }
+
+onMounted(() => {
+  userProfiles.value = JSON.parse(sessionStorage.getItem('ophi-user')).profiles;
+}) 
 </script>
 
 <template>
@@ -48,6 +63,9 @@ function handleSubmit() {
         >
         <div v-if="props.where === 'addNew' && nameError" class=" text-red-600 pb-4">
           {{ nameError }}
+        </div>
+        <div v-if="props.where === 'addNew' && repeatedNameError" class=" text-red-600 pb-4">
+          {{ repeatedNameError }}
         </div>
       </div>
  
