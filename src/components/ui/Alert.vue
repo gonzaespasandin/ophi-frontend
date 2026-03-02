@@ -4,7 +4,7 @@
 const props = defineProps({
     safe: {
         type: Array,
-        default: [{isSafe: true}]
+
     }
 })
 console.log(props.safe[0], ' SSSAF')

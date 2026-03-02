@@ -5,7 +5,10 @@ import AllergiesPicker from "../ingredients/AllergiesPicker.vue";
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
 const props = defineProps({
-  where: String
+  where: String,
+  loadingTheme: {
+    type: String,
+  }
 })
 
 
@@ -25,7 +28,7 @@ const props = defineProps({
       </div>
 
       <div class="flex flex-col justify-between grow">
-        <AllergiesPicker loading-theme="white" v-model="model.ingredients" />
+        <AllergiesPicker :loadingTheme="props.loadingTheme" v-model="model.ingredients" />
         <button
             class="action-btn mt-6 w-full"
             @click="emit('next')"

@@ -49,6 +49,7 @@ async function handleSubmit(formData) {
             :where="'addNew'"
             :errors="null"
             :loading="loading"
+            :loadingTheme="'blue'"
             @submit="handleSubmit"
             class="bg-white shadow-md p-3 m-3 rounded-[11px]"
         />

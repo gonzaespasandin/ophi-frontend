@@ -60,6 +60,7 @@ async function handleSubmit(formData) {
         @submit="handleSubmit"
         :where="'register'"
         :errors="registrationErrors"
+        :loadingTheme="'white'"
         :loading="loading"
         class="bg-[#005B8E] flex flex-col justify-between py-6 text-white p-3 grow"  
       />

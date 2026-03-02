@@ -114,43 +114,41 @@ function time() {
         <template v-if="error">
           <Error :errorMessage="errorMessage"/>
         </template>
-        <div v-else :class="user.subscription.plan_id === 1 ? 'trama h-[90vh]' : ''">
-          <template v-if="user.subscription.plan_id !== 1">
-            <div class="bg-[#005B8E] h-5"></div>
+        <template v-else>
+          <div class="bg-[#005B8E] h-5"></div>
 
-            <!-- Mensaje cuando venís del scanner -->
-            <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
-              <p>
-                Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
-              </p>
-            </div>
+          <!-- Mensaje cuando venís del scanner -->
+          <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
+            <p>
+              Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
+            </p>
+          </div>
 
-            <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
-              <i class="fa-solid fa-arrow-left"></i>
-              <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="time()" autocomplete="off"/>
-              <button type="submit">
-                <i class="fa-solid fa-magnifying-glass"></i>
-              </button>
-            </form>
+          <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
+            <i class="fa-solid fa-arrow-left"></i>
+            <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="time()" autocomplete="off"/>
+            <button type="submit">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </form>
 
-            <ul class="SearchView-list">
-              <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
-                <RouterLink :to="`/product/${product.name}/${typeof(product.brand) === 'string' ? product.brand : product.brand.name}`" class="flex justify-between items-center">
-                  <div class="flex flex-col">
-                    <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
-                    <p v-else v-html="bold(product.name)" class="text-sm"></p>
-                    <span class="text-[12px] text-gray-600">{{ typeof(product.brand) === 'string' ? product.brand : product.brand.name }}</span>
-                  </div>
-                  <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
-                  <i v-else class="fa-solid fa-arrow-right"></i>
-                </RouterLink>
-              </li>
-            </ul>
-            <div v-if="products.length === 0" class="mt-4">
-                <p class="text-center">No hay resultados</p>
-            </div>
-          </template>
-          <template v-else>
+          <ul class="SearchView-list">
+            <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
+              <RouterLink :to="`/product/${product.name}/${typeof(product.brand) === 'string' ? product.brand : product.brand.name}`" class="flex justify-between items-center">
+                <div class="flex flex-col">
+                  <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
+                  <p v-else v-html="bold(product.name)" class="text-sm"></p>
+                  <span class="text-[12px] text-gray-600">{{ typeof(product.brand) === 'string' ? product.brand : product.brand.name }}</span>
+                </div>
+                <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
+                <i v-else class="fa-solid fa-arrow-right"></i>
+              </RouterLink>
+            </li>
+          </ul>
+          <div v-if="products.length === 0" class="mt-4">
+              <p class="text-center">No hay resultados</p>
+          </div>
+          <!-- <template v-else>
               <Top/>
               <div class="flex flex-col flex-1 h-[80%] justify-center">
                 <div class="p-3">
@@ -161,8 +159,8 @@ function time() {
                   </div>
                 </div>
             </div>
-          </template>
-        </div>
+          </template> -->
+        </template>
       </div>
   </AuthLayout>
 </template>

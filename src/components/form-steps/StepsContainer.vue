@@ -19,7 +19,8 @@ const props = defineProps({
   steps: {type: Array, required: true},
   where: String,
   errors: {type: Object},
-  loading: {type: Boolean, default: false}
+  loading: {type: Boolean, default: false},
+  loadingTheme: {type: String}
 });
 
 const stepsDictionary = {
@@ -108,6 +109,7 @@ function goToLastStep() {
         :where="where"
         :loading="loading"
         :errors="errors"
+        :loadingTheme="props.loadingTheme"
     />
   </form>
 </template>

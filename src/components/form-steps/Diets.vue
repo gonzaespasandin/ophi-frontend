@@ -5,7 +5,10 @@ import SpecialDietsPicker from "../ingredients/SpecialDietsPicker.vue";
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
 const props = defineProps({
-  where: String
+  where: String,
+  loadingTheme: {
+    type: String,
+  }
 })
 </script>
 
@@ -23,7 +26,7 @@ const props = defineProps({
     </div>
 
     <div class="flex flex-col justify-between grow">
-      <SpecialDietsPicker loading-theme="white" v-model="model.ingredients"  :where="where"/>
+      <SpecialDietsPicker :loadingTheme="props.loadingTheme" v-model="model.ingredients"  :where="where"/>
 
       <button
           class="action-btn mt-6 w-full"

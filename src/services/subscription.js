@@ -1,6 +1,6 @@
 import axiosInstance from "../config/axios.js"
 import { setUser } from "./auth.js";
-import { getSubscription } from "./profiles.js";
+import { getAuthUserProfiles, getSubscription } from "./profiles.js";
 
 export async function givePremium() {
     try {
@@ -21,7 +21,8 @@ export async function giveFree() {
         const result = await axiosInstance.get(`/api/giveFree`);
         if(result) {
             let subs = await getSubscription();
-            setUser({subscription: subs});
+            let userProfiles = await getAuthUserProfiles();
+            setUser({subscription: subs, profiles: userProfiles});
         }
         return result;
     } catch(error) {

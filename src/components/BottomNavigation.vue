@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 
 <template>
   <nav>
-    <ul class="flex justify-around items-center py-1 bg-[#ffffff] text-[#4e4e4e]">
+    <ul class="flex justify-around items-center py-1  bg-[#ffffff] text-[#4e4e4e]">
       <li>
         <RouterLink to="/" class="flex flex-col items-center justify-center gap-2" active-class="router-link-active router-link-exact-active">
           <i class="fa-solid fa-house"></i>

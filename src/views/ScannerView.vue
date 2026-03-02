@@ -28,13 +28,16 @@ const safetyDataReady = ref(false);
 const scannedCode = ref('');
 const lastFailedCode = ref('');
 const isProcessing = ref(false);
-const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety } = useProductSafety();
+const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety, unrestrictedProfiles } = useProductSafety();
 
 const showNameFallback = ref(false);
 const nameSearch = ref('');
 const nameError = ref('');
 const nameMatches = ref([]);
 const productsForSearchListView = ref([]);
+
+// Cuando NO tenemos perfiles con restricciones, normalizedIngredients === [], entonces, creamos esta variable como backup por si el profile NO tiene ingredients. 
+const productIngredients = ref([]);
 
 // Inicializar licencia y cargar WASM (solo una vez)
 const initializeDynamsoft = () => {
@@ -73,6 +76,12 @@ const setupResultReceiver = () => {
             safetyDataReady.value = false;
             product.value = data;
             
+            data.ingredients.forEach(pI => {
+              console.log(pI.name)
+              if(!productIngredients.value.includes(pI.name)) {
+                productIngredients.value.push(pI.name);
+              }
+            });
             console.log('Usuario:', user.value);
             console.log('Perfiles:', user.value.profiles);
             console.log('Ingredientes del producto:', data.ingredients);
@@ -188,7 +197,7 @@ const initializeScanner = async () => {
     /*
      * ReadSingleBarcode para leer rapidamente un solo codigo de barras
      * ReadDistinctBarcodes para leer codigos de barras desde lejos
-     */
+    */
     const settings = await cvRouter.getSimplifiedSettings("ReadSingleBarcode");
     settings.barcodeSettings.barcodeFormatIds = 
       Dynamsoft.DBR.EnumBarcodeFormat.BF_EAN_13 | 
@@ -377,19 +386,22 @@ onBeforeUnmount(async () => {
             <span class="block text-center mt-3 mb-3">Resultados</span>
             <template v-if="safetyDataReady">
               <Alert
-                v-if="user.profiles && user.profiles.length === 1 && safe.length > 0"
+                v-if="user.profiles && user.profiles.length === 1"
                 :safe="safe"
               />
               <AlertSomeUsers
-                v-else-if="user.profiles && user.profiles.length > 1 && safe.length > 0"
+                v-else-if="user.profiles && user.profiles.length > 1"
                 :safe="safe"
+                :unrestrictedProfiles="unrestrictedProfiles"
               />
             </template>
           </div>
 
-          <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3 rounded-[11px]">
-            <h3 class="text-xl mb-2">Ingredientes:</h3>
-            <p>{{ normalizedIngredients.join(', ') }}</p>
+          <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3     rounded-[11px]">
+            <h3 v-if="normalizedIngredients.length === 0" class="text-2xl">Ingredientes</h3>
+            <h3 v-else-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients.join(', ') }}</h3>
+            <h3 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients.join(', ') }}</h3>
+            <p>{{ (normalizedIngredients.length === 0) ? productIngredients.join(', ') : normalizedIngredients.join(', ') }}</p>
           </div>
         </div>
 
