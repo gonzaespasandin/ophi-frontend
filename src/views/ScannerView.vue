@@ -414,9 +414,9 @@ onBeforeUnmount(async () => {
           <template v-if="showNameFallback" >
             <div class="mb-5">
               <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
-              <h2 class="text-center text-xl font-semibold mb-2">¡Lo sentimos!</h2>
+              <h2 class="text-center text-xl font-semibold mb-2">Producto no encontrado</h2>
               <p class="text-center text-sm text-gray-700">
-                No pudimos escanear el código de barras.
+                ¡Lo sentimos! No encontramos ningún producto asociado a este código de barras
               </p>
               <p v-if="lastFailedCode" class="text-center text-xs text-gray-500 mt-1">
                 Código escaneado: <strong>{{ lastFailedCode }}</strong>

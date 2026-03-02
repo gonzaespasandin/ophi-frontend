@@ -50,14 +50,9 @@ onUnmounted(() => {
   sessionStorage.removeItem('alert');
 });
 
-async function handleLogout() {
-  try {
+function handleLogout() {
     logout()
-
-    await router.push("/login")
-  } catch (error) {
-    console.error(error);
-  }
+    router.push("/login")
 }
 
 function handleClick(who) {
@@ -96,6 +91,7 @@ async function handleDeleteProfile() {
 
 <template>
   <AuthLayout>
+    <h1 class="sr-only">Perfil de usuario</h1>
     <Teleport to="#modal-root">
       <dialog ref="dialog" class="m-auto w-[min(100%-32px,388px)] rounded-[11px] p-4 open:grid">
        <template v-if="loading">
@@ -151,15 +147,16 @@ async function handleDeleteProfile() {
           class="text-1xl py-2 px-4 border bg-red-100 rounded-[11px] border-red-400 text-red-700"
       >Cerrar sesión <i class="fa-solid fa-arrow-right-from-bracket ps-2"></i></button>
     </div>
+
     <SomeUserInfo class="mt-8" :user="user" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
         <button @click="handleClick('Perfil')" class="w-[50%] text-center p-3" :class="active1 ? 'togle-perfil-active' : ''">
-          <h3>MI PERFIL</h3>
+          <p>MI PERFIL</p>
         </button>
         <button @click="handleClick('Perfiles')" class="w-[50%] text-center p-3" :class="active2 ? 'togle-perfil-active' : ''">
-          <h3>PERFIL FAMILIAR</h3>
+          <p>PERFIL FAMILIAR</p>
         </button>
       </div>
       <div class="line border-b-2 border-b-[#005B8E] w-[50%]" :class="active2 ? 'translate-x-full transition-all' : 'translate-x-[0%] transition-all'" id="line"></div>
@@ -168,6 +165,7 @@ async function handleDeleteProfile() {
     <div class="p-3">
       <div v-if="active2">
         <ul>
+          <h2 class="sr-only">Perfiles registrados</h2>
           <li v-for="profile of otherProfiles" :key="profile.id" class="bg-white shadow-md  p-5 flex justify-around rounded-[11px] mb-3">
             <div class="mb-2 w-full flex justify-between items-center">
               <div class="w-[20%]">
@@ -210,7 +208,7 @@ async function handleDeleteProfile() {
       <div v-else-if="myProfile.length > 0">
         <div class="bg-white shadow-md  p-5 flex justify-between rounded-[11px]">
           <div>
-            <h4 class="text-[#005B8E] font-semibold text-xl mb-2">Restricción alimenticia</h4>
+            <h2 class="text-[#005B8E] font-semibold text-xl mb-2">Restricción alimenticia</h2>
             <p>{{ myProfile[0].ingredients.slice(0, 2).map(i => i.name).join(', ') }}...</p>
           </div>
           <RouterLink :to="`/profile/${myProfile[0].id}/edit`">

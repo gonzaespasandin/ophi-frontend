@@ -221,6 +221,7 @@ onUnmounted(() => {
 
 <template>
     <AuthLayout>
+        <h1 class="sr-only">Buscador</h1>
         <Top/>
         <template v-if="loading">
           <div class="flex justify-center items-center h-full">
@@ -262,27 +263,31 @@ onUnmounted(() => {
                   </ul>
                   <button @click="handlePaginator('sig')" :disabled="disableNextButton"><i class="fa-solid fa-chevron-right"></i></button>
                 </div>
-                <div v-if="showFilterDrawer" class="bg-black/70 opacity-100 h-full absolute w-full top-[-12px]" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch" ></div>
+                <div v-if="showFilterDrawer" @click="showFilterDrawer = false" class="bg-black/70 fixed opacity-100 left-0 top-0 z-100 h-full w-full" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch" ></div>
                 <template v-if="showFilterDrawer">
-                  <div class="absolute flex flex-col h-[50%] bottom-0 bg-white w-full  rounded-t-[11px]" :style="{ transform: `translateY(${translateY}px)`}">
+                  <div @click.stop class="fixed z-110 flex flex-col h-[50%] w-[calc(100% - 32px)] mx-auto bottom-0 bg-white rounded-t-[11px]" :style="{ transform: `translateY(${translateY}px)`}">
                     <div class="px-3 py-3" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
                       <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
                     </div>
                     <form @submit.prevent="handleSubmit()" class="flex flex-col overflow-auto h-full scroll-smooth">
+                      <h2 class="sr-only">Filtros</h2>
                       <div class="w-full flex justify-center text-[25px]">
                         <a href="#brands">Marcas</a>
                         <!-- <a href="#categories" class="h-[30%]">Categorías</a>
                         <a href="#origins" class="h-[30%]">Origen</a> -->
                       </div>
-                      <div class="flex flex-col w-full p-3 overflow-y-auto scroll-smooth">
+                      <div class="grid grid-rows-[1fr_auto] h-full w-full p-3 overflow-y-auto scroll-smooth">
                         <!-- Brands -->
-                        <div v-if="filtersValues.brands && filtersValues.brands.length > 0" class="my-3 flex flex-col gap-10 justify-around" id="brands">
-                          
-                          <ul class="flex flex-wrap justify-center gap-3">
-                            <div class="bg-[#f5f5f5] rounded-[11px] p-3 mb-3 w-[85%] shadow-md flex items-center justify-around">
-                              <input type="search" class=" focus:outline-0" @input="searchFront('brands', searchedBrand)" v-model="searchedBrand" placeholder="Buscar marca...">
-                              <i class="fa-solid fa-magnifying-glass"></i>
-                            </div>
+                        <div v-if="filtersValues.brands && filtersValues.brands.length > 0" class="my-3" id="brands">
+
+                          <!-- Search... -->
+                          <div class="bg-[#f5f5f5] grid grid-cols-[1fr_auto] rounded-[11px] mb-3 w-full has-focus-visible:ring-2 ring-blue-400 shadow-md">
+                            <input type="search" class="focus:outline-0 p-3" @input="searchFront('brands', searchedBrand)" v-model="searchedBrand" placeholder="Buscar marca...">
+                            <i class="fa-solid fa-magnifying-glass p-3 grid place-content-center"></i>
+                          </div>
+
+                          <!-- List of brands -->
+                          <ul class="flex flex-wrap justify-start gap-3">
                             <li v-for="(brand, i) of filtersValues.brands" :key="i">
                               <label :for="`brand-${brand.id}`" class=" px-3 py-1 rounded-[11px] shadow-md cursor-pointer transition"
                                 :class="selectedBrands.includes(brand.id) ? 'bg-[#005B8E] text-white' : 'bg-white text-[#005B8E]'">
@@ -334,8 +339,9 @@ onUnmounted(() => {
                           </ul>
                         </div>
                       -->
-                        <div class="flex justify-center items-center mb-10 mt-10">
-                         <button type="submit" class="action-btn w-[80%]">Aplicar</button>
+                        <div class="grid gap-2 my-5">
+                          <button type="button" class="secondary-action-btn" @click="showFilterDrawer = false">Cancelar</button>
+                          <button type="submit" class="action-btn w-full">Aplicar</button>
                         </div>
                       </div>
                     </form>
@@ -356,6 +362,7 @@ onUnmounted(() => {
 
 
 <style scoped>
+    /*
     .move {
         i {
             transition: transform .1s ease-out;
@@ -366,4 +373,5 @@ onUnmounted(() => {
             transform: translateX(3px);
         }
     }
+    */
 </style>

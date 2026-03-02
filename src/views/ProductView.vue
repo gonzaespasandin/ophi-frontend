@@ -179,17 +179,16 @@ onBeforeUnmount(() => {
         </template>
         <template v-else-if="!product">
             <div class="bg-white m-3 shadow-md p-3 rounded-lg">
-                <h2 class="font-light text-2xl text-center">¡Lo sentimos!</h2>
-                <p class="text-center py-5">No encontramos resultados</p>
+                <h1 class="font-light text-2xl text-center">Producto no encontrado</h1>
+                <p class="text-center py-5">¡Lo sentimos! No pudimos encontrar lo que buscabas</p>
             </div>
         </template>
         <template v-else>
         <template  v-if="!loading">
-          <h1 class="sr-only">Página de producto</h1>
             <div>
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
-                    <h2 class="text-center text-2xl">{{product.name}}</h2>
-                    <h3 class="text-center font-semibold">{{ product.brand.name }}</h3>
+                    <h1 class="text-center text-2xl">{{product.name}}</h1>
+                    <p class="text-center font-roboto-slab font-semibold">{{ product.brand.name }}</p>
                     <span class="block text-center mb-5">Resultados</span>
                     <Alert v-if="user.profiles.length === 1" :safe="safe"></Alert>
                     <AlertSomeUsers v-else :safe="safe" :unrestrictedProfiles="unrestrictedProfiles"></AlertSomeUsers>
@@ -203,14 +202,18 @@ onBeforeUnmount(() => {
                 />
 
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
-                    <h2 v-if="normalizedIngredients.length === 0" class="text-2xl">Ingredientes</h2>
+                    <h2 class="text-2xl">Ingredientes</h2>
+                    <!--
                     <h2 v-else-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
                     <h2 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</h2>
-                    <p>{{ (normalizedIngredients.length === 0) ? noProfileRestrictionsNormalizedIngredients.join(', ') : normalizedIngredients }}</p>
+                    -->
+                    <!-- <p>{{ (normalizedIngredients.length === 0) ? noProfileRestrictionsNormalizedIngredients.join(', ') : normalizedIngredients }}</p> -->
+                    <!-- TODO: Marcar en rojo los ingredientes "peligrosos" -->
+                    <p>{{ product.ingredients.map(i => i.name).join(', ') }}</p>
                 </div>
 
-              <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
-                <h2 class="text-xl px-3">También puede interesarte</h2>
+              <div class="bg-white shadow-md  m-3 rounded-lg">
+                <h2 class="text-xl p-3 ">También puede interesarte</h2>
                 <swiper
                     v-if="safeProducts.length"
                     :modules="modules"

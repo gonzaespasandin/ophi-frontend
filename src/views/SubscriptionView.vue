@@ -15,21 +15,26 @@ const router = useRouter();
 const route = useRoute();
 
 const loading = ref(true)
+const doingFetch = ref(false);
 
 async function handlePremiumSubmit() {
+    doingFetch.value = true
     try {
         await givePremium();
     } catch (error) {
         console.log('[SubscriptionView] -> [handlePremiumSubmit], Error: ', error);
     }
+    doingFetch.value = false
 }
 
 async function handleFreeSubmit() {
+    doingFetch.value = true
     try {
         await giveFree();
     } catch (error) {
         console.log('[SubscriptionView] -> [handleFreeSubmit], Error: ', error);
     }
+    doingFetch.value = false
 }
 
 onMounted(() => {
@@ -52,7 +57,7 @@ onUnmounted(() => {
 
             <div class="bg-white rounded-[11px] shadow-md w-80 p-6 flex flex-col items-center ">
                 <i class="fas fa-user-circle text-4xl text-gray-400 mb-4"></i>
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Plan Free</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Plan Gratuito</h2>
                 
                 <ul class="text-gray-600 mb-2 space-y-2">
                     <li><i class="fas fa-user mr-2 text-[#005B8E]"></i>1 solo perfil</li>
@@ -63,7 +68,12 @@ onUnmounted(() => {
 
                 <p class="text-3xl pb-2">$0</p>
 
-                <button @click="handleFreeSubmit()" class=" text-white font-semibold px-6 py-2 rounded-[11px]  transition-colors" :class="user.subscription.plan_id === 1 ? 'bg-gray-400' : 'bg-[#009161] hover:bg-[#007a50]'">
+                <button
+                    @click="handleFreeSubmit()"
+                    class=" text-white font-semibold px-6 py-2 rounded-[11px]  transition-colors"
+                    :class="user.subscription.plan_id === 1 ? 'bg-gray-400' : 'bg-[#009161] hover:bg-[#007a50]'"
+                    :disabled="user.subscription.plan_id === 1 || doingFetch"
+                >
                 {{ user.subscription.plan_id === 1 ? 'Tu plan actual' : 'Cambiar a free'  }}
                 </button>
             </div>
@@ -82,7 +92,12 @@ onUnmounted(() => {
 
                 <p class="pb-2"><span class="text-3xl">$4999</span> por mes</p>
 
-                <button @click="handlePremiumSubmit()" class="text-white font-semibold px-6 py-2 rounded-[11px] cursor-pointer transition-colors" :disabled="user.subscription.plan_id === 2" :class="user.subscription.plan_id === 2 ? 'bg-gray-400 disabled' : 'bg-[#009161] hover:bg-[#007a50]'">
+                <button
+                    @click="handlePremiumSubmit()"
+                    class="text-white font-semibold px-6 py-2 rounded-[11px] cursor-pointer transition-colors"
+                    :class="user.subscription.plan_id === 2 ? 'bg-gray-400 disabled' : 'bg-[#009161] hover:bg-[#007a50]'"
+                    :disabled="user.subscription.plan_id === 2 || doingFetch"
+                >
                 {{ user.subscription.plan_id === 2 ? 'Tu plan actual' : 'Activar premium'  }}
                 </button>
             </div>

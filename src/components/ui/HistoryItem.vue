@@ -49,9 +49,9 @@ const toggleResults = () => {
       <div class="flex items-start justify-between gap-3">
 
         <div class="flex-1 min-w-0">
-          <h2 class="text-lg font-semibold text-[#005B8E] truncate">
+          <h3 class="text-lg font-semibold text-[#005B8E] truncate">
             {{ item.product.name }}
-          </h2>
+          </h3>
           <!-- <p class="text-sm text-[#005B8E] mt-1">{{ item.product.brand.name }}</p> -->
           <p class="text-xs text-[#005B8E] mt-1">
             {{ formatDate(item.scanned_at) }}
@@ -72,7 +72,7 @@ const toggleResults = () => {
       :class="isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'"
     >
       <div class="px-4 pb-4 border-t border-gray-200 pt-3">
-        <h3 class="text-sm font-medium text-[#005B8E] mb-2">Resultados:</h3>
+        <h4 class="text-sm font-medium text-[#005B8E] mb-2">Resultados:</h4>
         
         <Alert
           v-if="item.results.length === 1"

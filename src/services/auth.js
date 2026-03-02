@@ -83,19 +83,9 @@ export async function login(credentials) {
     }
 }
 
-export async function logout() {
-    try {
-       const response = await axiosInstance.post('/api/logout');
-
-        console.log('Logout response: ', response)
-
-        if(response.status === 204) {
-            setUser({...emptyUser});
-    }
-    } catch (error) {
-        console.error('[auth.js] -> [logout], Error: ', error);
-        throw error;
-    }
+export function logout() {
+    axiosInstance.post('/api/logout');
+    setUser({...emptyUser});
 }
 
 export async function register(data) {
