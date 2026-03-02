@@ -21,7 +21,6 @@ async function handleSubmit(formData) {
     router.push('/')
   } catch (error) {
     console.error({error});
-    
     if (error.status === 422) {
       registrationErrors.value = error.response?.data?.errors || {};
       generalError.value = 'Por favor, corregí los errores en el formulario';

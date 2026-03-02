@@ -22,7 +22,7 @@ if (sessionStorage.getItem('ophi-user')) {
     setUser(JSON.parse(sessionStorage.getItem('ophi-user')))
 }
 
-function setUser(data) {
+export function setUser(data) {
     user = {
         ...user,
         ...data
@@ -100,6 +100,7 @@ export async function logout() {
 
 export async function register(data) {
     try {
+        
         // Register the user
         const result = await axiosInstance.post('/api/register', data)
         const user = result.data.user || result.data
