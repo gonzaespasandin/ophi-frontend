@@ -50,14 +50,9 @@ onUnmounted(() => {
   sessionStorage.removeItem('alert');
 });
 
-async function handleLogout() {
-  try {
+function handleLogout() {
     logout()
-
-    await router.push("/login")
-  } catch (error) {
-    console.error(error);
-  }
+    router.push("/login")
 }
 
 function handleClick(who) {
