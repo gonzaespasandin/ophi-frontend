@@ -124,15 +124,6 @@ function time() {
             </p>
           </div>
 
-<<<<<<< HEAD
-          <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
-            <i class="fa-solid fa-arrow-left"></i>
-            <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="time()" autocomplete="off"/>
-            <button type="submit">
-              <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
-          </form>
-=======
             <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
               <h1 class="sr-only">Buscar producto</h1>
               <i class="fa-solid fa-arrow-left"></i>
@@ -141,7 +132,6 @@ function time() {
                 <i class="fa-solid fa-magnifying-glass"></i>
               </button>
             </form>
->>>>>>> 28d709bc25bd93d7ea59576d7839bf4d4a6f3ae1
 
           <ul class="SearchView-list">
             <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
