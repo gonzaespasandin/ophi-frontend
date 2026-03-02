@@ -68,7 +68,7 @@ import { getBrands } from "../services/product.js";
 
 <template>
   <AuthLayout class="square-with-gradient">
-    <!-- <h1 class="text-4xl">Inicio</h1> -->
+    <h1 class="text-4xl sr-only">Inicio</h1>
     <div class="flex justify-between align-center mt-10 p-3 gap-4 mx-3" :class="userNameLength > 15 ? 'flex-col items-center' : 'flex-row'">
         <img src="../assets/img/logo-positivo.png"></img>
         <RouterLink to="/profile" class="info-auth flex align-center justify-center mt-4 text-white">
@@ -81,12 +81,13 @@ import { getBrands } from "../services/product.js";
     <div class="mx-3 mt-4">
       <Search></Search>
     </div>
-    <div class="mt-6 mx-3">
+    <section class="mt-6 mx-3">
       <History></History>
-    </div>
-    <div>
+    </section>
+    <section>
+      <h2 class="sr-only">Productos recomendados</h2>
       <RecomendedProducts v-if="user && user.profiles" :user="user.profiles" :subscription="user.subscription.plan_id"></RecomendedProducts>
-    </div>
+    </section>
   </AuthLayout>
 </template>
 

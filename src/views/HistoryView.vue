@@ -220,6 +220,7 @@ function time() {
 
 
       <div v-else class="space-y-4">
+        <h2 class="sr-only">Listado</h2>
         <HistoryItem 
           v-for="item in history" 
           :key="item.id"

@@ -46,6 +46,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .action-btn {
+    cursor: pointer;
     background-color: var(--action);
     border-radius: 11px;
     color: white;
@@ -56,6 +57,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .secondary-action-btn {
+    cursor: pointer;
     background-color: white;
     border: 2px solid var(--action);
     border-radius: 11px;
