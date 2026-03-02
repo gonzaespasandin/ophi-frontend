@@ -73,7 +73,6 @@ function generateRouteForStep(step) {
 function handleNext() {
   if(currentStep.value >= (props.steps.length - 1)) {
     //  Execute action
-    localStorage.removeItem('ophi-step-form')
     emit('submit', formData.value)
     return
   }

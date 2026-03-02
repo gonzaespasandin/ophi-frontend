@@ -12,7 +12,7 @@ const props = defineProps({
   loading: Boolean
 })
 
-function handleSubmitt() {
+function handleSubmit() {
   if(model.value.name === '') {
     nameError.value = 'El nombre es obligatorio';
     console.log('aa', 'REFACHAREFACAH')
@@ -28,7 +28,12 @@ function handleSubmitt() {
 
 
     <div>
-      <!-- <button type="button" @click="emit('previous')">Volver</button> -->
+      <button
+          type="button"
+          class="border border-black/20 hover:bg-black/10 hover:border-black/30 transition cursor-pointer inline-flex items-center py-2 px-4 gap-2 me-auto mb-2 rounded-[11px]"
+          @click.prevent="emit('previous')"
+      ><i class="fa-solid fa-chevron-left pe-2"></i> Volver</button>
+
       <h2 class="text-2xl font-semibold text-center" :class="props.where === 'addNew' ? 'text-lg' : 'text-2xl'">¿De quién estamos hablando?</h2>
 
       <div class="mt-3">
@@ -47,8 +52,9 @@ function handleSubmitt() {
       </div>
  
       <button
+          type="submit"
           class="action-btn w-full"
-          @click="handleSubmitt()"
+          @click="handleSubmit()"
           :disabled="props.loading"
           :class="props.loading ? 'opacity-60 cursor-not-allowed' : ''"
       >

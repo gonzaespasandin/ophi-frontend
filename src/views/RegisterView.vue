@@ -17,6 +17,7 @@ async function handleSubmit(formData) {
   
   try {
     await register(formData)
+    localStorage.removeItem('ophi-step-form')
     router.push('/')
   } catch (error) {
     console.error({error});

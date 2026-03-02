@@ -45,7 +45,7 @@ async function handleSubmit() {
     const data = await login(formData.value);
     router.push('/');
   } catch (error) {
-    console.error({error});
+    // console.error({error});
     
     if (error.status === 422) {
       const errors = error.response?.data?.errors || {};
@@ -53,7 +53,7 @@ async function handleSubmit() {
       formErrors.value.password = errors.password?.[0] || '';
     } 
     else if (error.status === 401) {
-      generalError.value = error.response?.data?.message || 'Las credenciales no coinciden';
+      generalError.value = error.response?.data?.message || 'Las credenciales no coinciden.';
     } 
     else {
       generalError.value = 'Ha ocurrido un error. Por favor, intenta de nuevo.';

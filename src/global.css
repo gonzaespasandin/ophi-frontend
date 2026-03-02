@@ -1,9 +1,32 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: "RobotoSlab";
+    src: url("/fonts/RobotoSlab-VariableFont_wght.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "kalon";
+    src: url("/fonts/kalon.otf") format("OpenType");
+    font-weight: normal;
+    font-style: normal;
+}
+
 @theme {
     --breakpoint-xs: 25.5rem;
 
-    --font-family-roboto-slab: "Roboto Slab", sans-serif;
+    --font-kalon: "kalon";
+    --font-roboto-slab: "RobotoSlab";
+    --font-poppins: "Poppins";
 }
 
 :root {
@@ -19,7 +42,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Roboto Slab', serif;    
+    font-family: 'RobotoSlab', serif;
 }
 
 .action-btn {
