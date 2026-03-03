@@ -6,6 +6,7 @@ import Search from "../components/ui/Search.vue";
 import History from "../components/ui/History.vue";
 import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
 import { getBrands } from "../services/product.js";
+import SafeProducts from "../components/ui/SafeProducts.vue";
 
   let unsuscribeToAuthObserver = () => {}
 
@@ -49,6 +50,7 @@ import { getBrands } from "../services/product.js";
   // }
 
   onMounted(() => {
+    console.log({user})
     localStorage.removeItem('pending_scan_barcode');
     unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
     userNameLength.value = user.value.name.length;
@@ -84,9 +86,10 @@ import { getBrands } from "../services/product.js";
     <section class="mt-6 mx-3">
       <History></History>
     </section>
-    <section>
+    <section class="mt-8">
       <h2 class="sr-only">Productos recomendados</h2>
-      <RecomendedProducts v-if="user && user.profiles" :user="user.profiles" :subscription="user.subscription.plan_id"></RecomendedProducts>
+      <!-- <RecomendedProducts v-if="user && user.profiles" :user="user.profiles" :subscription="user.subscription.plan_id"></RecomendedProducts> -->
+      <SafeProducts />
     </section>
   </AuthLayout>
 </template>
