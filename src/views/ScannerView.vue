@@ -398,9 +398,10 @@ onBeforeUnmount(async () => {
           </div>
 
           <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3     rounded-[11px]">
-            <h3 v-if="normalizedIngredients.length === 0" class="text-2xl">Ingredientes</h3>
-            <h3 v-else-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients.join(', ') }}</h3>
-            <h3 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients.join(', ') }}</h3>
+            <h3 class="sr-only">Ingredientes</h3>
+            <p v-if="normalizedIngredients.length === 0" class="text-2xl font-roboto-slab">Ingredientes</p>
+            <p v-else-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl font-roboto-slab">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients.join(', ') }}</p>
+            <p v-else class="text-[#C43B52] text-2xl font-roboto-slab">{{ unsafeIngredients.join(', ') }}</p>
             <p>{{ (normalizedIngredients.length === 0) ? productIngredients.join(', ') : normalizedIngredients.join(', ') }}</p>
           </div>
         </div>
