@@ -88,15 +88,19 @@ onMounted(() => {
         <h4 class="text-sm font-medium text-[#005B8E] mb-2">Resultados:</h4>
         
         <Alert
-          v-if="user && user.profiles.length === 1"
+          v-if="user && item.results.length === 1"
           :safe="item.results"
         />
 
         <AlertSomeUsers
-          v-else-if="user && user.profiles.length > 1"
+          v-else-if="user && item.results.length > 1"
           :safe="getSafeData(item.results)"
           :unrestrictedProfiles="null"
         />
+
+        <div v-else>
+          <p>Perfil eliminado...</p>
+        </div>
       </div>
     </div>
   </div>
