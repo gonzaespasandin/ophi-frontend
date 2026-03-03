@@ -18,8 +18,13 @@ const hiddenFalse = ref(true);
 const hiddenTrue = ref(true);
 const hiddenIngredienets = ref({forWho: null, state: false});
 
-console.log(props.safe);
+// console.log(props.safe);
 // console.log(props.unrestrictedProfiles);
+
+const isSafe = props.safe[0]?.is_safe;
+
+console.log('[Alert.vue]');
+console.log({isSafe}, 'FACJA');
 
 
 props.safe.forEach(userCheck => {

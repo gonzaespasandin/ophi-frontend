@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="rounded-[11px]">
+  <div class="rounded-[11px] max-h-[400px] overflow-auto">
     <div>
       <h2>Términos y Condiciones</h2>
       <p>Última actualización: 18/02/2026</p>

@@ -15,9 +15,6 @@ function getUserNameFromEmail(e) {
 
   if (!emailRegex.test(email)) return
 
-
-  console.log('Me ejecuttteeeee')
-
   let name = email.split('@')[0]
 
   // Separating dots "."

@@ -29,6 +29,9 @@ async function handleSubmit() {
   if(formData.value.email === '') {
     formErrors.value.email = 'El email es obligatorio';
     hasErrors = true;
+  } else if(!formData.value.email.includes('@')) {
+    formErrors.value.email = 'El email debe contener @';
+    hasErrors = true;
   }
 
   if(formData.value.password === '') {
@@ -75,7 +78,7 @@ async function handleSubmit() {
     </div>
 
 
-    <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-end p-4 bg-[#005B8E]">
+    <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-end p-4 bg-[#005B8E]" novalidate>
       <div v-if="generalError" class="bg-[#C43B52] flex justify-center p-3 mb-4 rounded-[11px] text-white">
         <p>{{ generalError }}</p>
       </div>

@@ -4,10 +4,9 @@
 const props = defineProps({
     safe: {
         type: Array,
-
     }
 })
-console.log(props.safe[0], ' SSSAF')
+// console.log(props.safe[0], ' SSSAF')
 const isSafe = props.safe[0]?.is_safe;
 
 console.log('[Alert.vue]');
@@ -18,7 +17,7 @@ console.log({isSafe});
 </script>
 
 <template>
-    <div v-if="props.safe[0]?.isSafe !== undefined" :class="!props.safe[0]?.isSafe ? 'danger' : 'success' "  class="max-w-80 m-auto flex justify-around items-center text-white h-14">
+    <div v-if="props.safe[0]?.isSafe !== undefined || isSafe !== undefined" :class="!props.safe[0]?.isSafe ? 'danger' : 'success' "  class="max-w-80 m-auto flex justify-around items-center text-white h-14">
         <template v-if="!props.safe[0]?.isSafe">
             <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
             <p class="w-60">No apto para tu consumo</p>

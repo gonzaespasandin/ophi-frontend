@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import Alert from './Alert.vue';
 import AlertSomeUsers from './AlertSomeUsers.vue';
 
@@ -11,6 +11,8 @@ const props = defineProps({
 });
 
 const isExpanded = ref(false);
+const unrestrictedProfiles = ref([]);
+const user = ref(null);
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -24,6 +26,7 @@ const formatDate = (dateString) => {
 };
 
 const getSafeData = (results) => {
+  console.log(results);
   return results.map(result => ({
     isSafe: result.is_safe,
     forWho: result.profile.name,
@@ -38,6 +41,16 @@ const isDanger = computed(() => {
 const toggleResults = () => {
   isExpanded.value = !isExpanded.value;
 };
+
+onMounted(() => {
+  user.value = JSON.parse(sessionStorage.getItem('ophi-user'));
+  user.value.profiles.forEach(p => {
+    if(p.ingredients.length === 0) {
+      unrestrictedProfiles.value.push(p.name);
+    } 
+  });
+});
+
 </script>
 
 <template>
@@ -75,13 +88,14 @@ const toggleResults = () => {
         <h4 class="text-sm font-medium text-[#005B8E] mb-2">Resultados:</h4>
         
         <Alert
-          v-if="item.results.length === 1"
+          v-if="user && user.profiles.length === 1"
           :safe="item.results"
         />
 
         <AlertSomeUsers
-          v-else-if="item.results.length > 1"
+          v-else-if="user && user.profiles.length > 1"
           :safe="getSafeData(item.results)"
+          :unrestrictedProfiles="null"
         />
       </div>
     </div>

@@ -203,11 +203,11 @@ onBeforeUnmount(() => {
 
                 <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
                     <h2 class="text-2xl">Ingredientes</h2>
-                    <!--
-                    <h2 v-else-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</h2>
-                    <h2 v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</h2>
-                    -->
-                    <!-- <p>{{ (normalizedIngredients.length === 0) ? noProfileRestrictionsNormalizedIngredients.join(', ') : normalizedIngredients }}</p> -->
+                    
+                    <!-- <span v-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</span>
+                    <span v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</span>
+                   
+                    <p>{{ (normalizedIngredients.length === 0) ? noProfileRestrictionsNormalizedIngredients.join(', ') : normalizedIngredients }}</p> -->
                     <!-- TODO: Marcar en rojo los ingredientes "peligrosos" -->
                     <p>{{ product.ingredients.map(i => i.name).join(', ') }}</p>
                 </div>
