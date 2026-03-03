@@ -67,6 +67,17 @@ export async function getRecomendedProducts(userIngredients) {
     }
 }
 
+export async function getSafeProducts() {
+    try {
+        const result = await axiosInstance.get('/api/products/safe');
+
+        return result.data;
+    } catch (error) {
+        console.error('[services/product.js] -> getSafeProducts()')
+        throw error
+    }
+}
+
 export async function getBrands() {
     try {
         const result = await axiosInstance.get(`/api/brands`);
