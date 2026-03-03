@@ -29,6 +29,14 @@ function getUserNameFromEmail(e) {
   model.value.name = name
   console.log({name})
 }
+
+function handleNext() {
+  if (!model.value.name.trim()) {
+    model.value.name = 'Usuario principal'
+  }
+
+  emit('next')
+}
 </script>
 
 <template>
@@ -92,7 +100,7 @@ function getUserNameFromEmail(e) {
       <button
           class="action-btn mt-6"
           :disabled="loading"
-          @click="emit('next')"
+          @click="handleNext"
       >{{ loading ? 'Registrando...' : 'Completar registro' }}</button>
     </div>
   </div>
