@@ -87,7 +87,7 @@ function handleNext() {
           <input
               id="confirm_password"
               class=" text-black"
-              :class="props.errors.confirm_password ? 'inputs-wrong' : 'inputs', 'block border text-black'"
+              :class="props.errors.confirm_password ? 'inputs-wrong' : 'inputs block border text-black'"
               type="password"
               name="confirm_password"
               v-model="model.confirm_password">
