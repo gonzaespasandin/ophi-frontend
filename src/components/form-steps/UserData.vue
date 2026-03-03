@@ -1,4 +1,5 @@
 <script setup>
+import InputPassword from '../ui/InputPassword.vue'
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
 const props = defineProps({
@@ -69,13 +70,12 @@ function handleNext() {
 
         <div class="mb-3">
           <label for="password">Contraseña</label>
-          <input
+          <InputPassword
               id="password"
               :class="[props.errors.password ? 'inputs-wrong' : 'inputs', 'block border text-black']"
-              type="password"
               name="password"
               v-model="model.password"
-          >
+          />
           <p v-if="props.errors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
             {{ props.errors.password[0] }}
           </p>
@@ -84,13 +84,12 @@ function handleNext() {
 
         <div class="mb-3">
           <label for="confirm_password">Confirmar contraseña</label>
-          <input
+          <InputPassword
               id="confirm_password"
-              class=" text-black"
-              :class="props.errors.confirm_password ? 'inputs-wrong' : 'inputs block border text-black'"
-              type="password"
+              :class="[props.errors.confirm_password ? 'inputs-wrong' : 'inputs', 'block border text-black']"
               name="confirm_password"
-              v-model="model.confirm_password">
+              v-model="model.confirm_password"
+          />
           <p v-if="props.errors.confirm_password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
             {{ props.errors.confirm_password[0] }}
           </p>
