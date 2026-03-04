@@ -48,7 +48,7 @@ function clearError(field) {
   <div>
     <RouterLink to="/login" class="p-3 mt-4"><i class="fa-solid fa-arrow-left"></i> volver</RouterLink>
     <div class="flex flex-col justify-around min-h-screen">
-      <div class="flex flex-col justify-between flex-grow">
+      <div class="flex flex-col justify-between grow">
         <!-- TODO: Fix this logo -->
         <img src="../assets/img/logo.png" alt="">
         <div class="flex flex-col justify-center mb-5 px-3 h-50">

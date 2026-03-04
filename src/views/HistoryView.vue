@@ -173,7 +173,7 @@ function time() {
     <Top/>
     <!-- <Back/> -->
     
-  <div class=" bg-[#ffffff]  shadow-md m-3 rounded-[11px] py-5 mt-10">
+  <div class=" bg-[#ffffff]  shadow-md m-3 rounded-[11px] py-5 mt-10 p-3">
       <h1 class="text-2xl text-center">Historial de escaneos</h1>
       <template v-if="userLoad">
         <div v-if="user.subscription.plan_id === 1">
