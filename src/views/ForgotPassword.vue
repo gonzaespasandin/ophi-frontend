@@ -88,7 +88,7 @@ function clearError(field) {
         </div>
 
         <button type="submit" :disabled="loading" class="action-btn mt-6">
-          {{ loading ? 'Enviando correo (puede tomar un tiempo)...' : 'Enviar correo de recuperación' }}
+          {{ loading ? 'Enviando correo...' : 'Enviar correo de recuperación' }}
         </button>
       </form >
     </div>
