@@ -49,8 +49,7 @@ function clearError(field) {
     <RouterLink to="/login" class="p-3 mt-4"><i class="fa-solid fa-arrow-left"></i> volver</RouterLink>
     <div class="flex flex-col justify-around min-h-screen">
       <div class="flex flex-col justify-between grow">
-        <!-- TODO: Fix this logo -->
-        <img src="../assets/img/logo.png" alt="">
+        <img src="../assets/img/logo.png" alt="Logo de ophi">
         <div class="flex flex-col justify-center mb-5 px-3 h-50">
           <h1 class="text-4xl mb-3 text-center">Olvidé mi contraseña</h1>
           <p>Introducí tu correo electrónico y te vamos a enviar un email para reiniciar tu contraseña.</p>
@@ -70,12 +69,12 @@ function clearError(field) {
         </div>
 
         <div class="mb-4">
-          <label for="email" aria-label="Email"></label>
           <input
               class="block border"
               type="text"
               id="email"
               name="email"
+              aria-label="Email"
               v-model="formData.email"
               @input="clearError('email')"
               placeholder="Correo electrónico"

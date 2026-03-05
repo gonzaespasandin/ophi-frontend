@@ -72,7 +72,7 @@ import SafeProducts from "../components/ui/SafeProducts.vue";
   <AuthLayout class="square-with-gradient">
     <h1 class="text-4xl sr-only">Inicio</h1>
     <div class="flex justify-between align-center mt-10 p-3 gap-4 mx-3" :class="userNameLength > 15 ? 'flex-col items-center' : 'flex-row'">
-        <img src="../assets/img/logo-positivo.png"></img>
+        <img src="../assets/img/logo-positivo.png" alt="Logo de ophi">
         <RouterLink to="/profile" class="info-auth flex align-center justify-center mt-4 text-white">
           <i class="fa-solid fa-circle-user text-2xl pe-2"></i>
           <div>

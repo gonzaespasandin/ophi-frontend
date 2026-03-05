@@ -4,7 +4,7 @@
       <RouterLink to="/welcome">
         <img
             src="../assets/img/logo-positivo.png"
-            alt="ophi"
+            alt="Logo de ophi"
             class="h-17 md:h-16 object-contain"
         />
       </RouterLink>

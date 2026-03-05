@@ -182,7 +182,7 @@ function time() {
         </div>
         <p v-else class="text-center">{{ amountOfScans }} escaneos guardados</p>
       </template>
-      <div v-if="userLoad && (fullHistory.length > 0 && user.subscription.plan_id !== 1)" class="flex justify-around items-center max-w-90 bg-[#f5f5f5] m-auto h-12 mt-5 rounded-[11px]" id="search" @click="handleSubmit">
+      <div v-if="userLoad && (fullHistory.length > 0 && user.subscription.plan_id !== 1)" class="flex justify-around items-center max-w-90 bg-[#f5f5f5] m-auto h-12 mt-5 rounded-[11px]" @click="handleSubmit">
           <input type="text" id="search" name="search"  placeholder="Buscar productos..." v-model="inputValue" class=" border-0 outline-0" @input="time()">
           <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
       </div>

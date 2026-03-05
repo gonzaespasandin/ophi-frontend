@@ -70,7 +70,7 @@ async function handleSubmit() {
 <template>
   <div class="grid grid-rows-[auto_1fr]">
     <div class="flex flex-col justify-between">
-      <img src="../assets/img/logo.png" alt="">
+      <img src="../assets/img/logo.png" alt="logo de ophi">
       <div class="flex flex-col justify-center mb-5 px-3 h-50">
         <h1 class="text-4xl mb-3 text-center">Iniciar sesión</h1>
         <p>Por favor, completá los siguientes campos.</p>
@@ -86,11 +86,11 @@ async function handleSubmit() {
       <p class="text-white mb-4">¿No tenés cuenta? <RouterLink class="text-blue-200 underline" to="/register">Registrate</RouterLink></p>
 
       <div class="mb-4">
-        <label for="email" aria-label="Email"></label>
         <input
           class="block border"
           type="email"
           id="email"
+          aria-label="Email"
           name="email"
           v-model="formData.email"
           @input="clearError('email')"
@@ -104,10 +104,10 @@ async function handleSubmit() {
       </div>
 
       <div>
-        <label for="password" aria-label="Contraseña"></label>
         <InputPassword
           id="password"
           name="password"
+          aria-label="Contraseña"
           v-model="formData.password"
           @input="clearError('password')"
           placeholder="Contraseña"

@@ -51,7 +51,7 @@ function clearError(field) {
   <div>
     <div class="flex flex-col justify-around min-h-screen">
       <div class="flex flex-col justify-between flex-grow">
-        <img src="../assets/img/logo.png" alt="">
+        <img src="../assets/img/logo.png" alt="Logo de ophi">
         <div class="flex flex-col justify-center mb-5 px-3 h-50">
           <h1 class="text-4xl mb-3 text-center">Reiniciar contraseña</h1>
           <p>Introducí tu nueva contraseña en el campo de abajo.</p>
@@ -71,14 +71,13 @@ function clearError(field) {
         </div>
 
         <input type="hidden" name="token" :value="route.params.token">
-
         <input type="hidden" name="email" :value="route.params.email">
 
         <div class="mb-4">
-          <label for="password" aria-label="Nueva contraseña"></label>
           <InputPassword
               id="password"
               name="password"
+              aria-label="Nueva contraseña"
               v-model="formData.password"
               autofocus
               @input="clearError('password')"

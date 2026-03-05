@@ -153,10 +153,10 @@ async function handleDeleteProfile() {
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
         <button @click="handleClick('Perfil')" class="w-[50%] text-center p-3" :class="active1 ? 'togle-perfil-active' : ''">
-          <p>MI PERFIL</p>
+          MI PERFIL
         </button>
         <button @click="handleClick('Perfiles')" class="w-[50%] text-center p-3" :class="active2 ? 'togle-perfil-active' : ''">
-          <p>PERFIL FAMILIAR</p>
+          PERFIL FAMILIAR
         </button>
       </div>
       <div class="line border-b-2 border-b-[#005B8E] w-[50%]" :class="active2 ? 'translate-x-full transition-all' : 'translate-x-[0%] transition-all'" id="line"></div>
@@ -164,8 +164,8 @@ async function handleDeleteProfile() {
 
     <div class="p-3">
       <div v-if="active2">
+        <h2 class="sr-only">Perfiles registrados</h2>
         <ul>
-          <h2 class="sr-only">Perfiles registrados</h2>
           <li v-for="profile of otherProfiles" :key="profile.id" class="bg-white shadow-md  p-5 flex justify-around rounded-[11px] mb-3">
             <div class="mb-2 w-full flex justify-between items-center">
               <div class="w-[20%]">

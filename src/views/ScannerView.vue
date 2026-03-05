@@ -366,7 +366,7 @@ onBeforeUnmount(async () => {
   <AuthLayout>
     <div class="relative h-900vh" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
       <div class="square-with-gradient-scanner scanner-top">
-        <img src="../assets/img/logo-positivo.png" class="m-auto mt-20">
+        <img src="../assets/img/logo-positivo.png" alt="Logo de ophi" class="m-auto mt-20">
       </div>
       <h1 class="sr-only text-4xl">Escaner</h1>
 
