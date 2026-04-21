@@ -1,10 +1,13 @@
 import axiosInstance from "../config/axios.js";
-
+let controller;
 
 
 export async function getAllIngredients() {
+    if(controller) controller.abort();
+    
+    controller =  new AbortController();
     try {
-        const response = await axiosInstance.get('/api/ingredients')
+        const response = await axiosInstance.get('/api/ingredients', {signal: controller.signal })
         return response.data
     } catch (error) {
         console.error('[ingredients.js] -> [getAllIngredients], Error: ', error);
@@ -13,12 +16,16 @@ export async function getAllIngredients() {
 }
 
 export async function getListOfIntolerances(forceFetch = false) {
+    if(controller) controller.abort();
+
+    controller =  new AbortController();
     try {
         // if (!forceFetch && sessionStorage.getItem('ophi-intolerances')) {
         //     return JSON.parse(sessionStorage.getItem('ophi-intolerances'));
         // }
 
-        const result = await axiosInstance.get('/api/intolerances')
+        const result = await axiosInstance.get('/api/intolerances', {signal: controller.signal })
+        
 
         // sessionStorage.setItem('ophi-intolerances', JSON.stringify(result.data));
         
@@ -31,12 +38,15 @@ export async function getListOfIntolerances(forceFetch = false) {
 }
 
 export async function getListOfAllergies(forceFetch = false) {
+    if(controller) controller.abort();
+    
+    controller =  new AbortController();
     try {
         // if (!forceFetch && sessionStorage.getItem('ophi-allergies')) {
         //     return JSON.parse(sessionStorage.getItem('ophi-allergies'));
         // }
 
-        const result = await axiosInstance.get('/api/allergies')
+        const result = await axiosInstance.get('/api/allergies', {signal: controller.signal })
 
         // sessionStorage.setItem('ophi-allergies', JSON.stringify(result.data));
 
@@ -49,12 +59,15 @@ export async function getListOfAllergies(forceFetch = false) {
 }
 
 export async function getListOfSpecialDiets(forceFetch = false) {
+    if(controller) controller.abort();
+    
+    controller =  new AbortController();
     try {
         // if (!forceFetch && sessionStorage.getItem('ophi-special-diets')) {
         //     return JSON.parse(sessionStorage.getItem('ophi-special-diets'));
         // }
 
-        const result  = await axiosInstance.get('/api/special-diets')
+        const result  = await axiosInstance.get('/api/special-diets', {signal: controller.signal })
 
         // sessionStorage.setItem('ophi-special-diets', JSON.stringify(result.data));
 

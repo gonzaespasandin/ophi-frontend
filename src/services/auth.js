@@ -72,7 +72,9 @@ export async function login(credentials) {
         // Hacer login
         const response = await axiosInstance.post('/api/login', credentials)
 
+          
         const userData = response.data.user || response.data
+     
         userData.profiles = await getAuthUserProfiles()
         userData.subscription = await getSubscription()
 
@@ -90,11 +92,11 @@ export function logout() {
 
 export async function register(data) {
     try {
-        
+        console.log(data, 'REGISTER DATA');
         // Register the user
         const result = await axiosInstance.post('/api/register', data)
         const user = result.data.user || result.data
-
+        console.log(user, 'DESDE REGISTER');
         // Login
         await login({email: user.email, password: data.password})
 

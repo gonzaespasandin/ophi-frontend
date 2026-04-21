@@ -35,7 +35,7 @@ onMounted(() => {
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
   console.log(user.value, ' USERs');
 
-  myProfile.value = user.value.profiles.filter(p => p.name === user.value.name);
+  myProfile.value = user.value.profiles.filter(p => p.is_main);
   otherProfiles.value = [...user.value.profiles];
   let myProfileIndex = user.value.profiles.findIndex(p => p.name === user.value.name);
   if(myProfileIndex !== -1) {

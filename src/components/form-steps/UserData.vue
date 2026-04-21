@@ -13,9 +13,8 @@ const props = defineProps({
 function getUserNameFromEmail(e) {
   const email = e.currentTarget.value
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-
+  
   if (!emailRegex.test(email)) return
-
   let name = email.split('@')[0]
 
   // Separating dots "."
