@@ -1,22 +1,19 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import AuthLayout from "../layouts/AuthLayout.vue";
-import api from "../config/axios";
+import AuthLayout from '../layouts/AuthLayout.vue';
 import { suscribeToAuthObserver } from '../services/auth';
 import { useProductSafety } from '../composables/useProductSafety.js';
+import { useScanner } from '../composables/useScanner.js';
+import { useSwipeGesture } from '../composables/useSwipeGesture.js';
+import { processBarcode } from '../services/scanner.js';
+import { saveToHistory } from '../services/history.js';
+import { getMatchesByName, search } from '../services/product';
 import Alert from '../components/ui/Alert.vue';
 import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
 import AppLoading from '../components/loadings/AppLoading.vue';
-import { getMatchesByName, search } from '../services/product';
-import Top from '../components/ui/Top.vue';
 
 const router = useRouter();
-
-let cvRouter = null;
-let cameraEnhancer = null;
-let cameraView = null;
-let lastScannedCode = null;
 
 let unsuscribeToAuthObserver = () => {};
 const user = ref({});
@@ -28,7 +25,9 @@ const safetyDataReady = ref(false);
 const scannedCode = ref('');
 const lastFailedCode = ref('');
 const isProcessing = ref(false);
+
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety, unrestrictedProfiles } = useProductSafety();
+const { scannerError, initializeDynamsoft, initializeScanner, cleanupScanner, resetLastScanned } = useScanner();
 
 const showNameFallback = ref(false);
 const nameSearch = ref('');
@@ -36,233 +35,71 @@ const nameError = ref('');
 const nameMatches = ref([]);
 const productsForSearchListView = ref([]);
 
-// Cuando NO tenemos perfiles con restricciones, normalizedIngredients === [], entonces, creamos esta variable como backup por si el profile NO tiene ingredients. 
-const productIngredients = ref([]);
+const productIngredients = computed(() =>
+  product.value?.ingredients?.map(i => i.name) ?? []
+);
 
-// Inicializar licencia y cargar WASM (solo una vez)
-const initializeDynamsoft = () => {
-  Dynamsoft.License.LicenseManager.initLicense(import.meta.env.VITE_SCANNER_LICENSE);
-  /* Si llegasemos a usar el sdk de Dynamsoft tendriamos que poner la ruta de los archivos wasm, worker, etc
-  Dynamsoft.Core.CoreModule.engineResourcePaths.rootDirectory = "https://cdn.jsdelivr.net/npm/";
-  */
-  // Cargar el wasm por adelantado para reducir el tiempo de carga
-  Dynamsoft.Core.CoreModule.loadWasm();
-};
+const onBarcodeDetected = async (codigo) => {
+  scannedCode.value = codigo;
+  isProcessing.value = true;
+  showError.value = false;
+  showProduct.value = false;
 
-
-// Configurar el receptor de resultados de códigos de barras
-const setupResultReceiver = () => {
-  cvRouter.addResultReceiver({
-    onDecodedBarcodesReceived: async (result) => {
-      if (result.barcodeResultItems?.length) {
-        for (let item of result.barcodeResultItems) {
-          const codigo = item.text.trim();
-          
-          if (codigo === lastScannedCode) {
-            return;
-          }
-          
-          lastScannedCode = codigo;
-          scannedCode.value = codigo;
-          isProcessing.value = true;
-          showError.value = false;
-          showProduct.value = false;
-          Dynamsoft.DCE.Feedback.beep();
-
-          try {
-            const { data } = await api.post('/api/scanner/process', { codigo });
-            
-            resetSafety();
-            safetyDataReady.value = false;
-            product.value = data;
-            
-            data.ingredients.forEach(pI => {
-              console.log(pI.name)
-              if(!productIngredients.value.includes(pI.name)) {
-                productIngredients.value.push(pI.name);
-              }
-            });
-            console.log('Usuario:', user.value);
-            console.log('Perfiles:', user.value.profiles);
-            console.log('Ingredientes del producto:', data.ingredients);
-            
-            if (user.value.profiles && user.value.profiles.length > 0 && data.ingredients) {
-              checkAll(user.value.profiles, data.ingredients);
-              console.log('Safe después de checkAll:', safe.value);
-              console.log('normalizedIngredients:', normalizedIngredients.value);
-              console.log('unsafeIngredients:', unsafeIngredients.value);
-              safetyDataReady.value = true;
-
-              await saveToHistory(data, safe.value);
-              console.log('Escaneo guardado en el historial correctamente');
-            }
-            
-            showError.value = false;
-            showProduct.value = true;
-            showNameFallback.value = false;
-          } catch (err) {
-            const status = err?.response?.status;
-            showProduct.value = false;
-            showError.value = true;
-
-            // resetear el formulario de nombre cada vez que hay error
-            nameSearch.value = '';
-            nameError.value = '';
-            nameMatches.value = [];
-            
-            if (status === 404) {
-              lastFailedCode.value = codigo;
-              showNameFallback.value = true;
-              errorMessage.value = '';
-              localStorage.setItem('pending_scan_barcode', codigo);
-            } else {
-                showNameFallback.value = false;
-                errorMessage.value = `Error al consultar: ${err?.message || 'Error desconocido'}`;
-            }if (status === 401) {
-              errorMessage.value ='Tu sesión expiró o no estás autenticado. Volvé a iniciar sesión para poder escanear.';
-            } else {
-                const backendMsg = err?.response?.data?.message;
-                errorMessage.value = `Error al consultar: ${backendMsg || err?.message || 'Error desconocido'}`;
-            }
-          } finally {
-            isProcessing.value = false;
-          }
-        }
-      }
-    }
-  });
-};
-
-// Inicializar el escáner
-const initializeScanner = async () => {
   try {
-    // Crear instancias
-    cvRouter = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
-    
-    Dynamsoft.DCE.CameraView.defaultUIElementURL = '/templates/dce.ui.html';
-    cameraView = await Dynamsoft.DCE.CameraView.createInstance();
+    const data = await processBarcode(codigo);
 
-    // Configuracion del marco exterior de la region de escaneo y si la camara usa cover o contain
-    cameraView.setScanRegionMaskStyle({
-      lineWidth: 7,
-      strokeStyle: "#005B8E",
-    });
-    cameraView.setVideoFit("cover");
-  
-    cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
+    resetSafety();
+    safetyDataReady.value = false;
+    product.value = data;
 
-    cameraEnhancer.setResolution({width:1080, height:1920});
-
-    // Configuracion de la region de escaneo
-    cameraEnhancer.setScanRegion({
-      x: 5,
-      y: 35,
-      width: 90,
-      height: 30,
-      isMeasuredInPercentage: true,
-    });
-
-    // Configuracion del marco interior de la region de escaneo
-    // strokeStyle: color del borde, fillStyle: color del fondo
-    Dynamsoft.DCE.DrawingStyleManager.updateDrawingStyle(3, {
-    fontFamily: "sans-serif",
-    fillStyle: "rgb(0, 145, 97, 0.5)",
-    fontSize: 25,
-    lineWidth: 5,
-    paintMode: "strokeAndFill",
-    strokeStyle: "rgb(0, 145, 97)",
-    });
-
-    // Agregar vista de cámara al DOM
-    const cameraContainer = document.querySelector("#camera-view-container");
-    if (cameraContainer) {
-      cameraContainer.append(cameraView.getUIElement());
+    if (user.value.profiles?.length > 0 && data.ingredients) {
+      checkAll(user.value.profiles, data.ingredients);
+      safetyDataReady.value = true;
+      await saveToHistory(data, safe.value, user.value.profiles);
     }
-    // Configurar router
-    cvRouter.setInput(cameraEnhancer);
 
-    // Configurar receptor de resultados
-    setupResultReceiver();
-
-    // Configurar filtros
-    const filter = new Dynamsoft.Utility.MultiFrameResultCrossFilter();
-    filter.enableResultCrossVerification("barcode", true);
-    filter.enableResultDeduplication("barcode", true);
-    await cvRouter.addResultFilter(filter);
-
-    // Abrir cámara
-    await cameraEnhancer.open();
-
-    // Configurar settings para lectura de códigos
-    /*
-     * ReadSingleBarcode para leer rapidamente un solo codigo de barras
-     * ReadDistinctBarcodes para leer codigos de barras desde lejos
-    */
-    const settings = await cvRouter.getSimplifiedSettings("ReadSingleBarcode");
-    settings.barcodeSettings.barcodeFormatIds = 
-      Dynamsoft.DBR.EnumBarcodeFormat.BF_EAN_13 | 
-      Dynamsoft.DBR.EnumBarcodeFormat.BF_EAN_8;
-    await cvRouter.updateSettings("ReadSingleBarcode", settings);
-    
-    // Iniciar captura
-    await cvRouter.startCapturing("ReadSingleBarcode");
-  } catch (error) {
-    console.error('Error al inicializar el escáner:', error);
+    showError.value = false;
+    showProduct.value = true;
+    showNameFallback.value = false;
+  } catch (err) {
+    const status = err?.response?.status;
+    showProduct.value = false;
     showError.value = true;
-    errorMessage.value = `Error al inicializar el escáner: ${error?.message || error}`;
+    nameSearch.value = '';
+    nameError.value = '';
+    nameMatches.value = [];
+
+    if (status === 404) {
+      lastFailedCode.value = codigo;
+      showNameFallback.value = true;
+      errorMessage.value = '';
+      localStorage.setItem('pending_scan_barcode', codigo);
+    } else if (status === 401) {
+      showNameFallback.value = false;
+      errorMessage.value = 'Tu sesión expiró o no estás autenticado. Volvé a iniciar sesión para poder escanear.';
+    } else {
+      showNameFallback.value = false;
+      const backendMsg = err?.response?.data?.message;
+      errorMessage.value = `Error al consultar: ${backendMsg || err?.message || 'Error desconocido'}`;
+    }
+  } finally {
+    isProcessing.value = false;
   }
 };
 
-// Limpiar recursos al salir de la vista
-const cleanupScanner = async () => {
-  try {
-    // Detener la captura
-    if (cvRouter) {
-      await cvRouter.stopCapturing();
-    }
-
-    // Cerrar la cámara
-    if (cameraEnhancer) {
-      await cameraEnhancer.close();
-      cameraEnhancer.dispose();
-    }
-
-    // Limpiar vista de cámara
-    if (cameraView) {
-      cameraView.dispose();
-    }
-
-    // Limpiar router
-    if (cvRouter) {
-      cvRouter.dispose();
-    }
-
-    // Resetear referencias
-    cvRouter = null;
-    cameraEnhancer = null;
-    cameraView = null;
-    
-    // Resetear control de código anterior
-    lastScannedCode = null;
-  } catch (error) {
-    console.error('Error al limpiar el escáner:', error);
-  }
-};
-
-// Autocompletado de nombre
 const handleNameInput = async () => {
+  const term = nameSearch.value.trim();
+  if (!term) {
+    nameMatches.value = [];
+    return;
+  }
   try {
-    const term = nameSearch.value.trim();
-    if (!term) {
-      nameMatches.value = [];
-      return;
-    }
     nameMatches.value = await getMatchesByName(term);
   } catch (error) {
     console.error('Error al buscar coincidencias por nombre desde el scanner', error);
   }
 };
-// Confirmar nombre
+
 const confirmNameSearch = async () => {
   const normalizedName = nameSearch.value.trim().toLowerCase();
   if (!normalizedName) {
@@ -270,7 +107,6 @@ const confirmNameSearch = async () => {
     return;
   }
   nameError.value = '';
-  
   try {
     const result = await search(normalizedName);
     if (result) {
@@ -283,83 +119,37 @@ const confirmNameSearch = async () => {
     console.error('Error al buscar productos por nombre desde el scanner', error);
   }
 };
-//Resaltar coincidencia copiado de SearchView
+
 function boldProductName(productName) {
-  if (!nameSearch.value) {
-    return productName;
-  }
-  const regex = new RegExp(nameSearch.value, "i");
+  if (!nameSearch.value) return productName;
+  const regex = new RegExp(nameSearch.value, 'i');
   return productName.replace(regex, match => `<span class="font-semibold">${match}</span>`);
 }
 
-// Guardar en el historial
-const saveToHistory = async (productData, safetyResults) => {
-  try {
-    const results = safetyResults.map(result => ({
-      profile_id: user.value.profiles.find(p => p.name === result.forWho)?.id,
-      is_safe: result.isSafe,
-      unsafe_ingredients: result.unsafeIngredients || []
-    }));
-
-    const validResults = results.filter(r => r.profile_id);
-
-    await api.post('/api/history', {
-      product_id: productData.id,
-      results: validResults,
-    });
-
-    console.log('Escaneo guardado en el historial correctamente');
-  } catch (error) {
-    console.error('Error al guardar en el historial', error);
-  }
-};
-
-
-const touchStart = ref(0);
-const currentPosition = ref();
-const translateY = ref(0);
-
-const getTouch = (e) => {
-  if (!(showProduct.value || showError.value)) return;
-  touchStart.value = e.touches[0].clientY;
-}
-
-const moveTouch = (e) => {
-  if (!(showProduct.value || showError.value)) return;
-  currentPosition.value =  e.touches[0].clientY;
-  const move = currentPosition.value - touchStart.value;
-  
-  if(move > 0) {
-    translateY.value = move;
-  }
-}
-
-
-const endTouch = (e) => {
-  if (!(showProduct.value || showError.value)) return;
-
-  if (translateY.value > 120) {
+const { translateY, getTouch, moveTouch, endTouch } = useSwipeGesture(
+  () => showProduct.value || showError.value,
+  () => {
     showProduct.value = false;
     showError.value = false;
-    lastScannedCode = null;
+    resetLastScanned();
   }
+);
 
-  translateY.value = 0
-}
-
-
-// Lifecycle hooks
 onMounted(async () => {
-  unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
+  unsuscribeToAuthObserver = suscribeToAuthObserver((state) => (user.value = state));
   initializeDynamsoft();
-  await initializeScanner();
+  const container = document.querySelector('#camera-view-container');
+  await initializeScanner(container, onBarcodeDetected);
+  if (scannerError.value) {
+    showError.value = true;
+    errorMessage.value = scannerError.value;
+  }
 });
 
 onBeforeUnmount(async () => {
   await cleanupScanner();
   unsuscribeToAuthObserver();
 });
-
 </script>
 
 <template>
@@ -374,15 +164,14 @@ onBeforeUnmount(async () => {
       <div class="w-full h-full" id="camera-view-container"></div>
 
       <!-- Parte inferior: resultados / fallback -->
-      <div id="results" class="h-full absolute bottom-0 w-full  flex items-end justify-center transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError || isProcessing) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
+      <div id="results" class="h-full absolute bottom-0 w-full flex items-end justify-center transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError || isProcessing) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
         <div v-if="isProcessing" class="bg-[#f5f5f5] w-full rounded-t-[11px] flex justify-center items-center py-10">
           <AppLoading />
         </div>
-        <div v-if="showProduct && product" class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out" :style="{ transform: `translateY(${translateY}px)`}">
+        <div v-if="showProduct && product" class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out" :style="{ transform: `translateY(${translateY}px)` }">
           <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
           <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
             <h2 class="text-center text-2xl">{{ product.name }}</h2>
-            <!-- <p class="text-center text-m text-gray-700">{{ product.brand.name }}</p> -->
             <span class="block text-center mt-3 mb-3">Resultados</span>
             <template v-if="safetyDataReady">
               <Alert
@@ -397,10 +186,10 @@ onBeforeUnmount(async () => {
             </template>
           </div>
 
-          <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3     rounded-[11px]">
+          <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3 rounded-[11px]">
             <h3 class="sr-only">Ingredientes</h3>
             <p v-if="normalizedIngredients.length === 0" class="text-2xl font-roboto-slab">Ingredientes</p>
-            <p v-else-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl font-roboto-slab">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients.join(', ') }}</p>
+            <p v-else-if="safe.length === 1" :class="safe[0].isSafe ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl font-roboto-slab">{{ safe[0].isSafe ? 'Ingredientes' : unsafeIngredients.join(', ') }}</p>
             <p v-else class="text-[#C43B52] text-2xl font-roboto-slab">{{ unsafeIngredients.join(', ') }}</p>
             <p>{{ (normalizedIngredients.length === 0) ? productIngredients.join(', ') : normalizedIngredients.join(', ') }}</p>
           </div>
@@ -409,10 +198,11 @@ onBeforeUnmount(async () => {
         <!-- Bloque de error / fallback -->
         <div
           v-else-if="showError"
-          class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out min-h-[35vh]" :style="{ transform: `translateY(${translateY}px)`}"
+          class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out min-h-[35vh]"
+          :style="{ transform: `translateY(${translateY}px)` }"
         >
           <!-- Caso: no se encontró el código (404) → panel con input de nombre -->
-          <template v-if="showNameFallback" >
+          <template v-if="showNameFallback">
             <div class="mb-5">
               <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
               <h2 class="text-center text-xl font-semibold mb-2">Producto no encontrado</h2>
@@ -425,10 +215,7 @@ onBeforeUnmount(async () => {
             </div>
 
             <div class="bg-white rounded-b-2xl shadow-md w-full max-w-md p-4">
-              <label
-                for="fallbackName"
-                class="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label for="fallbackName" class="block text-sm font-medium text-gray-700 mb-2">
                 Nombre del producto
               </label>
               <input
@@ -443,23 +230,19 @@ onBeforeUnmount(async () => {
                 {{ nameError }}
               </p>
 
-              <!-- Sugerencias, igual que en SearchView -->
-              <ul
-                v-if="nameMatches.length > 0"
-                class="mt-4 w-full max-w-md"
-              >
+              <ul v-if="nameMatches.length > 0" class="mt-4 w-full max-w-md">
                 <li
-                  v-for="product in nameMatches"
-                  :key="product.id ?? undefined"
+                  v-for="match in nameMatches"
+                  :key="match.id ?? undefined"
                   class="bg-[#f5f5f5] px-3 py-2 mb-2 rounded"
                 >
                   <RouterLink
-                    :to="`/product/${product.name}/${product.brand.name}`"
+                    :to="`/product/${match.name}/${match.brand.name}`"
                     class="flex justify-between items-center"
                   >
                     <div class="flex flex-col text-left">
-                      <span v-html="boldProductName(product.name)"></span>
-                      <span class="font-medium text-sm">{{ product.brand.name }}</span>
+                      <span v-html="boldProductName(match.name)"></span>
+                      <span class="font-medium text-sm">{{ match.brand.name }}</span>
                     </div>
                   </RouterLink>
                 </li>
@@ -493,7 +276,7 @@ canvas {
   border: 3px solid #005B8E;
 }
 
-.scanner-top  {
+.scanner-top {
   position: absolute;
   z-index: 3;
   width: 100%;
@@ -503,5 +286,4 @@ canvas {
 #results {
   z-index: 10;
 }
-
 </style>
