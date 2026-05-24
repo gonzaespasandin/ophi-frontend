@@ -18,6 +18,7 @@ import ForgotPassword from "./views/ForgotPassword.vue";
 import ResetPassword from "./views/ResetPassword.vue";
 import SubscriptionView from './views/SubscriptionView.vue';
 import Instalar from './views/Instalar.vue';
+import AdminScannerView from './views/AdminScannerView.vue';
 
 // TODO: Implement named routes
 const routes = [
@@ -107,6 +108,11 @@ const routes = [
         component: Instalar,
     },
     {
+        path: '/admin/scanner',
+        component: AdminScannerView,
+        meta: { auth: true, admin: true },
+    },
+    {
         path: '/:pathMatch(.*)*',
         name: 'NotFound',
         component: NotFoundView,
@@ -124,8 +130,11 @@ let user = {}
 suscribeToAuthObserver((state) => user = state)
 
 router.beforeEach((to) => {
-    if(to.meta.auth && user.id === null) {
+    if (to.meta.auth && user.id === null) {
         return '/welcome'
+    }
+    if (to.meta.admin && user.role !== 'admin') {
+        return '/'
     }
 })
 

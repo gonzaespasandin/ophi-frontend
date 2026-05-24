@@ -1,5 +1,10 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import { suscribeToAuthObserver } from '../services/auth.js';
+
+const user = ref({});
+suscribeToAuthObserver((state) => (user.value = state));
 </script>
 
 <template>
@@ -28,7 +33,13 @@ import { RouterLink } from 'vue-router'
           Perfil
         </RouterLink>
       </li>
-      <li>
+      <li v-if="user.role === 'admin'">
+        <RouterLink to="/admin/scanner" class="flex flex-col items-center gap-2" active-class="router-link-active router-link-exact-active">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          Admin
+        </RouterLink>
+      </li>
+      <li v-else>
         <RouterLink to="/history" class="flex flex-col items-center gap-2" active-class="router-link-active router-link-exact-active">
           <i class="fa-solid fa-clock-rotate-left"></i>
           Historial

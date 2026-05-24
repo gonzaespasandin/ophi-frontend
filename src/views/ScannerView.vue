@@ -52,7 +52,13 @@ const onBarcodeDetected = async (codigo) => {
     safetyDataReady.value = false;
     product.value = data;
 
-    if (user.value.profiles?.length > 0 && data.ingredients) {
+    // Solo corremos safety check + history si el producto está en la DB de Ophi
+    // (tiene id) y tiene ingredientes cargados. Los productos que vienen sólo
+    // del catálogo externo (data.from_catalog) todavía no tienen ingredientes.
+    const isOphiProduct = !data.from_catalog && data.id;
+    const hasIngredients = data.ingredients?.length > 0;
+
+    if (isOphiProduct && hasIngredients && user.value.profiles?.length > 0) {
       checkAll(user.value.profiles, data.ingredients);
       safetyDataReady.value = true;
       await saveToHistory(data, safe.value, user.value.profiles);
@@ -172,7 +178,8 @@ onBeforeUnmount(async () => {
           <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
           <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
             <h2 class="text-center text-2xl">{{ product.name }}</h2>
-            <span class="block text-center mt-3 mb-3">Resultados</span>
+            <p v-if="product.brand?.name" class="text-center text-sm text-gray-500">{{ product.brand.name }}</p>
+            <span v-if="!product.from_catalog" class="block text-center mt-3 mb-3">Resultados</span>
             <template v-if="safetyDataReady">
               <Alert
                 v-if="user.profiles && user.profiles.length === 1"
@@ -184,6 +191,9 @@ onBeforeUnmount(async () => {
                 :unrestrictedProfiles="unrestrictedProfiles"
               />
             </template>
+            <p v-else-if="product.from_catalog" class="text-center text-sm text-gray-600 mt-4 px-2">
+              Encontramos el producto en el catálogo, pero todavía no tenemos sus ingredientes cargados.
+            </p>
           </div>
 
           <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3 rounded-[11px]">
