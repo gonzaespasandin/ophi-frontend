@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import AuthLayout from '../layouts/AuthLayout.vue';
 import AppLoading from '../components/loadings/AppLoading.vue';
+import ImageCropperModal from '../components/ui/ImageCropperModal.vue';
 import { useScanner } from '../composables/useScanner.js';
 import {
   lookupCatalogByEan,
@@ -22,6 +23,10 @@ const currentEan = ref('');
 // Foto seleccionada en el step 'product'
 const imageFile = ref(null);
 const imagePreviewUrl = ref('');
+
+// Cropper
+const pendingImageUrl = ref('');
+const showCropper = ref(false);
 
 // Ingredientes en el step 'review' (array para edición individual)
 const ingredientsList = ref([]);
@@ -58,6 +63,8 @@ function resetToScanner() {
   errorMsg.value = '';
   similarProducts.value = [];
   selectedSimilarEans.value = [];
+  pendingImageUrl.value = '';
+  showCropper.value = false;
   resetLastScanned();
 }
 
@@ -114,9 +121,24 @@ const onBarcodeDetected = async (ean) => {
 function onFileChange(event) {
   const file = event.target.files[0];
   if (!file) return;
-  imageFile.value = file;
-  imagePreviewUrl.value = URL.createObjectURL(file);
+  pendingImageUrl.value = URL.createObjectURL(file);
+  showCropper.value = true;
+  event.target.value = '';
   errorMsg.value = '';
+}
+
+function onCropConfirm(croppedFile) {
+  imageFile.value = croppedFile;
+  imagePreviewUrl.value = URL.createObjectURL(croppedFile);
+  URL.revokeObjectURL(pendingImageUrl.value);
+  pendingImageUrl.value = '';
+  showCropper.value = false;
+}
+
+function onCropCancel() {
+  URL.revokeObjectURL(pendingImageUrl.value);
+  pendingImageUrl.value = '';
+  showCropper.value = false;
 }
 
 const extractIngredients = async () => {
@@ -419,6 +441,14 @@ onBeforeUnmount(async () => {
       </template>
 
     </div>
+
+    <!-- Cropper modal — se muestra sobre cualquier step -->
+    <ImageCropperModal
+      v-if="showCropper"
+      :image-src="pendingImageUrl"
+      @confirm="onCropConfirm"
+      @cancel="onCropCancel"
+    />
   </AuthLayout>
 </template>
 
