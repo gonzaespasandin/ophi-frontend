@@ -21,7 +21,7 @@ onMounted(() => {
     autoCropArea: 0.9,
     movable: true,
     zoomable: true,
-    rotatable: false,
+    rotatable: true,
     scalable: false,
   });
 });
@@ -40,6 +40,10 @@ function confirm() {
     'image/jpeg',
     0.92,
   );
+}
+
+function rotate(deg) {
+  cropper?.rotate(deg);
 }
 
 function cancel() {
@@ -83,6 +87,24 @@ function cancel() {
       <p class="text-xs text-gray-400 text-center px-4 pt-3 pb-1">
         Ajustá el recuadro para incluir solo el listado de ingredientes.
       </p>
+
+      <!-- Rotate -->
+      <div class="flex justify-center gap-4 px-4 pb-2">
+        <button type="button" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm" @click="rotate(-90)" aria-label="Rotar a la izquierda">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          90°
+        </button>
+        <button type="button" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm" @click="rotate(90)" aria-label="Rotar a la derecha">
+          90°
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+          </svg>
+        </button>
+      </div>
 
       <!-- Actions -->
       <div class="flex gap-3 px-4 py-4">
