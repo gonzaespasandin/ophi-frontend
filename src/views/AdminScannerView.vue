@@ -7,6 +7,7 @@ import {
   lookupCatalogByEan,
   extractIngredientsFromPhoto,
   saveCatalogIngredients,
+  findSimilarCatalogProducts,
 } from '../services/admin.js';
 
 // ─── Estado del flujo ────────────────────────────────────────────────────────
@@ -32,6 +33,11 @@ const isSaving = ref(false);
 const toast = ref('');   // mensaje transitorio
 const errorMsg = ref('');
 
+// Productos similares (mismo nombre base, distinto tamaño)
+const similarProducts = ref([]);
+const selectedSimilarEans = ref([]);
+const isLoadingSimilar = ref(false);
+
 const { scannerError, initializeDynamsoft, initializeScanner, cleanupScanner, resetLastScanned } = useScanner();
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -50,7 +56,23 @@ function resetToScanner() {
   imagePreviewUrl.value = '';
   ingredientsList.value = [];
   errorMsg.value = '';
+  similarProducts.value = [];
+  selectedSimilarEans.value = [];
   resetLastScanned();
+}
+
+async function fetchSimilarProducts() {
+  similarProducts.value = [];
+  selectedSimilarEans.value = [];
+  isLoadingSimilar.value = true;
+  try {
+    const data = await findSimilarCatalogProducts(currentEan.value);
+    similarProducts.value = data.similar ?? [];
+  } catch {
+    similarProducts.value = [];
+  } finally {
+    isLoadingSimilar.value = false;
+  }
 }
 
 // ─── Step 1: barcode detectado ────────────────────────────────────────────────
@@ -69,6 +91,7 @@ const onBarcodeDetected = async (ean) => {
       ingredientsList.value = data.ingredientes.split(',').map((s) => s.trim()).filter(Boolean);
       ingredientesText.value = ingredientsList.value.join(', ');
       step.value = 'review';
+      fetchSimilarProducts();
     } else {
       // Sin ingredientes → paso de foto
       ingredientsList.value = [];
@@ -112,6 +135,7 @@ const extractIngredients = async () => {
     ingredientsList.value = result.ingredientes;
     ingredientesText.value = result.ingredientes.join(', ');
     step.value = 'review';
+    fetchSimilarProducts();
   } catch (err) {
     errorMsg.value = `Error al extraer ingredientes: ${err?.response?.data?.message ?? err.message}`;
   } finally {
@@ -124,9 +148,9 @@ const extractIngredients = async () => {
 const ingredientesText = ref('');
 
 function enterReview() {
-  // Si ya vienen de producto existente, ingredientsList está prefillado desde onBarcodeDetected
   ingredientesText.value = ingredientsList.value.join(', ');
   step.value = 'review';
+  fetchSimilarProducts();
 }
 
 const saveIngredients = async () => {
@@ -143,7 +167,11 @@ const saveIngredients = async () => {
   errorMsg.value = '';
   try {
     await saveCatalogIngredients(currentEan.value, parsed);
-    showToast('✓ Ingredientes guardados correctamente');
+    for (const similarEan of selectedSimilarEans.value) {
+      await saveCatalogIngredients(similarEan, parsed);
+    }
+    const total = 1 + selectedSimilarEans.value.length;
+    showToast(`✓ Ingredientes guardados${total > 1 ? ` en ${total} productos` : ' correctamente'}`);
     resetToScanner();
   } catch (err) {
     errorMsg.value = `Error al guardar: ${err?.response?.data?.message ?? err.message}`;
@@ -299,11 +327,23 @@ onBeforeUnmount(async () => {
       <template v-else-if="step === 'review'">
         <div class="px-4 py-6 space-y-4">
 
+          <!-- Producto -->
           <div class="bg-white rounded-2xl shadow p-4">
             <h2 class="font-bold text-gray-800">{{ product?.name }}</h2>
             <p class="text-xs text-gray-400">EAN: {{ currentEan }}</p>
           </div>
 
+          <!-- Imagen de referencia (solo si se subió foto) -->
+          <div v-if="imagePreviewUrl" class="bg-white rounded-2xl shadow p-4">
+            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Foto de referencia</p>
+            <img
+              :src="imagePreviewUrl"
+              alt="Foto de ingredientes"
+              class="w-full rounded-xl object-contain max-h-64"
+            />
+          </div>
+
+          <!-- Ingredientes editables -->
           <div class="bg-white rounded-2xl shadow p-4 space-y-3">
             <p class="font-semibold text-gray-700">Revisá y editá los ingredientes</p>
             <p class="text-xs text-gray-400">Separados por coma. Minúsculas, sin porcentajes ni aditivos.</p>
@@ -316,33 +356,65 @@ onBeforeUnmount(async () => {
             ></textarea>
 
             <p v-if="errorMsg" class="text-xs text-red-500">{{ errorMsg }}</p>
+          </div>
 
-            <button
-              type="button"
-              :disabled="isSaving"
-              class="w-full py-3 rounded-full bg-[#005B8E] text-white font-semibold disabled:opacity-50"
-              @click="saveIngredients"
-            >
-              {{ isSaving ? 'Guardando…' : 'Guardar ingredientes' }}
-            </button>
-
-            <div class="flex gap-2">
-              <button
-                type="button"
-                class="flex-1 py-2 rounded-full border border-gray-300 text-gray-600 text-sm"
-                @click="step = 'product'"
+          <!-- Productos similares (mismo producto, distinto tamaño) -->
+          <div v-if="isLoadingSimilar" class="bg-white rounded-2xl shadow p-4">
+            <p class="text-sm text-gray-400">Buscando presentaciones similares…</p>
+          </div>
+          <div
+            v-else-if="similarProducts.length > 0"
+            class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3"
+          >
+            <p class="font-semibold text-amber-800 text-sm">¿Poner estos ingredientes también en…?</p>
+            <p class="text-xs text-amber-600">Mismo producto, distintos tamaños — los ingredientes deberían ser iguales.</p>
+            <div class="space-y-2">
+              <label
+                v-for="p in similarProducts"
+                :key="p.ean"
+                class="flex items-start gap-3 cursor-pointer"
               >
-                {{ product?.ingredientes ? 'Cargar nueva foto' : 'Reintentar OCR' }}
-              </button>
-              <button
-                type="button"
-                class="flex-1 py-2 rounded-full border border-gray-300 text-gray-600 text-sm"
-                @click="resetToScanner"
-              >
-                Escanear otro
-              </button>
+                <input
+                  type="checkbox"
+                  :value="p.ean"
+                  v-model="selectedSimilarEans"
+                  class="mt-0.5 h-4 w-4 rounded border-gray-300 accent-[#005B8E]"
+                />
+                <span class="text-sm text-gray-700 leading-snug">
+                  {{ p.name }}
+                  <span v-if="p.has_ingredients" class="text-xs text-green-600 ml-1">(ya tiene ingredientes)</span>
+                </span>
+              </label>
             </div>
           </div>
+
+          <!-- Guardar -->
+          <button
+            type="button"
+            :disabled="isSaving"
+            class="w-full py-3 rounded-full bg-[#005B8E] text-white font-semibold disabled:opacity-50"
+            @click="saveIngredients"
+          >
+            {{ isSaving ? 'Guardando…' : 'Guardar ingredientes' }}
+          </button>
+
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="flex-1 py-2 rounded-full border border-gray-300 text-gray-600 text-sm"
+              @click="step = 'product'"
+            >
+              {{ product?.ingredientes ? 'Cargar nueva foto' : 'Reintentar OCR' }}
+            </button>
+            <button
+              type="button"
+              class="flex-1 py-2 rounded-full border border-gray-300 text-gray-600 text-sm"
+              @click="resetToScanner"
+            >
+              Escanear otro
+            </button>
+          </div>
+
         </div>
       </template>
 

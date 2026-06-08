@@ -28,3 +28,10 @@ export const saveCatalogIngredients = (ean, ingredientes) =>
   axiosInstance
     .put(`/api/admin/catalog/${ean}/ingredients`, { ingredientes })
     .then((r) => r.data);
+
+/**
+ * Devuelve productos del catálogo con el mismo nombre base pero distinto tamaño.
+ * Responde { similar: [{ ean, name, has_ingredients }] }
+ */
+export const findSimilarCatalogProducts = (ean) =>
+  axiosInstance.get(`/api/admin/catalog/${ean}/similar`).then((r) => r.data);
