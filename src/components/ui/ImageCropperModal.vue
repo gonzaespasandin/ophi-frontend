@@ -54,12 +54,12 @@ function cancel() {
 <template>
   <dialog
     ref="dialog"
-    class="m-auto w-full max-w-lg rounded-2xl shadow-xl overflow-hidden bg-gray-900 p-0"
+    class="m-0 h-[100dvh] max-h-[100dvh] w-screen max-w-none overflow-hidden bg-gray-900 p-0 sm:m-auto sm:h-[min(760px,calc(100dvh-2rem))] sm:w-full sm:max-w-lg sm:rounded-2xl sm:shadow-xl"
     @close="cancel"
   >
-    <div class="flex flex-col h-full">
+    <div class="flex h-full min-h-0 flex-col">
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 py-3 bg-gray-900">
+      <div class="flex shrink-0 items-center justify-between px-4 py-3 bg-gray-900">
         <p class="text-white font-semibold text-sm">Recortá la foto</p>
         <button
           type="button"
@@ -74,22 +74,22 @@ function cancel() {
       </div>
 
       <!-- Cropper area -->
-      <div class="bg-black" style="max-height: 65vh; overflow: hidden;">
+      <div class="cropper-frame min-h-0 flex-1 overflow-hidden bg-black">
         <img
           ref="imgRef"
           :src="imageSrc"
           alt="Imagen a recortar"
-          style="display: block; max-width: 100%;"
+          class="block h-full max-h-full w-full object-contain"
         />
       </div>
 
       <!-- Hint -->
-      <p class="text-xs text-gray-400 text-center px-4 pt-3 pb-1">
+      <p class="shrink-0 text-xs text-gray-400 text-center px-4 pt-3 pb-1">
         Ajustá el recuadro para incluir solo el listado de ingredientes.
       </p>
 
       <!-- Rotate -->
-      <div class="flex justify-center gap-4 px-4 pb-2">
+      <div class="shrink-0 flex justify-center gap-4 px-4 pb-2">
         <button type="button" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm" @click="rotate(-90)" aria-label="Rotar a la izquierda">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -107,7 +107,7 @@ function cancel() {
       </div>
 
       <!-- Actions -->
-      <div class="flex gap-3 px-4 py-4">
+      <div class="shrink-0 flex gap-3 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3">
         <button
           type="button"
           class="flex-1 py-2.5 rounded-full border border-gray-600 text-gray-300 text-sm"
@@ -130,5 +130,10 @@ function cancel() {
 <style scoped>
 dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.75);
+}
+
+.cropper-frame :deep(.cropper-container) {
+  max-height: 100%;
+  max-width: 100%;
 }
 </style>

@@ -9,75 +9,100 @@ export function useProductSafety() {
 
   function checkAll(userProfiles, productIngredients) {
     userProfiles.forEach(userProfile => {
-      if(userProfile.ingredients.length === 0) {
+      const userIngredientIds = getProfileIngredientIds(userProfile);
+
+      if(userIngredientIds.size === 0) {
         unrestrictedProfiles.value.push(userProfile.name);
       }
-      userProfile.ingredients.forEach(uIngredients => {
-        productIngredients.forEach(Pingredient => {
-          if(!normalizedIngredients.value.includes(Pingredient.name)) {
-            normalizedIngredients.value.push(Pingredient.name);
-          }      
-          if(uIngredients.ingredients && uIngredients.ingredients.length > 0) {
-            browseIfUserHasMoreThanOneIngredient(uIngredients.ingredients, Pingredient, userProfile); 
-          } else {
-            goThroughAndCheck(uIngredients, Pingredient, userProfile);
-          }
-        });
+
+      const profileUnsafeIngredients = [];
+
+      productIngredients.forEach(Pingredient => {
+        if(!normalizedIngredients.value.includes(Pingredient.name)) {
+          normalizedIngredients.value.push(Pingredient.name);
+        }
+
+        const productIngredientIds = getProductIngredientIds(Pingredient);
+        const isUnsafe = [...productIngredientIds].some(id => userIngredientIds.has(id));
+
+        if(isUnsafe && !profileUnsafeIngredients.includes(Pingredient.name)) {
+          profileUnsafeIngredients.push(Pingredient.name);
+        }
+      });
+
+      safe.value.push({
+        isSafe: profileUnsafeIngredients.length === 0,
+        forWho: userProfile.name,
+        unsafeIngredients: profileUnsafeIngredients
       });
     });
   }
 
-  function browseIfUserHasMoreThanOneIngredient(uIngredients, Pingredient, userProfile) {
-    uIngredients.forEach(uIngredient => {
-      if(uIngredient.ingredients && uIngredient.ingredients.length > 0) {
-        uIngredient.ingredients.forEach(uI1 => {
-          if(uI1.ingredients && uI1.ingredients.length > 0) {
-            uI1.ingredients.forEach(uI2 =>{
-              goThroughAndCheck(uI2, Pingredient, userProfile);  
-            })
-          } else {
-            if(uI1.id === Pingredient.id) {
-              goThroughAndCheck(uI1, Pingredient, userProfile);
-            }
-          }
-        });
-      } else {
-        goThroughAndCheck(uIngredient, Pingredient, userProfile);
-      }
-    })
-  }
+  function getProfileIngredientIds(profile) {
+    const ids = new Set();
 
-  function goThroughAndCheck(uIngredients, Pingredient, userProfile) {
-    if(uIngredients.id === Pingredient.id) {
-      if(!unsafeIngredients.value.includes(Pingredient.name)) {
-        unsafeIngredients.value.push(Pingredient.name);
-      }
-      pushValueToSafeArray(userProfile, false, Pingredient);
+    (profile.ingredient_ids ?? []).forEach(id => ids.add(Number(id)));
+
+    if(ids.size === 0) {
+      collectIngredientIds(profile.ingredients ?? [], ids);
     }
-    pushValueToSafeArray(userProfile, true);
+
+    return ids;
   }
 
-  function pushValueToSafeArray(userProfile, bool, Pingredient = null) {
-    const index = safe.value.findIndex(s => s.forWho === userProfile.name);
+  function getProductIngredientIds(ingredient) {
+    const ids = new Set([Number(ingredient.id)]);
 
-    if (index === -1) {
-      safe.value.push({
-        isSafe: bool,
-        forWho: userProfile.name,
-        unsafeIngredients: !bool && Pingredient ? [Pingredient.name] : []
-      });
-    } else {
-      const userSafe = safe.value[index];
+    (ingredient.parent_ids ?? []).forEach(id => ids.add(Number(id)));
 
-      if (!bool && Pingredient) {
-        if (!userSafe.unsafeIngredients.includes(Pingredient.name)) {
-          userSafe.unsafeIngredients.push(Pingredient.name);
-        }
+    if(ingredient.parents) {
+      collectIngredientIds(ingredient.parents, ids);
+    }
 
-        userSafe.isSafe = false;
+    return ids;
+  }
+
+  function collectIngredientIds(ingredients, ids) {
+    ingredients.forEach(ingredient => {
+      ids.add(Number(ingredient.id));
+
+      if(ingredient.ingredients?.length > 0) {
+        collectIngredientIds(ingredient.ingredients, ids);
       }
 
-      safe.value[index] = userSafe;
+      if(ingredient.parents?.length > 0) {
+        collectIngredientIds(ingredient.parents, ids);
+      }
+    });
+  }
+
+  function refreshUnsafeIngredients() {
+    const names = [];
+
+    safe.value.forEach(profileCheck => {
+      profileCheck.unsafeIngredients.forEach(name => {
+        if(!names.includes(name)) {
+          names.push(name);
+        }
+      });
+    });
+
+    unsafeIngredients.value = names;
+  }
+
+  function finishCheck() {
+    refreshUnsafeIngredients();
+  }
+
+  function checkAllAndFinish(userProfiles, productIngredients) {
+    checkAll(userProfiles, productIngredients);
+    finishCheck();
+  }
+
+  function normalizeInputs(userProfiles, productIngredients) {
+    return {
+      userProfiles: Array.isArray(userProfiles) ? userProfiles : [],
+      productIngredients: Array.isArray(productIngredients) ? productIngredients : []
     }
   }
 
@@ -85,14 +110,17 @@ export function useProductSafety() {
     safe.value = [];
     unsafeIngredients.value = [];
     normalizedIngredients.value = [];
-    unsafeIngredients.value = [];
+    unrestrictedProfiles.value = [];
   }
 
   return {
     safe,
     normalizedIngredients,
     unrestrictedProfiles,
-    checkAll,
+    checkAll: (userProfiles, productIngredients) => {
+      const normalized = normalizeInputs(userProfiles, productIngredients);
+      checkAllAndFinish(normalized.userProfiles, normalized.productIngredients);
+    },
     resetSafety,
     unsafeIngredients
   };

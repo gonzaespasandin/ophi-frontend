@@ -1,6 +1,11 @@
 export const pwaConfig = {
   mode: 'production',
   registerType: 'autoUpdate',
+  workbox: {
+    cleanupOutdatedCaches: true,
+    clientsClaim: true,
+    skipWaiting: true,
+  },
   manifest: {
     name: 'ophi',
     short_name: 'ophi',

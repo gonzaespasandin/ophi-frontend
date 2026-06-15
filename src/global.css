@@ -256,6 +256,57 @@ h1, h2, h3, h4, h5, h6 {
   
 }
 
+.quagga-camera {
+    position: relative;
+    overflow: hidden;
+    background: #000;
+}
+
+.quagga-camera video,
+.quagga-camera canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.quagga-camera canvas {
+    pointer-events: none;
+}
+
+.quagga-camera::before {
+    content: attr(data-scanner-status);
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    max-width: min(90%, 360px);
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 62%);
+    color: white;
+    font-size: 13px;
+    line-height: 1.2;
+    text-align: center;
+    pointer-events: none;
+}
+
+.quagga-camera::after {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    top: 20%;
+    left: 5%;
+    width: 90%;
+    height: 60%;
+    border: 3px solid #005B8E;
+    border-radius: 12px;
+    box-shadow: 0 0 0 999px rgb(0 0 0 / 16%);
+    pointer-events: none;
+}
+
 
 /* LOADING */
 

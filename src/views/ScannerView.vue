@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { useRouter } from 'vue-router';
+import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import AuthLayout from '../layouts/AuthLayout.vue';
 import { suscribeToAuthObserver } from '../services/auth';
 import { useProductSafety } from '../composables/useProductSafety.js';
@@ -27,7 +27,7 @@ const lastFailedCode = ref('');
 const isProcessing = ref(false);
 
 const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety, unrestrictedProfiles } = useProductSafety();
-const { scannerError, initializeDynamsoft, initializeScanner, cleanupScanner, resetLastScanned } = useScanner();
+const { scannerError, initializeScannerLibrary, initializeScanner, cleanupScanner, resetLastScanned } = useScanner();
 
 const showNameFallback = ref(false);
 const nameSearch = ref('');
@@ -135,15 +135,29 @@ function boldProductName(productName) {
 const { translateY, getTouch, moveTouch, endTouch } = useSwipeGesture(
   () => showProduct.value || showError.value,
   () => {
-    showProduct.value = false;
-    showError.value = false;
-    resetLastScanned();
+    dismissScanResult();
   }
 );
 
+function dismissScanResult() {
+  showProduct.value = false;
+  showError.value = false;
+  isProcessing.value = false;
+  resetLastScanned();
+}
+
+onBeforeRouteLeave(() => {
+  if (showProduct.value || showError.value || isProcessing.value) {
+    dismissScanResult();
+    return false;
+  }
+
+  return true;
+});
+
 onMounted(async () => {
   unsuscribeToAuthObserver = suscribeToAuthObserver((state) => (user.value = state));
-  initializeDynamsoft();
+  initializeScannerLibrary();
   const container = document.querySelector('#camera-view-container');
   await initializeScanner(container, onBarcodeDetected);
   if (scannerError.value) {
@@ -160,14 +174,14 @@ onBeforeUnmount(async () => {
 
 <template>
   <AuthLayout>
-    <div class="relative h-900vh" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
+    <div class="relative h-full min-h-[calc(100dvh-88px)] overflow-hidden bg-black" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
       <div class="square-with-gradient-scanner scanner-top">
         <img src="../assets/img/logo-positivo.png" alt="Logo de ophi" class="m-auto mt-20">
       </div>
       <h1 class="sr-only text-4xl">Escaner</h1>
 
       <!-- Cámara ocupa la parte superior -->
-      <div class="w-full h-full" id="camera-view-container"></div>
+      <div class="absolute inset-0 w-full h-full" id="camera-view-container"></div>
 
       <!-- Parte inferior: resultados / fallback -->
       <div id="results" class="h-full absolute bottom-0 w-full flex items-end justify-center transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError || isProcessing) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">

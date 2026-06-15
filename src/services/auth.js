@@ -19,22 +19,83 @@ const emptyUser = {
 let user = {...emptyUser}
 
 if (sessionStorage.getItem('ophi-user')) {
-    setUser(JSON.parse(sessionStorage.getItem('ophi-user')))
+    try {
+        setUser(JSON.parse(sessionStorage.getItem('ophi-user')))
+    } catch (error) {
+        sessionStorage.removeItem('ophi-user')
+    }
 }
 
 export function setUser(data) {
-    user = {
+    user = normalizeUserForSession({
         ...user,
         ...data
-    }
+    })
 
     if (user.id === null) {
         sessionStorage.removeItem('ophi-user')
     } else {
-        sessionStorage.setItem('ophi-user', JSON.stringify(user))
+        persistUser(user)
     }
 
     notifyAllSuscribers()
+}
+
+function normalizeUserForSession(data) {
+    return {
+        id: data.id ?? null,
+        name: data.name ?? null,
+        email: data.email ?? null,
+        email_verified_at: data.email_verified_at ?? null,
+        role: data.role ?? null,
+        updated_at: data.updated_at ?? null,
+        created_at: data.created_at ?? null,
+        profiles: Array.isArray(data.profiles) ? data.profiles.map(normalizeProfileForSession) : null,
+        subscription: data.subscription ?? null
+    }
+}
+
+function normalizeProfileForSession(profile) {
+    return {
+        id: profile.id,
+        name: profile.name,
+        avatar: profile.avatar ?? null,
+        user_id: profile.user_id,
+        is_main: Boolean(profile.is_main),
+        created_at: profile.created_at ?? null,
+        updated_at: profile.updated_at ?? null,
+        ingredient_ids: (profile.ingredient_ids ?? profile.ingredients?.map(ingredient => ingredient.id) ?? [])
+            .map(id => Number(id))
+            .filter(id => Number.isFinite(id)),
+        ingredients: (profile.ingredients ?? []).map(normalizeIngredientForSession)
+    }
+}
+
+function normalizeIngredientForSession(ingredient) {
+    return {
+        id: ingredient.id,
+        name: ingredient.name,
+        icon: ingredient.icon ?? null,
+        is_group: Boolean(ingredient.is_group),
+        aliases: ingredient.aliases ?? null
+    }
+}
+
+function persistUser(value) {
+    const serialized = JSON.stringify(value)
+
+    try {
+        sessionStorage.setItem('ophi-user', serialized)
+    } catch (error) {
+        clearHeavyStorageKeys()
+        sessionStorage.setItem('ophi-user', serialized)
+    }
+}
+
+function clearHeavyStorageKeys() {
+    sessionStorage.removeItem('brands')
+    localStorage.removeItem('products')
+    localStorage.removeItem('latestSearches')
 }
 
 
