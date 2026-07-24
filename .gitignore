@@ -28,3 +28,7 @@ dist-ssr
 .env
 
 skills-lock.json
+
+# docker
+/docker/
+Dockerfile

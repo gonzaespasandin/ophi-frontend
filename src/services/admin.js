@@ -7,9 +7,33 @@ import axiosInstance from '../config/axios';
 export const lookupCatalogByEan = (ean) =>
   axiosInstance.get(`/api/admin/catalog/${ean}`).then((r) => r.data);
 
+export const createCatalogProduct = (ean, product) =>
+  axiosInstance.post(`/api/admin/catalog/${ean}`, product).then((r) => r.data);
+
+export const getBrandOptions = (query = '') => {
+  const normalizedQuery = query.trim();
+  const params = normalizedQuery ? { q: normalizedQuery } : {};
+
+  return axiosInstance.get('/api/brands', { params }).then((r) => r.data);
+};
+
+export const getCategoryOptions = (query = '') => {
+  const normalizedQuery = query.trim();
+  const params = normalizedQuery ? { q: normalizedQuery } : {};
+
+  return axiosInstance.get('/api/categories', { params }).then((r) => r.data);
+};
+
+export const getOriginOptions = (query = '') => {
+  const normalizedQuery = query.trim();
+  const params = normalizedQuery ? { q: normalizedQuery } : {};
+
+  return axiosInstance.get('/api/origins', { params }).then((r) => r.data);
+};
+
 /**
  * Envía una foto del listado de ingredientes para extracción via OpenAI Vision.
- * Devuelve { ingredientes: string[] } — no guarda nada.
+ * Devuelve { ingredientes: Array<{ nombre: string, is_trace: boolean }> } — no guarda nada.
  */
 export const extractIngredientsFromPhoto = (ean, imageFile) => {
   const fd = new FormData();
@@ -22,7 +46,7 @@ export const extractIngredientsFromPhoto = (ean, imageFile) => {
 };
 
 /**
- * Guarda el array de ingredientes (ya revisado por el admin) en el catálogo.
+ * Guarda el array de ingredientes/trazas (ya revisado por el admin) en el catálogo.
  */
 export const saveCatalogIngredients = (ean, ingredientes) =>
   axiosInstance

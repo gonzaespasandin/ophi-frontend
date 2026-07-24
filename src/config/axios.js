@@ -1,9 +1,12 @@
 import axios from "axios";
 
-console.log(import.meta.env.VITE_API_URL);
+const configuredBaseURL = import.meta.env.VITE_API_URL || window.location.origin;
+const baseURL = configuredBaseURL
+    .replace(/\/+$/, '')
+    .replace(/\/api$/, '');
 
 const axiosInstance =  axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL,
     withCredentials: true,
     withXSRFToken: true,
     headers: {
