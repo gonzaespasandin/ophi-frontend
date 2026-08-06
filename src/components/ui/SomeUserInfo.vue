@@ -19,7 +19,11 @@ const props = defineProps({
 
 <template>
     <div class="flex flex-col items-center" >
-        <div class="circle-user roboto-slab" v-if="user.name">{{ props.user.name.charAt(0) }}</div>
+        <div
+            class="circle-user roboto-slab"
+            v-if="user.name"
+            :style="user.avatar_color ? { backgroundColor: user.avatar_color } : null"
+        >{{ props.user.name.charAt(0) }}</div>
         <div class="text-[#005B8E] flex flex-col items-center">
             <span class="text-lg roboto-slab">
               {{props.user.name}}
