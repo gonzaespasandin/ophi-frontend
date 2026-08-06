@@ -9,6 +9,11 @@ import Back from '../components/ui/Back.vue';
 import Feedback from "../components/ui/Feedback.vue";
 import AppLoading from "../components/loadings/AppLoading.vue";
 import Error from "../components/ui/Error.vue";
+import AvatarColorPicker from "../components/profile/AvatarColorPicker.vue";
+import EmailChangeForm from "../components/profile/EmailChangeForm.vue";
+import NewsletterToggle from "../components/profile/NewsletterToggle.vue";
+import { useAccount } from "../composables/useAccount.js";
+import { updateProfile } from "../services/profiles.js";
 
 
 let unsubscribeToAuthObserver = () => {}
@@ -30,6 +35,13 @@ const feedback = ref({
 
 const serverError = ref(false);
 
+const { account, loading: accountLoading, error: accountError, loadAccount, changeEmail, toggleNewsletter } = useAccount();
+
+const avatarColor = ref(null);
+const profileName = ref('');
+const emailError = ref(null);
+const newsletterLoading = ref(false);
+
 onMounted(() => {
   localStorage.removeItem('pending_scan_barcode');
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
@@ -40,6 +52,13 @@ onMounted(() => {
   let myProfileIndex = user.value.profiles.findIndex(p => p.name === user.value.name);
   if(myProfileIndex !== -1) {
     otherProfiles.value.splice(myProfileIndex, 1);
+  }
+
+  loadAccount();
+
+  if (myProfile.value.length > 0) {
+    avatarColor.value = myProfile.value[0].avatar_color ?? null;
+    profileName.value = myProfile.value[0].name;
   }
 
   setTimeout(() => feedback.value = sessionStorage.getItem('alert') ? JSON.parse(sessionStorage.getItem('alert')) : {message: null, type: null}, 500);
@@ -84,6 +103,61 @@ async function handleDeleteProfile() {
     serverError.value = 'Ocurrió un error al eliminar el perfil';
   } finally {
     loading.value = false;
+  }
+}
+
+async function handleSaveProfile() {
+  try {
+    await updateProfile({
+      id: myProfile.value[0].id,
+      name: profileName.value,
+      avatar_color: avatarColor.value,
+    });
+    myProfile.value[0].avatar_color = avatarColor.value;
+    myProfile.value[0].name = profileName.value;
+    feedback.value = { message: 'Perfil guardado', type: 'success' };
+  } catch (error) {
+    feedback.value = { message: 'No pudimos guardar los cambios', type: 'error' };
+  } finally {
+    setTimeout(() => feedback.value = { message: null, type: null }, 2000);
+  }
+}
+
+async function handleChangeEmail({ newEmail, currentPassword }) {
+  emailError.value = null;
+
+  try {
+    const message = await changeEmail({ newEmail, currentPassword });
+    feedback.value = { message, type: 'success' };
+    setTimeout(() => feedback.value = { message: null, type: null }, 2000);
+  } catch (error) {
+    if (error?.response?.status === 429) {
+      emailError.value = 'Probá de nuevo en unos minutos';
+      return;
+    }
+
+    const validationErrors = error?.response?.data?.errors;
+    if (validationErrors?.current_password) {
+      emailError.value = { field: 'password', message: validationErrors.current_password[0] };
+    } else if (validationErrors?.new_email) {
+      emailError.value = { field: 'email', message: validationErrors.new_email[0] };
+    } else {
+      emailError.value = accountError.value ?? 'No pudimos procesar el cambio de email';
+    }
+  }
+}
+
+async function handleToggleNewsletter(subscribed) {
+  newsletterLoading.value = true;
+
+  try {
+    const message = await toggleNewsletter(subscribed);
+    feedback.value = { message, type: 'success' };
+  } catch (error) {
+    feedback.value = { message: 'No pudimos actualizar tu preferencia de novedades', type: 'error' };
+  } finally {
+    newsletterLoading.value = false;
+    setTimeout(() => feedback.value = { message: null, type: null }, 2000);
   }
 }
 
@@ -205,8 +279,21 @@ async function handleDeleteProfile() {
           </div>
         </div>
       </div>
-      <div v-else-if="myProfile.length > 0">
-        <div class="bg-white shadow-md  p-5 flex justify-between rounded-[11px]">
+      <div v-else-if="myProfile.length > 0" class="grid gap-4">
+        <section class="bg-white shadow-md p-5 rounded-[11px] grid gap-4">
+          <h2 class="text-[#005B8E] font-semibold text-xl">Mi perfil</h2>
+
+          <label class="grid gap-1">
+            <span class="text-sm">Nombre</span>
+            <input v-model="profileName" type="text" class="border rounded-[11px] p-2" required />
+          </label>
+
+          <AvatarColorPicker v-model="avatarColor" />
+
+          <button class="action-btn" type="button" @click="handleSaveProfile">Guardar</button>
+        </section>
+
+        <div class="bg-white shadow-md p-5 flex justify-between rounded-[11px]">
           <div>
             <h2 class="text-[#005B8E] font-semibold text-xl mb-2">Restricción alimenticia</h2>
             <p>{{ myProfile[0].ingredients.slice(0, 2).map(i => i.name).join(', ') }}...</p>
@@ -215,6 +302,19 @@ async function handleDeleteProfile() {
             <i class="fa-solid fa-pen-to-square text-[#005B8E] text-2xl"></i>
           </RouterLink>
         </div>
+
+        <EmailChangeForm
+          :account="account"
+          :loading="accountLoading"
+          :error="emailError"
+          @submit="handleChangeEmail"
+        />
+
+        <NewsletterToggle
+          :subscribed="account.newsletter_subscribed"
+          :loading="newsletterLoading"
+          @change="handleToggleNewsletter"
+        />
       </div>
     </div>
     <div class="p-3">
