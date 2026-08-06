@@ -39,8 +39,17 @@ const { account, loading: accountLoading, error: accountError, loadAccount, chan
 
 const avatarColor = ref(null);
 const profileName = ref('');
+const profileNameError = ref(null);
 const emailError = ref(null);
 const newsletterLoading = ref(false);
+const emailChangeLoading = ref(false);
+const savingProfile = ref(false);
+const accountLoadFailed = ref(false);
+
+async function initAccount() {
+  await loadAccount();
+  accountLoadFailed.value = !account.value.email;
+}
 
 onMounted(() => {
   localStorage.removeItem('pending_scan_barcode');
@@ -49,12 +58,12 @@ onMounted(() => {
 
   myProfile.value = user.value.profiles.filter(p => p.is_main);
   otherProfiles.value = [...user.value.profiles];
-  let myProfileIndex = user.value.profiles.findIndex(p => p.name === user.value.name);
+  let myProfileIndex = user.value.profiles.findIndex(p => p.is_main);
   if(myProfileIndex !== -1) {
     otherProfiles.value.splice(myProfileIndex, 1);
   }
 
-  loadAccount();
+  initAccount();
 
   if (myProfile.value.length > 0) {
     avatarColor.value = myProfile.value[0].avatar_color ?? null;
@@ -107,24 +116,36 @@ async function handleDeleteProfile() {
 }
 
 async function handleSaveProfile() {
+  profileNameError.value = null;
+  const trimmedName = profileName.value.trim();
+
+  if (!trimmedName) {
+    profileNameError.value = 'El nombre es obligatorio';
+    return;
+  }
+
+  savingProfile.value = true;
   try {
     await updateProfile({
       id: myProfile.value[0].id,
-      name: profileName.value,
+      name: trimmedName,
       avatar_color: avatarColor.value,
     });
     myProfile.value[0].avatar_color = avatarColor.value;
-    myProfile.value[0].name = profileName.value;
+    myProfile.value[0].name = trimmedName;
+    profileName.value = trimmedName;
     feedback.value = { message: 'Perfil guardado', type: 'success' };
   } catch (error) {
     feedback.value = { message: 'No pudimos guardar los cambios', type: 'error' };
   } finally {
+    savingProfile.value = false;
     setTimeout(() => feedback.value = { message: null, type: null }, 2000);
   }
 }
 
 async function handleChangeEmail({ newEmail, currentPassword }) {
   emailError.value = null;
+  emailChangeLoading.value = true;
 
   try {
     const message = await changeEmail({ newEmail, currentPassword });
@@ -133,17 +154,18 @@ async function handleChangeEmail({ newEmail, currentPassword }) {
   } catch (error) {
     if (error?.response?.status === 429) {
       emailError.value = 'Probá de nuevo en unos minutos';
-      return;
-    }
-
-    const validationErrors = error?.response?.data?.errors;
-    if (validationErrors?.current_password) {
-      emailError.value = { field: 'password', message: validationErrors.current_password[0] };
-    } else if (validationErrors?.new_email) {
-      emailError.value = { field: 'email', message: validationErrors.new_email[0] };
     } else {
-      emailError.value = accountError.value ?? 'No pudimos procesar el cambio de email';
+      const validationErrors = error?.response?.data?.errors;
+      if (validationErrors?.current_password) {
+        emailError.value = { field: 'password', message: validationErrors.current_password[0] };
+      } else if (validationErrors?.new_email) {
+        emailError.value = { field: 'email', message: validationErrors.new_email[0] };
+      } else {
+        emailError.value = accountError.value ?? 'No pudimos procesar el cambio de email';
+      }
     }
+  } finally {
+    emailChangeLoading.value = false;
   }
 }
 
@@ -199,8 +221,12 @@ async function handleToggleNewsletter(subscribed) {
 
     <Top/>
     <!-- <Back/> -->
-    <div class="relative" v-if="feedback.message !== null">
-      <Feedback :message="feedback.message" :type="feedback.type"/>
+    <div
+      class="relative"
+      :role="feedback.type === 'error' ? 'alert' : 'status'"
+      :aria-live="feedback.type === 'error' ? 'assertive' : 'polite'"
+    >
+      <Feedback v-if="feedback.message !== null" :message="feedback.message" :type="feedback.type"/>
     </div>
     <div class="flex justify-between items-center px-3 p-3 bg-white">
       <div v-if="loadPlan">
@@ -222,7 +248,7 @@ async function handleToggleNewsletter(subscribed) {
       >Cerrar sesión <i class="fa-solid fa-arrow-right-from-bracket ps-2"></i></button>
     </div>
 
-    <SomeUserInfo class="mt-8" :user="user" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
+    <SomeUserInfo class="mt-8" :user="{ ...user, avatar_color: myProfile[0]?.avatar_color }" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
@@ -283,14 +309,33 @@ async function handleToggleNewsletter(subscribed) {
         <section class="bg-white shadow-md p-5 rounded-[11px] grid gap-4">
           <h2 class="text-[#005B8E] font-semibold text-xl">Mi perfil</h2>
 
-          <label class="grid gap-1">
-            <span class="text-sm">Nombre</span>
-            <input v-model="profileName" type="text" class="border rounded-[11px] p-2" required />
-          </label>
+          <form class="grid gap-4" @submit.prevent="handleSaveProfile">
+            <label class="grid gap-1">
+              <span class="text-sm">Nombre</span>
+              <input
+                v-model="profileName"
+                type="text"
+                class="border rounded-[11px] p-2"
+                required
+                :aria-invalid="profileNameError ? 'true' : undefined"
+                :aria-describedby="profileNameError ? 'profile-name-error' : undefined"
+              />
+              <span
+                v-if="profileNameError"
+                id="profile-name-error"
+                role="alert"
+                class="text-sm text-red-700"
+              >
+                {{ profileNameError }}
+              </span>
+            </label>
 
-          <AvatarColorPicker v-model="avatarColor" />
+            <AvatarColorPicker v-model="avatarColor" />
 
-          <button class="action-btn" type="button" @click="handleSaveProfile">Guardar</button>
+            <button class="action-btn" type="submit" :disabled="savingProfile" :aria-busy="savingProfile">
+              {{ savingProfile ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </form>
         </section>
 
         <div class="bg-white shadow-md p-5 flex justify-between rounded-[11px]">
@@ -303,18 +348,27 @@ async function handleToggleNewsletter(subscribed) {
           </RouterLink>
         </div>
 
-        <EmailChangeForm
-          :account="account"
-          :loading="accountLoading"
-          :error="emailError"
-          @submit="handleChangeEmail"
-        />
+        <p
+          v-if="accountLoadFailed"
+          role="alert"
+          class="bg-red-50 text-red-700 p-3 rounded-[11px]"
+        >
+          {{ accountError ?? 'No pudimos cargar los datos de tu cuenta' }}
+        </p>
+        <template v-else>
+          <EmailChangeForm
+            :account="account"
+            :loading="emailChangeLoading"
+            :error="emailError"
+            @submit="handleChangeEmail"
+          />
 
-        <NewsletterToggle
-          :subscribed="account.newsletter_subscribed"
-          :loading="newsletterLoading"
-          @change="handleToggleNewsletter"
-        />
+          <NewsletterToggle
+            :subscribed="account.newsletter_subscribed"
+            :loading="newsletterLoading"
+            @change="handleToggleNewsletter"
+          />
+        </template>
       </div>
     </div>
     <div class="p-3">
