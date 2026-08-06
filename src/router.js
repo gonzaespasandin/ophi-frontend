@@ -19,6 +19,7 @@ import ResetPassword from "./views/ResetPassword.vue";
 import SubscriptionView from './views/SubscriptionView.vue';
 import Instalar from './views/Instalar.vue';
 import AdminScannerView from './views/AdminScannerView.vue';
+import ConfirmEmailView from './views/ConfirmEmailView.vue';
 
 // TODO: Implement named routes
 const routes = [
@@ -111,6 +112,11 @@ const routes = [
         path: '/admin/scanner',
         component: AdminScannerView,
         meta: { auth: true, admin: true },
+    },
+    {
+        'path': '/confirmar-email/:token',
+        'component': ConfirmEmailView,
+        'meta': { 'auth': false }
     },
     {
         path: '/:pathMatch(.*)*',
