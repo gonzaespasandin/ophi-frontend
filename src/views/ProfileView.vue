@@ -54,7 +54,6 @@ async function initAccount() {
 onMounted(() => {
   localStorage.removeItem('pending_scan_barcode');
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
-  console.log(user.value, ' USERs');
 
   myProfile.value = user.value.profiles.filter(p => p.is_main);
   otherProfiles.value = [...user.value.profiles];
