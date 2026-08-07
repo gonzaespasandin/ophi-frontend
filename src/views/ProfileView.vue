@@ -1,6 +1,6 @@
 <script setup>
 import AuthLayout from "../layouts/AuthLayout.vue";
-import {deleteProfileFromAuthUser, logout, suscribeToAuthObserver} from "../services/auth.js";
+import {deleteProfileFromAuthUser, logout, suscribeToAuthObserver, updateProfileFromAuthUser} from "../services/auth.js";
 import {onMounted, onUnmounted, ref, useTemplateRef} from "vue";
 import {useRouter} from "vue-router";
 import SomeUserInfo from "../components/ui/SomeUserInfo.vue";
@@ -13,7 +13,6 @@ import AvatarColorPicker from "../components/profile/AvatarColorPicker.vue";
 import EmailChangeForm from "../components/profile/EmailChangeForm.vue";
 import NewsletterToggle from "../components/profile/NewsletterToggle.vue";
 import { useAccount } from "../composables/useAccount.js";
-import { updateProfile } from "../services/profiles.js";
 
 
 let unsubscribeToAuthObserver = () => {}
@@ -125,7 +124,7 @@ async function handleSaveProfile() {
 
   savingProfile.value = true;
   try {
-    await updateProfile({
+    await updateProfileFromAuthUser({
       id: myProfile.value[0].id,
       name: trimmedName,
       avatar_color: avatarColor.value,
@@ -247,7 +246,7 @@ async function handleToggleNewsletter(subscribed) {
       >Cerrar sesión <i class="fa-solid fa-arrow-right-from-bracket ps-2"></i></button>
     </div>
 
-    <SomeUserInfo class="mt-8" :user="{ ...user, avatar_color: myProfile[0]?.avatar_color }" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
+    <SomeUserInfo class="mt-8" :user="{ ...user, name: myProfile[0]?.name ?? user.name, avatar_color: myProfile[0]?.avatar_color }" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">

@@ -60,6 +60,7 @@ function normalizeProfileForSession(profile) {
         id: profile.id,
         name: profile.name,
         avatar: profile.avatar ?? null,
+        avatar_color: profile.avatar_color ?? null,
         user_id: profile.user_id,
         is_main: Boolean(profile.is_main),
         created_at: profile.created_at ?? null,
