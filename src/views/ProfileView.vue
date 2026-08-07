@@ -1,7 +1,7 @@
 <script setup>
 import AuthLayout from "../layouts/AuthLayout.vue";
 import {deleteProfileFromAuthUser, logout, suscribeToAuthObserver, updateProfileFromAuthUser} from "../services/auth.js";
-import {onMounted, onUnmounted, ref, useTemplateRef} from "vue";
+import {computed, onMounted, onUnmounted, ref, useTemplateRef} from "vue";
 import {useRouter} from "vue-router";
 import SomeUserInfo from "../components/ui/SomeUserInfo.vue";
 import Top from "../components/ui/Top.vue";
@@ -23,8 +23,13 @@ const user = ref({});
 const router = useRouter();
 const active1 = ref(true);
 const active2 = ref(false);
-const myProfile = ref([]);
-const otherProfiles = ref([]);
+const myProfile = computed(() => user.value?.profiles?.filter(p => p.is_main) ?? []);
+const otherProfiles = computed(() => user.value?.profiles?.filter(p => !p.is_main) ?? []);
+const headerUser = computed(() => ({
+  ...user.value,
+  name: myProfile.value[0]?.name || user.value?.name,
+  avatar_color: myProfile.value[0]?.avatar_color ?? null,
+}));
 const loadPlan = ref(false);
 const loading = ref(false);
 const feedback = ref({
@@ -53,13 +58,6 @@ async function initAccount() {
 onMounted(() => {
   localStorage.removeItem('pending_scan_barcode');
   unsubscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state, loadPlan.value = true);
-
-  myProfile.value = user.value.profiles.filter(p => p.is_main);
-  otherProfiles.value = [...user.value.profiles];
-  let myProfileIndex = user.value.profiles.findIndex(p => p.is_main);
-  if(myProfileIndex !== -1) {
-    otherProfiles.value.splice(myProfileIndex, 1);
-  }
 
   initAccount();
 
@@ -101,7 +99,6 @@ async function handleDeleteProfile() {
   try {
     const result = await deleteProfileFromAuthUser(deleteProfile.value.id);
     feedback.value = {message: null, type: null};
-    otherProfiles.value = otherProfiles.value.filter(p => p.id !==  deleteProfile.value.id)
     dialog.value.close();
     setTimeout(() => feedback.value = {message: result, type: 'success'}, 300);
     setTimeout(() => feedback.value = {message: null, type: null}, 2000);
@@ -129,8 +126,6 @@ async function handleSaveProfile() {
       name: trimmedName,
       avatar_color: avatarColor.value,
     });
-    myProfile.value[0].avatar_color = avatarColor.value;
-    myProfile.value[0].name = trimmedName;
     profileName.value = trimmedName;
     feedback.value = { message: 'Perfil guardado', type: 'success' };
   } catch (error) {
@@ -246,7 +241,7 @@ async function handleToggleNewsletter(subscribed) {
       >Cerrar sesión <i class="fa-solid fa-arrow-right-from-bracket ps-2"></i></button>
     </div>
 
-    <SomeUserInfo class="mt-8" :user="{ ...user, name: myProfile[0]?.name ?? user.name, avatar_color: myProfile[0]?.avatar_color }" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
+    <SomeUserInfo class="mt-8" :user="headerUser" :show-premium="true" :is-premium="user.subscription?.plan.plan === 'premium'"/>
 
     <div class=" text-[#686868]" id="togle-perfil">
       <div class="flex mt-10">
