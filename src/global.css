@@ -10,7 +10,28 @@
 @font-face {
     font-family: "Poppins";
     src: url("/fonts/Poppins-Regular.ttf") format("truetype");
-    font-weight: normal;
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-Bold.ttf") format("truetype");
+    font-weight: 700;
     font-style: normal;
 }
 
@@ -27,6 +48,47 @@
     --font-kalon: "kalon";
     --font-roboto-slab: "RobotoSlab";
     --font-poppins: "Poppins";
+
+    --color-ophi-blue: #005B8E;
+    --color-ophi-blue-dark: #00456D;
+    --color-ophi-blue-soft: #EAF1F6;
+    --color-ophi-green: #007A50;
+    --color-ophi-green-dark: #00633F;
+    --color-ophi-green-soft: #E9F5F0;
+    --color-ophi-danger: #C43B52;
+    --color-ophi-danger-soft: #FDF2F4;
+    --color-ophi-surface: #F7F9FB;
+    --color-ophi-border: #EDEFF2;
+
+    --radius-card: 11px;
+    --shadow-card: 0 1px 2px rgb(16 24 40 / .06), 0 6px 16px rgb(16 24 40 / .05);
+}
+
+@utility dot-texture-band {
+    background-image: radial-gradient(rgb(255 255 255 / .11) 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+}
+
+@utility dot-texture-page {
+    background-image: radial-gradient(rgb(0 91 142 / .08) 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+}
+
+@keyframes shimmer {
+    from { background-position: -280px 0; }
+    to { background-position: 280px 0; }
+}
+
+@utility shimmer {
+    background-image: linear-gradient(90deg, #EEF0F2 8%, #F7F8F9 18%, #EEF0F2 33%);
+    background-size: 280px 100%;
+    animation: shimmer 1.2s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+        background-image: none;
+        background-color: #EEF0F2;
+        animation: none;
+    }
 }
 
 :root {
@@ -34,6 +96,7 @@
     --secondary-bg: #005B8E;
     --action: #009161;
     --danger: #C43B52;
+    --app-bottom-inset: calc(126px + env(safe-area-inset-bottom, 0px));
 }
 
 body {
@@ -363,17 +426,6 @@ h1, h2, h3, h4, h5, h6 {
   color: #005B8E;
 }
 
-#togle-perfil {
-    h3 {
-        font-family: 'Poppins', sans-serif;
-    }
-}
-
-
-.togle-perfil-active {
-    color: #005B8E;
-}
-
 .roboto-slab {
     font-family: 'Roboto-slab', serif;
 }
@@ -386,4 +438,10 @@ h1, h2, h3, h4, h5, h6 {
 
 input[type="checkbox"]:checked {
     background-color: red;
+}
+
+@media (forced-colors: active) {
+    .nav-island {
+        border: 1px solid CanvasText;
+    }
 }

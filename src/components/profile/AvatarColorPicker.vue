@@ -13,12 +13,12 @@ const colors = [
 
 <template>
   <fieldset>
-    <legend class="text-[#005B8E] font-semibold mb-2">Color del perfil</legend>
-    <div class="flex gap-3 flex-wrap">
+    <legend class="mb-[9px] font-medium text-[13px] text-gray-700">Color del avatar</legend>
+    <div class="grid grid-cols-6 gap-2 justify-items-center">
       <label
         v-for="color of colors"
         :key="color.value"
-        class="cursor-pointer"
+        class="relative grid place-items-center w-11 h-11 rounded-full cursor-pointer"
       >
         <input
           type="radio"
@@ -28,10 +28,19 @@ const colors = [
           v-model="model"
         />
         <span
-          class="block w-10 h-10 rounded-full border-2 peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-[#005B8E]"
-          :class="model === color.value ? 'border-[#005B8E] scale-110' : 'border-transparent'"
+          class="absolute inset-0 rounded-full peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ophi-blue"
           :style="{ backgroundColor: color.value }"
         ></span>
+        <span
+          v-if="model === color.value"
+          class="absolute -inset-1 rounded-full border-[2.5px]"
+          :style="{ borderColor: color.value }"
+        ></span>
+        <i
+          v-if="model === color.value"
+          class="fa-solid fa-check relative text-[17px] text-white drop-shadow-[0_1px_2px_rgb(0_0_0/.35)]"
+          aria-hidden="true"
+        ></i>
         <span class="sr-only">{{ color.name }}</span>
       </label>
     </div>
