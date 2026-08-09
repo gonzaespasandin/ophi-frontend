@@ -29,6 +29,10 @@ dist-ssr
 
 skills-lock.json
 
+# Tooling indexes
+.atl/
+.codegraph/
+
 # docker
 /docker/
 Dockerfile
