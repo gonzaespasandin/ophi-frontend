@@ -829,7 +829,7 @@ onBeforeUnmount(async () => {
               />
               <div
                 v-if="activeAutocomplete === 'brand' && autocompleteOptions('brand').length"
-                class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                class="absolute z-[45] mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
               >
                 <button
                   v-for="option in autocompleteOptions('brand')"
@@ -860,7 +860,7 @@ onBeforeUnmount(async () => {
               />
               <div
                 v-if="activeAutocomplete === 'category' && autocompleteOptions('category').length"
-                class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                class="absolute z-[45] mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
               >
                 <button
                   v-for="option in autocompleteOptions('category')"
@@ -891,7 +891,7 @@ onBeforeUnmount(async () => {
               />
               <div
                 v-if="activeAutocomplete === 'origin' && autocompleteOptions('origin').length"
-                class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                class="absolute z-[45] mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
               >
                 <button
                   v-for="option in autocompleteOptions('origin')"

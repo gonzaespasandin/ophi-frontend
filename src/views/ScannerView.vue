@@ -173,8 +173,8 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <AuthLayout>
-    <div class="relative h-full min-h-[calc(100dvh-88px)] overflow-hidden bg-black" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
+  <AuthLayout :padded="false">
+    <div class="relative h-full min-h-full overflow-hidden bg-black" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
       <div class="square-with-gradient-scanner scanner-top">
         <img src="../assets/img/logo-positivo.png" alt="Logo de ophi" class="m-auto mt-20">
       </div>
@@ -184,7 +184,7 @@ onBeforeUnmount(async () => {
       <div class="absolute inset-0 w-full h-full" id="camera-view-container"></div>
 
       <!-- Parte inferior: resultados / fallback -->
-      <div id="results" class="h-full absolute bottom-0 w-full flex items-end justify-center transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError || isProcessing) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
+      <div id="results" class="h-full absolute bottom-0 w-full flex items-end justify-center pb-[var(--app-bottom-inset)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError || isProcessing) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
         <div v-if="isProcessing" class="bg-[#f5f5f5] w-full rounded-t-[11px] flex justify-center items-center py-10">
           <AppLoading />
         </div>
