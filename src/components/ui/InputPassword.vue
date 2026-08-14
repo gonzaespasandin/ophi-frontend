@@ -23,9 +23,9 @@ function handleClick() {
 </script>
 
 <template>
-  <div class="flex bg-white rounded-t-[.2rem] border-b border-b-[#009161]">
+  <div class="flex min-w-0 bg-white rounded-t-[.2rem] border-b border-b-[#009161]">
     <input
-        class="grow-1 p-2"
+        class="grow-1 min-w-0 p-2"
         ref="input"
         :type="currentType"
         v-model="model"

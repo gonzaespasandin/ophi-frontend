@@ -57,16 +57,16 @@ function handleSubmit() {
 
     <form
       @submit.prevent="handleSubmit"
-      class="grid gap-3"
+      class="grid gap-3 min-w-0"
       :aria-describedby="errorMessage && !errorField ? 'email-change-error' : undefined"
     >
-      <label class="grid gap-[6px]">
+      <label class="grid gap-[6px] min-w-0">
         <span class="font-medium text-[13px] text-gray-700">Nuevo email</span>
         <input
           v-model="newEmail"
           type="email"
           required
-          class="w-full h-11 px-3 rounded-card border-[1.5px] border-gray-300 text-[15px] text-gray-900 focus:outline-2 focus:outline-offset-1 focus:outline-ophi-blue focus:border-ophi-blue"
+          class="w-full min-w-0 h-11 px-3 rounded-card border-[1.5px] border-gray-300 text-[15px] text-gray-900 focus:outline-2 focus:outline-offset-1 focus:outline-ophi-blue focus:border-ophi-blue"
           autocomplete="email"
           :aria-invalid="errorField === 'email' ? 'true' : undefined"
           :aria-describedby="errorField === 'email' ? 'email-change-email-error' : undefined"
@@ -88,7 +88,7 @@ function handleSubmit() {
         </span>
       </label>
 
-      <label class="grid gap-[6px]">
+      <label class="grid gap-[6px] min-w-0">
         <span class="font-medium text-[13px] text-gray-700">Tu contraseña actual</span>
         <InputPassword
           v-model="currentPassword"

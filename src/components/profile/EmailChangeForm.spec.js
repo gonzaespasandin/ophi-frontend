@@ -102,6 +102,32 @@ describe('EmailChangeForm', () => {
     expect(wrapper.get('#email-change-password-error').text()).toBe('Contraseña incorrecta')
   })
 
+  // jsdom does not compute layout, so these guard the shrink-enabling classes
+  // rather than the rendered width. Grid items default to min-width:auto, which
+  // pins the track to the input's intrinsic size and overflows the card.
+  it('lets the form shrink below its content intrinsic width', () => {
+    const wrapper = mountForm()
+
+    expect(wrapper.get('form').classes()).toContain('min-w-0')
+  })
+
+  it('lets every field wrapper shrink below its content intrinsic width', () => {
+    const wrapper = mountForm()
+
+    const labels = wrapper.findAll('form label')
+
+    expect(labels.length).toBe(2)
+    labels.forEach((label) => {
+      expect(label.classes()).toContain('min-w-0')
+    })
+  })
+
+  it('lets the email input shrink below its intrinsic width', () => {
+    const wrapper = mountForm()
+
+    expect(wrapper.get('input[type="email"]').classes()).toContain('min-w-0')
+  })
+
   it('disables the submit control while a change is in flight', () => {
     const wrapper = mountForm({ loading: true })
 
