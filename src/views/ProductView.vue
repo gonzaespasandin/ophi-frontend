@@ -1,247 +1,224 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
-import { findByNameAndBrand } from '../services/product';
-import { useRoute } from 'vue-router';
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import api from '../config/axios';
-import BarcodeSuggestionAlert from '../components/ui/BarcodeSuggestionAlert.vue';
-import Alert from '../components/ui/Alert.vue';
-import { suscribeToAuthObserver } from '../services/auth';
-import Top from "../components/ui/Top.vue";
 import AuthLayout from '../layouts/AuthLayout.vue';
-import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
-import { useProductSafety } from '../composables/useProductSafety.js';
-import AppLoading from '../components/loadings/AppLoading.vue';
-import Error from '../components/ui/Error.vue';
-import {Swiper, SwiperSlide} from "swiper/vue";
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import 'swiper/css/scrollbar';
-import {A11y, Virtual} from "swiper/modules";
+import { findByNameAndBrand } from '../services/product';
+import { suscribeToAuthObserver } from '../services/auth';
+import { useProductVerdict } from '../composables/useProductVerdict.js';
+import BarcodeSuggestionAlert from '../components/ui/BarcodeSuggestionAlert.vue';
+import ProductVerdictBand from '../components/product/ProductVerdictBand.vue';
+import ProductSummaryCard from '../components/product/ProductSummaryCard.vue';
+import ProductProfileBreakdown from '../components/product/ProductProfileBreakdown.vue';
+import ProductIngredientsCard from '../components/product/ProductIngredientsCard.vue';
+import ProductNotFoundCard from '../components/product/ProductNotFoundCard.vue';
+import ProductErrorState from '../components/product/ProductErrorState.vue';
+import ProductResultSkeleton from '../components/product/ProductResultSkeleton.vue';
+import RecommendedCarousel from '../components/home/RecommendedCarousel.vue';
+
+const LATEST_SEARCHES_LIMIT = 4;
+
+const route = useRoute();
+const router = useRouter();
 
 let unsuscribeToAuthObserver = () => {};
 
-const modules = [A11y, Virtual];
-
-const route = useRoute();
-let safeProducts = [];
 const user = ref({});
+const product = ref(null);
+const safeProducts = ref([]);
+const state = ref('loading');
 const pendingBarcode = ref(null);
 const showSuggestionAlert = ref(false);
-const loading = ref(true)
-const product = ref(null);
-const { safe, unsafeIngredients, normalizedIngredients, checkAll, unrestrictedProfiles } = useProductSafety();
-const error = ref(false);
-const errorMessage = ref('');
-// Cuando NO tenemos perfiles con restricciones, normalizedIngredients === [], entonces, creamos esta variable como backup por si el profile NO tiene ingredients. 
-const noProfileRestrictionsNormalizedIngredients = [];
 
-const latestSearches = ref([]);
-if(localStorage.getItem('latestSearches')) {
-    latestSearches.value = JSON.parse(localStorage.getItem('latestSearches'));
-}
+const profiles = computed(() => user.value?.profiles ?? []);
+const productIngredients = computed(() => product.value?.ingredients ?? []);
+
+const {
+  filterProfileId,
+  verdict,
+  profilesWithRestrictions,
+  unrestrictedProfiles,
+  unsafeProfiles,
+  safeProfiles,
+  conflicts,
+  totalConflictCount,
+  traces,
+  cleanIngredients,
+} = useProductVerdict(profiles, productIngredients);
+
+const isSingleProfile = computed(() => profiles.value.length <= 1);
+const hasIngredients = computed(() => productIngredients.value.length > 0);
+
+// While the answer is still travelling the band stays neutral: it never wears a
+// colour the app cannot sustain yet.
+const bandVerdict = computed(() => (state.value === 'ready' ? verdict.value : 'loading'));
+
 
 onMounted(async () => {
+  unsuscribeToAuthObserver = suscribeToAuthObserver((state) => (user.value = state));
 
-    console.log(safe);
-    try {
-        const result = await findByNameAndBrand(route.params.name, route.params.brand);
-        if (!result || result.length === 0) {
-            product.value = null;
-        } else {
-            product.value = result;
-            manageLocalStorage(product.value[0].name, product.value[0].brand.name);
-        }
-        loading.value = false;
-    } catch (err) {
-       if(err.response?.status === 404) {
-            console.log('Product NOT FOUND')
-            product.value = null;
-       } else {
-            console.error('[ProductView] -> No se pudo obtener el producto por nombre', err);
-            error.value = true;
-            errorMessage.value = 'Error al obtener el producto';
-       }
-    } finally {
-        loading.value = false;
-    }
-
-    unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
-
-
-   if(product.value) {
-        // EN caso de que sea UN PRODUCTO
-        product.value = product.value[0];
-        console.log(product.value.ingredients);
-
-        // Obtengo todos los perifles médicos del usuario.
-        const userProfiles = user.value.profiles;
-
-        // Obtengo los ingredientes del producto
-        const productIngredeints = product.value.ingredients;
-
-        // Chequeo (funcion aparte).
-        checkAll(userProfiles, productIngredeints);    
-    
-        normalizedIngredients.value = normalizedIngredients.value.join(', ');
-        
-        product.value.ingredients.forEach(pI => {
-            if(!noProfileRestrictionsNormalizedIngredients.includes(pI.name)) {
-                noProfileRestrictionsNormalizedIngredients.push(pI.name);
-            }
-        });
-        
-
-        unsafeIngredients.value = unsafeIngredients.value.join(' - ');
-   }
-
-   const storedBarcode = localStorage.getItem('pending_scan_barcode');
-   if(storedBarcode && product.value && !product.value.barcode) {
-    try {
-        const { data } = await api.get('/api/scanner/can-suggest', {
-                params: {
-                    barcode: storedBarcode,
-                    product_id: product.value.id,
-                }
-            });
-        if(data.can_suggest) {
-            pendingBarcode.value = storedBarcode;
-            showSuggestionAlert.value = true;
-        } else {
-            clearSuggestionFlow();
-        }
-    } catch (err) {
-        console.error('[ProductView] -> Error al verificar si se puede sugerir el código', err);
-    }
-   }
+  await loadProduct();
+  await checkPendingBarcode();
 });
 
-function manageLocalStorage(productName, productBrand) {
-    latestSearches.value = latestSearches.value.filter(
-        p => !(p.name === productName && p.brand === productBrand)
-    );
+onBeforeUnmount(() => {
+  clearSuggestionFlow();
+  unsuscribeToAuthObserver();
+});
 
-    latestSearches.value.push({name: productName, brand: productBrand});
+async function loadProduct() {
+  state.value = 'loading';
 
-    if(latestSearches.value.length > 4) {
-        latestSearches.value.shift();
-    } 
-    localStorage.setItem('latestSearches', JSON.stringify(latestSearches.value));
+  try {
+    // The endpoint answers with the matches keyed by position plus the safe
+    // alternatives alongside them, so the first match is read by key.
+    const result = await findByNameAndBrand(route.params.name, route.params.brand);
+    const match = result?.[0];
 
-    safeProducts = product.value.safeProducts;
+    if (!match) {
+      state.value = 'not-found';
+      return;
+    }
+
+    product.value = match;
+    safeProducts.value = result.safeProducts ?? [];
+    state.value = 'ready';
+
+    rememberSearch(product.value);
+  } catch (err) {
+    if (err.response?.status === 404) {
+      state.value = 'not-found';
+      return;
+    }
+
+    console.error('[ProductView] -> No se pudo obtener el producto por nombre', err);
+    state.value = 'error';
+  }
+}
+
+function rememberSearch({ name, brand }) {
+  const stored = JSON.parse(localStorage.getItem('latestSearches') ?? '[]');
+  const brandName = brand?.name ?? '';
+
+  const latestSearches = stored
+    .filter((search) => !(search.name === name && search.brand === brandName))
+    .concat({ name, brand: brandName })
+    .slice(-LATEST_SEARCHES_LIMIT);
+
+  localStorage.setItem('latestSearches', JSON.stringify(latestSearches));
+}
+
+async function checkPendingBarcode() {
+  const storedBarcode = localStorage.getItem('pending_scan_barcode');
+
+  if (!storedBarcode || !product.value || product.value.barcode) return;
+
+  try {
+    const { data } = await api.get('/api/scanner/can-suggest', {
+      params: { barcode: storedBarcode, product_id: product.value.id },
+    });
+
+    if (!data.can_suggest) {
+      clearSuggestionFlow();
+      return;
+    }
+
+    pendingBarcode.value = storedBarcode;
+    showSuggestionAlert.value = true;
+  } catch (err) {
+    console.error('[ProductView] -> Error al verificar si se puede sugerir el código', err);
+  }
 }
 
 function clearSuggestionFlow() {
-    localStorage.removeItem('pending_scan_barcode');
-    showSuggestionAlert.value = false;
-    api.delete('/api/scanner/clear-pending-barcode').catch(() => {});
+  localStorage.removeItem('pending_scan_barcode');
+  showSuggestionAlert.value = false;
+  api.delete('/api/scanner/clear-pending-barcode').catch(() => {});
 }
 
-async function handleConfirm(){
-    try {
-        await api.post('/api/scanner/suggest', {
-            barcode: pendingBarcode.value,
-            product_id: product.value.id
-        });
-    } catch (err) {
-        console.error('[ProductView] -> Error al sugerir el código', err);
-    } finally {
-        clearSuggestionFlow();
-    }
-}
-
-function handleDismiss(){
+async function confirmSuggestion() {
+  try {
+    await api.post('/api/scanner/suggest', {
+      barcode: pendingBarcode.value,
+      product_id: product.value.id,
+    });
+  } catch (err) {
+    console.error('[ProductView] -> Error al sugerir el código', err);
+  } finally {
     clearSuggestionFlow();
+  }
 }
 
-onBeforeUnmount(() => {
-    clearSuggestionFlow();
-});
+function goBack() {
+  router.back();
+}
 </script>
 
 <template>
-    <!-- Es pero ILEGIBLE pero funca -->
-    <AuthLayout :class="{
-      'square-with-gradient-success': !loading && user?.profiles?.length === 1 && safe[0]?.isSafe,
-      'square-with-gradient-danger': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe !== undefined,
-      'square-with-gradient-gray': !loading && user?.profiles?.length === 1 && !safe[0]?.isSafe && safe[0]?.isSafe === undefined,
-      'square-with-gradient-mix': !loading && user?.profiles?.length !== 1 && !safe[0]?.isSafe
-    }">
-        <Top/>
-        <!-- <Back/> -->
-        <template v-if="loading">
-            <div class="flex justify-center mt-90">
-                <AppLoading/>
-            </div>
-        </template>
-        <template v-else-if="error">
-            <Error :errorMessage="errorMessage"/>
-        </template>
-        <template v-else-if="!product">
-            <div class="bg-white m-3 shadow-md p-3 rounded-lg">
-                <h1 class="font-light text-2xl text-center">Producto no encontrado</h1>
-                <p class="text-center py-5">¡Lo sentimos! No pudimos encontrar lo que buscabas</p>
-            </div>
-        </template>
+  <AuthLayout>
+    <div class="min-h-full bg-[#F5F5F5] dot-texture-page">
+      <ProductVerdictBand
+        :verdict="bandVerdict"
+        :profiles-count="profiles.length"
+        :unsafe-count="unsafeProfiles.length"
+        :conflict-count="totalConflictCount"
+        @back="goBack"
+      />
+
+      <div class="px-4 pb-6 -mt-8">
+        <ProductResultSkeleton v-if="state === 'loading'" />
+
+        <ProductErrorState v-else-if="state === 'error'" @retry="loadProduct" />
+
+        <ProductNotFoundCard v-else-if="state === 'not-found'" />
+
         <template v-else>
-        <template  v-if="!loading">
-            <div>
-                <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
-                    <h1 class="text-center text-2xl">{{product.name}}</h1>
-                    <p class="text-center font-roboto-slab font-semibold">{{ product.brand.name }}</p>
-                    <span class="block text-center mb-5">Resultados</span>
-                    <Alert v-if="user.profiles.length === 1" :safe="safe"></Alert>
-                    <AlertSomeUsers v-else :safe="safe" :unrestrictedProfiles="unrestrictedProfiles"></AlertSomeUsers>
-                </div>
+          <ProductSummaryCard :product="product">
+            <ProductProfileBreakdown
+              v-if="!isSingleProfile"
+              :unsafe-profiles="unsafeProfiles"
+              :safe-profiles="safeProfiles"
+              :unrestricted-profiles="unrestrictedProfiles"
+            />
+          </ProductSummaryCard>
 
-                <BarcodeSuggestionAlert
-                    v-if="showSuggestionAlert && pendingBarcode"
-                    :barcode="pendingBarcode"
-                    @confirm="handleConfirm"
-                    @dismiss="handleDismiss"
-                />
+          <BarcodeSuggestionAlert
+            v-if="showSuggestionAlert && pendingBarcode"
+            class="mt-3"
+            :barcode="pendingBarcode"
+            @confirm="confirmSuggestion"
+            @dismiss="clearSuggestionFlow"
+          />
 
-                <div class="bg-white shadow-md  m-3 p-3 rounded-lg">
-                    <h2 class="text-2xl">Ingredientes</h2>
-                    
-                    <!-- <span v-if="safe.length === 1" :class="(safe[0].isSafe) ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl">{{ (safe[0].isSafe) ? 'Ingredientes' : unsafeIngredients }}</span>
-                    <span v-else class="text-[#C43B52] text-2xl">{{ unsafeIngredients }}</span>
-                   
-                    <p>{{ (normalizedIngredients.length === 0) ? noProfileRestrictionsNormalizedIngredients.join(', ') : normalizedIngredients }}</p> -->
-                    <!-- TODO: Marcar en rojo los ingredientes "peligrosos" -->
-                    <p>{{ product.ingredients.map(i => i.name).join(', ') }}</p>
-                </div>
+          <h2 class="mt-[22px] mb-[10px] font-roboto-slab font-semibold text-[12px] tracking-[.09em] uppercase text-ophi-blue">
+            Ingredientes
+          </h2>
 
-              <div class="bg-white shadow-md  m-3 rounded-lg">
-                <h2 class="text-xl p-3 ">También puede interesarte</h2>
-                <swiper
-                    v-if="safeProducts.length"
-                    :modules="modules"
-                    :slides-per-view="1.5"
-                    :space-between="50"
-                    :centered-slides="true"
-                    :initial-slide="safeProducts.length / 2"
-                    :virtual="true"
-                >
-                  <template v-for="(safeProduct, index) of safeProducts" :key="index">
-                    <swiper-slide :virtual-index="index" v-slot="{ isActive }" class="py-4">
-                      <div :class="isActive ? 'min-h-[150px] recomended-card-active' : 'min-h-[100px] mt-2 recomended-card-inactive'" class="flex bg-[#005B8E] p-5 rounded-[11px] flex-col justify-center text-white transition-all ">
-                        <h3 class="text-sm text-center font-regular text-white"><RouterLink :to="'/product/' + safeProduct.name + '/' + safeProduct.brand.name">{{ safeProduct.name }}</RouterLink></h3>
-                        <div class="bg-[#f5f5f5] text-[#005B8E] p-1 mt-1 rounded-[11px]">
-                          <span class="block text-center text-sm">Apto para todos</span>
-                          <p class="text-lg font-bold text-center">RECOMENDADO</p>
-                        </div>
-                      </div>
-                    </swiper-slide>
-                  </template>
-                </swiper>
+          <ProductIngredientsCard
+            v-model="filterProfileId"
+            :conflicts="conflicts"
+            :total-conflicts="totalConflictCount"
+            :traces="traces"
+            :clean-ingredients="cleanIngredients"
+            :filter-profiles="profilesWithRestrictions"
+            :single-profile="isSingleProfile"
+            :has-ingredients="hasIngredients"
+          />
 
-                <p v-else class="px-3 text-sm">No hay productos similares aptos para todos tus perfiles.</p>
-              </div>
-            </div>
-
+          <div class="mt-[22px]">
+            <RecommendedCarousel
+              title="También puede interesarte"
+              :products="safeProducts"
+              :profiles="profiles"
+              :state="safeProducts.length ? 'ready' : 'empty'"
+              :empty-state="{
+                title: 'No encontramos alternativas',
+                message: 'Todavía no tenemos productos parecidos que sirvan para todos tus perfiles.',
+              }"
+            />
+          </div>
         </template>
-        </template>
-
-    </AuthLayout>
+      </div>
+    </div>
+  </AuthLayout>
 </template>
