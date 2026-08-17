@@ -1,107 +1,98 @@
 <script setup>
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import AuthLayout from "../layouts/AuthLayout.vue";
-import {suscribeToAuthObserver} from "../services/auth.js";
-import {onMounted, onUnmounted, ref} from "vue";
-import Search from "../components/ui/Search.vue";
-import History from "../components/ui/History.vue";
-import RecomendedProducts from "../components/ui/RecomendedProducts.vue";
+import { suscribeToAuthObserver } from "../services/auth.js";
 import { getBrands } from "../services/product.js";
-import SafeProducts from "../components/ui/SafeProducts.vue";
+import HomeIdentityBand from "../components/home/HomeIdentityBand.vue";
+import HomeSearchRow from "../components/home/HomeSearchRow.vue";
+import HomeOnboardingCard from "../components/home/HomeOnboardingCard.vue";
+import ScanHistoryCard from "../components/home/ScanHistoryCard.vue";
+import RecommendedCarousel from "../components/home/RecommendedCarousel.vue";
+import { useScanHistory } from "../composables/useScanHistory.js";
+import { useSafeProducts } from "../composables/useSafeProducts.js";
 
-  let unsuscribeToAuthObserver = () => {}
+let unsuscribeToAuthObserver = () => {}
 
-  const user = ref({});
-  const userNameLength = ref(3);
+const user = ref({});
 
-  async function loadBrands() {
-    try {
-      const result = await getBrands();
-      if(result && result.data.length > 0) {
-        sessionStorage.removeItem('brands');
-        sessionStorage.setItem('brands', JSON.stringify(result.data));
-      }
-    } catch (error) {
-      console.error('[HomeView] -> loadBrands(), Error:', error);
+const { scans, state: historyState, load: loadHistory } = useScanHistory();
+const { products, state: recommendedState, load: loadRecommended } = useSafeProducts();
+
+const profiles = computed(() => user.value?.profiles ?? []);
+const mainProfile = computed(() => profiles.value.find(p => p.is_main) ?? profiles.value[0] ?? null);
+
+const displayName = computed(() => mainProfile.value?.name ?? user.value?.name ?? '');
+const avatarColor = computed(() => mainProfile.value?.avatar_color ?? null);
+
+const restrictionsCount = computed(() => mainProfile.value?.ingredients?.length ?? 0);
+const hasRestrictions = computed(() => profiles.value.some(p => p.ingredients?.length > 0));
+
+// Somebody who never scanned gets the onboarding block instead of an empty
+// history plus an empty carousel: there is only one thing to do next.
+const isOnboarding = computed(() => historyState.value === 'empty');
+const onboardingVariant = computed(() => hasRestrictions.value ? 'ready-to-scan' : 'no-restrictions');
+const restrictionsRoute = computed(() =>
+  mainProfile.value ? `/profile/${mainProfile.value.id}/edit` : '/profile'
+);
+
+async function loadBrands() {
+  try {
+    const result = await getBrands();
+    if(result && result.data.length > 0) {
+      sessionStorage.removeItem('brands');
+      sessionStorage.setItem('brands', JSON.stringify(result.data));
     }
+  } catch (error) {
+    console.error('[HomeView] -> loadBrands(), Error:', error);
   }
+}
 
-  // async function loadOirigns() {
-  //   try {
-  //     const result = await getOrigins();
-  //     if(result && result.data.length > 0) {
-  //       sessionStorage.removeItem('origins');
-  //       sessionStorage.setItem('origins', JSON.stringify(result.data));
-  //     }
-  //   } catch (error) {
-  //     console.error('[HomeView] -> loadOirigns(), Error:', error);
-  //   }
-  // }
+onMounted(() => {
+  localStorage.removeItem('pending_scan_barcode');
+  unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
 
-  // async function loadCategories() {
-  //   try {
-  //     const result = await getCategory();
-  //     if(result && result.data.length > 0) {
-  //       sessionStorage.removeItem('categories');
-  //       sessionStorage.setItem('categories', JSON.stringify(result.data));
-  //     }
-  //   } catch (error) {
-  //     console.error('[HomeView] -> loadCategories(), Error:', error);
-  //   }
-  // }
+  loadHistory();
+  loadRecommended();
 
-  onMounted(() => {
-    console.log({user})
-    localStorage.removeItem('pending_scan_barcode');
-    unsuscribeToAuthObserver = suscribeToAuthObserver((state) => user.value = state);
-    userNameLength.value = user.value.name.length;
+  if(!sessionStorage.getItem('brands')) {
+    loadBrands();
+  }
+})
 
-    
-
-    if(!sessionStorage.getItem('brands')) {
-      Promise.allSettled([
-        loadBrands(),
-      ]);
-    }
-  })
-  
-
-  onUnmounted(() => unsuscribeToAuthObserver());
+onUnmounted(() => unsuscribeToAuthObserver());
 </script>
 
 <template>
-  <AuthLayout class="square-with-gradient">
-    <h1 class="text-4xl sr-only">Inicio</h1>
-    <div class="flex justify-between align-center mt-10 p-3 gap-4 mx-3" :class="userNameLength > 15 ? 'flex-col items-center' : 'flex-row'">
-        <img src="../assets/img/logo-positivo.png" alt="Logo de ophi">
-        <RouterLink to="/profile" class="info-auth flex align-center justify-center mt-4 text-white">
-          <i class="fa-solid fa-circle-user text-2xl pe-2"></i>
-          <div>
-            <p>{{ user.name }}</p>
+  <AuthLayout>
+    <h1 class="sr-only">Inicio</h1>
+
+    <div class="min-h-full bg-[#F5F5F5] dot-texture-page">
+      <HomeIdentityBand :name="displayName" :avatar-color="avatarColor">
+        <template #search>
+          <HomeSearchRow />
+        </template>
+      </HomeIdentityBand>
+
+      <div class="px-4 pt-[18px]">
+        <HomeOnboardingCard
+          v-if="isOnboarding"
+          :variant="onboardingVariant"
+          :restrictions-count="restrictionsCount"
+          :edit-route="restrictionsRoute"
+        />
+
+        <template v-else>
+          <ScanHistoryCard :scans="scans" :state="historyState" @retry="loadHistory" />
+
+          <div class="mt-[22px]">
+            <RecommendedCarousel
+              :products="products"
+              :profiles="profiles"
+              :state="recommendedState"
+            />
           </div>
-        </RouterLink>
+        </template>
+      </div>
     </div>
-    <div class="mx-3 mt-4">
-      <Search></Search>
-    </div>
-    <section class="mt-6 mx-3">
-      <History></History>
-    </section>
-    <section class="mt-8">
-      <h2 class="sr-only">Productos recomendados</h2>
-      <!-- <RecomendedProducts v-if="user && user.profiles" :user="user.profiles" :subscription="user.subscription.plan_id"></RecomendedProducts> -->
-      <SafeProducts />
-    </section>
   </AuthLayout>
 </template>
-
-<style scoped>
-img {
-  width: 120px;
-}
-
-@media (min-width: 400px) {
-  img {
-    width: 160px;
-  }
-}
-</style>
