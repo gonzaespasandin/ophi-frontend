@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import AuthLayout from "../layouts/AuthLayout.vue";
 import Top from "../components/ui/Top.vue";
 import Back from '../components/ui/Back.vue';
-import HistoryItem from '../components/ui/HistoryItem.vue';
+import ScanHistoryItem from '../components/history/ScanHistoryItem.vue';
 import api from "../config/axios";
 import AppLoading from '../components/loadings/AppLoading.vue';
 import { suscribeToAuthObserver } from '../services/auth';
@@ -219,13 +219,15 @@ function time() {
       </div>
 
 
-      <div v-else class="space-y-4">
+      <div v-else>
         <h2 class="sr-only">Listado</h2>
-        <HistoryItem 
-          v-for="item in history" 
-          :key="item.id"
-          :item="item"
-        />
+        <ul class="flex flex-col gap-[10px]">
+          <ScanHistoryItem
+            v-for="item in history"
+            :key="item.id"
+            :scan="item"
+          />
+        </ul>
       </div>
     </div>
   </AuthLayout>
