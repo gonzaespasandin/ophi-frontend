@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import ScannerView from './ScannerView.vue'
-import { SHEET_SETTLE_MS } from '../components/scanner/ScanResultSheet.vue'
 import { processBarcode } from '../services/scanner.js'
 import { saveToHistory } from '../services/history.js'
 
@@ -23,9 +22,6 @@ vi.mock('../services/product', () => ({
   getSafeProducts: vi.fn(() => Promise.resolve([])),
 }))
 
-const pauseScanner = vi.fn()
-const resumeScanner = vi.fn()
-
 vi.mock('../composables/useScanner.js', () => ({
   useScanner: () => ({
     scannerError: { value: '' },
@@ -35,8 +31,6 @@ vi.mock('../composables/useScanner.js', () => ({
       return Promise.resolve()
     }),
     cleanupScanner: vi.fn(() => Promise.resolve()),
-    pauseScanner,
-    resumeScanner,
     resetLastScanned: vi.fn(),
   }),
 }))
@@ -90,22 +84,6 @@ beforeEach(() => {
   detectedCallback = null
   authState = { profiles: PROFILES }
 })
-
-// Puts the panel at full screen and hands back the scrollable body, so the
-// tests about coming back down all start from the same place.
-async function expandSheet(wrapper) {
-  const body = wrapper.get('[data-testid="sheet-body"]')
-
-  Object.defineProperty(body.element, 'scrollTop', { value: 200, configurable: true })
-  await body.trigger('scroll')
-
-  return body
-}
-
-async function scrollTo(body, scrollTop) {
-  Object.defineProperty(body.element, 'scrollTop', { value: scrollTop, configurable: true })
-  await body.trigger('scroll')
-}
 
 describe('ScannerView', () => {
   it('opts out of the layout bottom padding so the camera runs full bleed', async () => {
@@ -197,45 +175,14 @@ describe('ScannerView', () => {
     expect(wrapper.get('[data-testid="scan-band"]').attributes('data-variant')).toBe('unsafe')
   })
 
-  it('stops the camera while the panel covers the screen', async () => {
+  // The camera never stops: the panel rests over it and dismissing brings the
+  // reader straight back, which is what lets somebody scan ten products in a row.
+  it('leaves the camera running behind the panel', async () => {
     processBarcode.mockResolvedValue(PRODUCT)
     const wrapper = await scan(await mountScanner())
 
-    await expandSheet(wrapper)
-
-    expect(pauseScanner).toHaveBeenCalledTimes(1)
-  })
-
-  // Reading frames again is the most expensive thing the view can do, and the
-  // panel is still shrinking. Doing both at once is what made coming back down
-  // feel like it stuttered.
-  it('lets the panel finish shrinking before the camera reads again', async () => {
-    processBarcode.mockResolvedValue(PRODUCT)
-    const wrapper = await scan(await mountScanner())
-    const body = await expandSheet(wrapper)
-
-    vi.useFakeTimers()
-    await scrollTo(body, 0)
-
-    expect(resumeScanner).not.toHaveBeenCalled()
-
-    vi.advanceTimersByTime(SHEET_SETTLE_MS)
-
-    expect(resumeScanner).toHaveBeenCalledTimes(1)
-  })
-
-  it('never wakes the camera up under a panel that went full screen again', async () => {
-    processBarcode.mockResolvedValue(PRODUCT)
-    const wrapper = await scan(await mountScanner())
-    const body = await expandSheet(wrapper)
-
-    vi.useFakeTimers()
-    await scrollTo(body, 0)
-    await scrollTo(body, 200)
-
-    vi.advanceTimersByTime(SHEET_SETTLE_MS)
-
-    expect(resumeScanner).not.toHaveBeenCalled()
+    expect(wrapper.get('#camera-view-container').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="sheet-body"]').exists()).toBe(true)
   })
 
   it('records every profile in the history, traces included', async () => {

@@ -12,10 +12,9 @@ const props = defineProps({
   profilesCount: { type: Number, default: 1 },
   unsafeCount: { type: Number, default: 0 },
   conflictCount: { type: Number, default: 0 },
-  full: { type: Boolean, default: false },
 })
 
-defineEmits(['dismiss', 'collapse'])
+defineEmits(['dismiss'])
 
 const isSingleProfile = computed(() => props.profilesCount <= 1)
 
@@ -65,9 +64,7 @@ const showBarcode = computed(() =>
   Boolean(props.barcode) && ['loading', 'not-found', 'neutral'].includes(props.variant)
 )
 
-// Expanded, the navbar already carries the way out: two barcode buttons on the
-// same band would be the app asking the same question twice.
-const canRescan = computed(() => !props.full && ['safe', 'unsafe'].includes(props.variant))
+const canRescan = computed(() => ['safe', 'unsafe'].includes(props.variant))
 
 const isLoading = computed(() => props.variant === 'loading')
 </script>
@@ -76,53 +73,15 @@ const isLoading = computed(() => props.variant === 'loading')
   <header
     data-testid="scan-band"
     :data-variant="variant"
-    class="dot-texture-band px-4 pb-[46px] transition-colors duration-300"
-    :class="[bandColor, full ? 'rounded-none' : 'rounded-t-[22px]']"
+    class="dot-texture-band rounded-t-[22px] px-4 pb-[46px] transition-colors duration-300"
+    :class="bandColor"
     :aria-busy="isLoading || undefined"
   >
-    <!--
-      Both strips are always mounted and animate their height. Swapping them with
-      v-if makes the band jump; sliding them open lets it unroll.
-    -->
-    <div
-      data-testid="band-navbar"
-      class="flex items-end gap-2 overflow-hidden transition-[height,opacity] duration-300"
-      :class="full ? 'h-[84px] opacity-100' : 'h-0 opacity-0'"
-      :aria-hidden="!full"
-    >
-      <button
-        type="button"
-        aria-label="Volver al escáner"
-        :tabindex="full ? 0 : -1"
-        class="grid place-items-center shrink-0 -ml-[10px] mb-[10px] w-11 h-11 rounded-card text-[19px] text-white cursor-pointer active:bg-white/20 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white"
-        @click="$emit('collapse')"
-      >
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-
-      <span class="flex-1 min-w-0 mb-[22px] truncate font-semibold text-[12px] tracking-[.1em] uppercase text-white/80">
-        Resultado del escaneo
-      </span>
-
-      <button
-        type="button"
-        aria-label="Escanear otro producto"
-        :tabindex="full ? 0 : -1"
-        class="grid place-items-center shrink-0 -mr-[6px] mb-[10px] w-11 h-11 rounded-card bg-white/15 text-[16px] text-white cursor-pointer active:bg-white/30 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        @click="$emit('dismiss')"
-      >
-        <i class="fa-solid fa-barcode" aria-hidden="true"></i>
-      </button>
-    </div>
-
     <button
       type="button"
       data-testid="band-grab"
       aria-label="Descartar y volver a la cámara"
-      :tabindex="full ? -1 : 0"
-      class="grid place-items-center w-full overflow-hidden cursor-pointer transition-[height,opacity] duration-300 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white"
-      :class="full ? 'h-0 opacity-0' : 'h-8 opacity-100'"
-      :aria-hidden="full"
+      class="grid place-items-center w-full h-8 overflow-hidden cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white"
       @click="$emit('dismiss')"
     >
       <span class="w-[44%] h-[5px] rounded-card bg-white/55"></span>

@@ -37,68 +37,21 @@ describe('ScanResultSheet', () => {
     expect(wrapper.get('[data-testid="sheet-body"]').classes()).toContain('overflow-x-hidden')
   })
 
-  it('rests at its collapsed height so the camera stays on screen', () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
+  // The camera is the point of this screen. The panel answers the question and
+  // gets out of the way; the whole story lives one tap away, on the product page.
+  it('never takes more than its share of the screen', () => {
+    const wrapper = mountSheet('<p>contenido</p>')
 
-    expect(sheetOf(wrapper).attributes('style')).toContain('height: 78svh')
-    expect(sheetOf(wrapper).attributes('data-full')).toBe('false')
-  })
-
-  it('takes the screen once the reader scrolls past the threshold', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
-
-    await scrollTo(wrapper, 60)
-
-    expect(sheetOf(wrapper).attributes('data-full')).toBe('true')
-    expect(sheetOf(wrapper).attributes('style')).toContain('height: 100%')
-    expect(wrapper.emitted('update:full').at(-1)).toEqual([true])
-  })
-
-  it('holds still on the way there instead of flickering', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
-
-    await scrollTo(wrapper, 30)
-
-    expect(sheetOf(wrapper).attributes('data-full')).toBe('false')
-    expect(wrapper.emitted('update:full')).toBeUndefined()
-  })
-
-  it('gives the screen back when the list returns to the top', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
-
-    await scrollTo(wrapper, 400)
-    await scrollTo(wrapper, 0)
-
-    expect(sheetOf(wrapper).attributes('data-full')).toBe('false')
-    expect(wrapper.emitted('update:full').at(-1)).toEqual([false])
-  })
-
-  it('survives the iOS scroll bounce, which never lands exactly on zero', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
-
-    await scrollTo(wrapper, 400)
-    await scrollTo(wrapper, 2)
-
-    expect(sheetOf(wrapper).attributes('data-full')).toBe('false')
-  })
-
-  it('stays collapsed on the states with nothing below the fold', async () => {
-    const wrapper = mountSheet('<p>error de red</p>')
-
-    await scrollTo(wrapper, 400)
-
-    expect(sheetOf(wrapper).attributes('data-full')).toBe('false')
     expect(sheetOf(wrapper).attributes('style')).toContain('max-height: 78svh')
   })
 
-  it('collapses by scrolling back, so one handler owns the state', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
-    const scrollTo = vi.fn()
-    wrapper.get('[data-testid="sheet-body"]').element.scrollTo = scrollTo
+  it('keeps its height whatever the reader scrolls inside it', async () => {
+    const wrapper = mountSheet('<p>contenido</p>')
+    const before = sheetOf(wrapper).attributes('style')
 
-    wrapper.vm.collapse()
+    await scrollTo(wrapper, 400)
 
-    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+    expect(sheetOf(wrapper).attributes('style')).toBe(before)
   })
 
   it('announces an intentional exit when a link inside the panel is followed', async () => {
@@ -120,7 +73,7 @@ describe('ScanResultSheet', () => {
   })
 
   it('dismisses when the band is dragged down from the top of the list', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
+    const wrapper = mountSheet('<p>contenido</p>')
     const grip = wrapper.get('[data-testid="sheet-grip"]')
 
     await grip.trigger('touchstart', { touches: [{ clientY: 100 }] })
@@ -130,8 +83,8 @@ describe('ScanResultSheet', () => {
     expect(wrapper.emitted('dismiss')).toHaveLength(1)
   })
 
-  it('lets go of the drag once the panel took the screen, so it never fights the scroll', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
+  it('lets go of the drag once the list scrolled, so it never fights the scroll', async () => {
+    const wrapper = mountSheet('<p>contenido</p>')
     await scrollTo(wrapper, 400)
 
     const grip = wrapper.get('[data-testid="sheet-grip"]')
@@ -143,7 +96,7 @@ describe('ScanResultSheet', () => {
   })
 
   it('springs back when the drag falls short of the threshold', async () => {
-    const wrapper = mountSheet('<p>contenido</p>', { expandable: true })
+    const wrapper = mountSheet('<p>contenido</p>')
     const grip = wrapper.get('[data-testid="sheet-grip"]')
 
     await grip.trigger('touchstart', { touches: [{ clientY: 100 }] })
