@@ -1,6 +1,15 @@
+<script>
+// How long the panel takes to travel between its two heights. Whoever reacts to
+// that trip needs the same number, so it lives here — next to the transition it
+// describes — instead of being copied as a literal somewhere else.
+export const SHEET_SETTLE_MS = 340
+</script>
+
 <script setup>
 import { computed, ref } from 'vue'
 import { useSwipeGesture } from '../../composables/useSwipeGesture.js'
+
+const SETTLE = `${SHEET_SETTLE_MS}ms cubic-bezier(.2,.8,.2,1)`
 
 // Scrolling is the whole gesture. Past this the panel takes the screen; back at
 // the top it gives it away again. The floor is 2 and not 0 because iOS bounces
@@ -35,7 +44,7 @@ const sheetStyle = computed(() => {
     transform: `translateY(${translateY.value}px)`,
     transition: isDragging.value
       ? 'none'
-      : 'height .34s cubic-bezier(.2,.8,.2,1), border-radius .34s cubic-bezier(.2,.8,.2,1), transform .3s ease-out',
+      : `height ${SETTLE}, border-radius ${SETTLE}, transform .3s ease-out`,
   }
 
   // The short states (a retry, an expired session) hug their card instead of

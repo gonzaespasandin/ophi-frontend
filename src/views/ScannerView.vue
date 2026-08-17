@@ -8,7 +8,7 @@ import { useScanner } from '../composables/useScanner.js';
 import { processBarcode } from '../services/scanner.js';
 import { saveToHistory } from '../services/history.js';
 import { getMatchesByName, search } from '../services/product';
-import ScanResultSheet from '../components/scanner/ScanResultSheet.vue';
+import ScanResultSheet, { SHEET_SETTLE_MS } from '../components/scanner/ScanResultSheet.vue';
 import ScanResultBand from '../components/scanner/ScanResultBand.vue';
 import ScanNameFallbackCard from '../components/scanner/ScanNameFallbackCard.vue';
 import ScanSessionExpiredCard from '../components/scanner/ScanSessionExpiredCard.vue';
@@ -25,6 +25,7 @@ import { useSafeProducts } from '../composables/useSafeProducts.js';
 const router = useRouter();
 
 let unsuscribeToAuthObserver = () => {};
+let resumeTimer = null;
 
 const user = ref({});
 const product = ref(null);
@@ -192,7 +193,10 @@ const confirmNameSearch = async () => {
   }
 };
 
+// The panel leaves altogether here, so there is nothing left to wait for: any
+// resume still on the clock is stale and the camera comes back right away.
 function dismissScanResult() {
+  window.clearTimeout(resumeTimer);
   sheetState.value = 'hidden';
   product.value = null;
   resumeScanner();
@@ -207,9 +211,21 @@ function allowNavigation() {
 
 // Covered by the panel the camera has nothing to show and nobody watching, so
 // it stops working instead of burning battery behind an opaque screen.
+//
+// Stopping is free and helps the panel climb. Starting is not: from the first
+// frame back, every frame runs a barcode detection pass over the video, and
+// doing that while the panel is still shrinking is what made the way down feel
+// like it stuttered. So the camera waits for the panel to land. Nothing is lost
+// by waiting — half covered by the panel it had nothing readable to look at.
 function onFullChange(isFull) {
-  if (isFull) pauseScanner();
-  else resumeScanner();
+  window.clearTimeout(resumeTimer);
+
+  if (isFull) {
+    pauseScanner();
+    return;
+  }
+
+  resumeTimer = window.setTimeout(resumeScanner, SHEET_SETTLE_MS);
 }
 
 async function startCamera() {
@@ -250,6 +266,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(async () => {
+  window.clearTimeout(resumeTimer);
   await cleanupScanner();
   unsuscribeToAuthObserver();
 });
