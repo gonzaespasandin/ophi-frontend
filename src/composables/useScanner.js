@@ -20,6 +20,8 @@ let scannerContainer = null;
 let nativeStream = null;
 let nativeVideo = null;
 let nativeFrameRequest = null;
+let nativeScanFrame = null;
+let isScannerPaused = false;
 let isHandlingDetection = false;
 let isScanLocked = false;
 let quaggaStarted = false;
@@ -99,6 +101,50 @@ export const useScanner = () => {
     }
   };
 
+  // While the result panel covers the whole screen there is nothing to read and
+  // nobody to read it for: the frame loop and the video stop burning battery,
+  // and the stream stays open so coming back is instant instead of asking for
+  // the camera again.
+  const pauseScanner = () => {
+    if (isScannerPaused) return;
+
+    isScannerPaused = true;
+
+    if (nativeFrameRequest) {
+      window.cancelAnimationFrame(nativeFrameRequest);
+      nativeFrameRequest = null;
+    }
+
+    nativeVideo?.pause();
+
+    if (quaggaStarted) {
+      try {
+        Quagga.pause();
+      } catch {
+        // Quagga was already stopped.
+      }
+    }
+  };
+
+  const resumeScanner = () => {
+    if (!isScannerPaused) return;
+
+    isScannerPaused = false;
+
+    if (nativeVideo && nativeScanFrame) {
+      nativeVideo.play().catch(() => {});
+      nativeFrameRequest = window.requestAnimationFrame(nativeScanFrame);
+    }
+
+    if (quaggaStarted) {
+      try {
+        Quagga.start();
+      } catch {
+        // Quagga was already stopped.
+      }
+    }
+  };
+
   const resetLastScanned = (options = {}) => {
     lastScannedCode = null;
     lastScannedAt = 0;
@@ -120,6 +166,8 @@ export const useScanner = () => {
     initializeScannerLibrary,
     initializeScanner,
     cleanupScanner,
+    pauseScanner,
+    resumeScanner,
     resetLastScanned,
   };
 };
@@ -199,6 +247,7 @@ async function tryStartNativeScanner(target, onBarcodeDetected, sessionId) {
     }
   };
 
+  nativeScanFrame = scanFrame;
   nativeFrameRequest = window.requestAnimationFrame(scanFrame);
   return true;
 }
@@ -227,8 +276,10 @@ function stopNativeScanner() {
   }
 
   nativeFrameRequest = null;
+  nativeScanFrame = null;
   nativeStream = null;
   nativeVideo = null;
+  isScannerPaused = false;
 }
 
 async function startQuaggaScanner(target, onBarcodeDetected, sessionId) {

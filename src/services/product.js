@@ -2,6 +2,8 @@ import axios from "axios";
 import axiosInstance from "../config/axios.js";
 
 
+// SIN USO: ningún componente la llama actualmente. Se conserva porque el
+// endpoint GET /api/products/{id} sigue activo en el backend.
 export async function findProductById(id) {
     try {
         const response = await axiosInstance.get('/api/products/' + id);
@@ -12,6 +14,9 @@ export async function findProductById(id) {
     }
 }
 
+// SIN USO: el escáner resuelve los códigos con processBarcode() de
+// services/scanner.js. Se conserva porque el endpoint
+// GET /api/products/barcode/{barcode} sigue activo en el backend.
 export async function findByBarcode(barcode) {
     try {
         const result = await axiosInstance.get(`/api/products/barcode/${barcode}`);
@@ -55,6 +60,9 @@ export async function getMatchesByName(name) {
 }
 
 
+// SIN USO: quedó libre al eliminar components/ui/RecomendedProducts.vue, su
+// único consumidor. Los recomendados del home salen hoy de getSafeProducts().
+// Se conserva porque el endpoint POST /api/products/recomended sigue activo.
 export async function getRecomendedProducts(userIngredients) {
     try {
         const result = await axiosInstance.post(`/api/products/recomended`, {

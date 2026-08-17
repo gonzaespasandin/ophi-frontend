@@ -1,153 +1,240 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { onBeforeRouteLeave, useRouter } from 'vue-router';
+import { onBeforeRouteLeave, useRouter, RouterLink } from 'vue-router';
 import AuthLayout from '../layouts/AuthLayout.vue';
 import { suscribeToAuthObserver } from '../services/auth';
-import { useProductSafety } from '../composables/useProductSafety.js';
+import { useProductVerdict } from '../composables/useProductVerdict.js';
 import { useScanner } from '../composables/useScanner.js';
-import { useSwipeGesture } from '../composables/useSwipeGesture.js';
 import { processBarcode } from '../services/scanner.js';
 import { saveToHistory } from '../services/history.js';
 import { getMatchesByName, search } from '../services/product';
-import Alert from '../components/ui/Alert.vue';
-import AlertSomeUsers from '../components/ui/AlertSomeUsers.vue';
-import AppLoading from '../components/loadings/AppLoading.vue';
+import ScanResultSheet from '../components/scanner/ScanResultSheet.vue';
+import ScanResultBand from '../components/scanner/ScanResultBand.vue';
+import ScanNameFallbackCard from '../components/scanner/ScanNameFallbackCard.vue';
+import ScanSessionExpiredCard from '../components/scanner/ScanSessionExpiredCard.vue';
+import ScanNoRestrictionsCard from '../components/scanner/ScanNoRestrictionsCard.vue';
+import CameraErrorScreen from '../components/scanner/CameraErrorScreen.vue';
+import ProductSummaryCard from '../components/product/ProductSummaryCard.vue';
+import ProductProfileBreakdown from '../components/product/ProductProfileBreakdown.vue';
+import ProductIngredientsCard from '../components/product/ProductIngredientsCard.vue';
+import ProductErrorState from '../components/product/ProductErrorState.vue';
+import ProductResultSkeleton from '../components/product/ProductResultSkeleton.vue';
+import RecommendedCarousel from '../components/home/RecommendedCarousel.vue';
+import { useSafeProducts } from '../composables/useSafeProducts.js';
 
 const router = useRouter();
 
 let unsuscribeToAuthObserver = () => {};
+
 const user = ref({});
 const product = ref(null);
-const showProduct = ref(false);
-const showError = ref(false);
-const errorMessage = ref('');
-const safetyDataReady = ref(false);
+// hidden | loading | result | not-found | network-error | session-expired
+const sheetState = ref('hidden');
 const scannedCode = ref('');
-const lastFailedCode = ref('');
-const isProcessing = ref(false);
+const cameraError = ref('');
+const isLeavingOnPurpose = ref(false);
 
-const { safe, unsafeIngredients, normalizedIngredients, checkAll, resetSafety, unrestrictedProfiles } = useProductSafety();
-const { scannerError, initializeScannerLibrary, initializeScanner, cleanupScanner, resetLastScanned } = useScanner();
-
-const showNameFallback = ref(false);
 const nameSearch = ref('');
 const nameError = ref('');
 const nameMatches = ref([]);
-const productsForSearchListView = ref([]);
 
-const productIngredients = computed(() =>
-  product.value?.ingredients?.map(i => i.name) ?? []
+const {
+  scannerError,
+  initializeScannerLibrary,
+  initializeScanner,
+  cleanupScanner,
+  pauseScanner,
+  resumeScanner,
+  resetLastScanned,
+} = useScanner();
+
+const { products: safeProducts, state: safeProductsState, load: loadSafeProducts } = useSafeProducts();
+
+const profiles = computed(() => user.value?.profiles ?? []);
+const productIngredients = computed(() => product.value?.ingredients ?? []);
+
+const {
+  filterProfileId,
+  verdict,
+  profilesWithRestrictions,
+  unrestrictedProfiles,
+  unsafeProfiles,
+  safeProfiles,
+  conflicts,
+  totalConflictCount,
+  allMatches,
+  traces,
+  cleanIngredients,
+} = useProductVerdict(profiles, productIngredients);
+
+const isSingleProfile = computed(() => profiles.value.length <= 1);
+const hasIngredients = computed(() => productIngredients.value.length > 0);
+const hasRestrictions = computed(() => profilesWithRestrictions.value.length > 0);
+
+// The band never wears a colour the app cannot sustain yet: slate while the
+// answer travels, slate again when there is nothing to compare against.
+const bandVariant = computed(() => ({
+  loading: 'loading',
+  'not-found': 'not-found',
+  'network-error': 'neutral',
+  'session-expired': 'neutral',
+}[sheetState.value] ?? verdict.value));
+
+const productRoute = computed(() => {
+  const brand = product.value?.brand?.name;
+
+  return product.value?.name && brand ? `/product/${product.value.name}/${brand}` : null;
+});
+
+// One row per profile, traces included: the history has to record the whole hit,
+// not only the declared ingredients.
+const historyResults = computed(() =>
+  profiles.value.map((profile) => {
+    const hits = allMatches.value.filter(
+      (match) => match.profiles.some((affected) => affected.id === profile.id)
+    );
+
+    return {
+      forWho: profile.name,
+      isSafe: hits.length === 0,
+      unsafeIngredients: hits.map((match) => match.name),
+    };
+  })
 );
 
 const onBarcodeDetected = async (codigo) => {
   scannedCode.value = codigo;
-  isProcessing.value = true;
-  showError.value = false;
-  showProduct.value = false;
+  sheetState.value = 'loading';
+  filterProfileId.value = null;
 
   try {
     const data = await processBarcode(codigo);
 
-    resetSafety();
-    safetyDataReady.value = false;
     product.value = data;
+    sheetState.value = 'result';
 
-    // Solo corremos safety check + history si el producto está en la DB de Ophi
-    // (tiene id) y tiene ingredientes cargados. Los productos que vienen sólo
-    // del catálogo externo (data.from_catalog) todavía no tienen ingredientes.
-    const isOphiProduct = !data.from_catalog && data.id;
-    const hasIngredients = data.ingredients?.length > 0;
-
-    if (isOphiProduct && hasIngredients && user.value.profiles?.length > 0) {
-      checkAll(user.value.profiles, data.ingredients);
-      safetyDataReady.value = true;
-      await saveToHistory(data, safe.value, user.value.profiles);
-    }
-
-    showError.value = false;
-    showProduct.value = true;
-    showNameFallback.value = false;
+    await persistHistory(data);
   } catch (err) {
-    const status = err?.response?.status;
-    showProduct.value = false;
-    showError.value = true;
+    product.value = null;
     nameSearch.value = '';
     nameError.value = '';
     nameMatches.value = [];
 
-    if (status === 404) {
-      lastFailedCode.value = codigo;
-      showNameFallback.value = true;
-      errorMessage.value = '';
+    sheetState.value = errorStateFor(err?.response?.status);
+
+    if (sheetState.value === 'not-found') {
       localStorage.setItem('pending_scan_barcode', codigo);
-    } else if (status === 401) {
-      showNameFallback.value = false;
-      errorMessage.value = 'Tu sesión expiró o no estás autenticado. Volvé a iniciar sesión para poder escanear.';
-    } else {
-      showNameFallback.value = false;
-      const backendMsg = err?.response?.data?.message;
-      errorMessage.value = `Error al consultar: ${backendMsg || err?.message || 'Error desconocido'}`;
     }
-  } finally {
-    isProcessing.value = false;
   }
 };
 
+function errorStateFor(status) {
+  if (status === 404) return 'not-found';
+  if (status === 401) return 'session-expired';
+
+  return 'network-error';
+}
+
+// A failed history write must never turn a good verdict into an error screen:
+// the answer is already on screen and it is the part that matters.
+async function persistHistory(data) {
+  const isOphiProduct = !data.from_catalog && data.id;
+
+  if (!isOphiProduct || !hasIngredients.value || profiles.value.length === 0) return;
+
+  try {
+    await saveToHistory(data, historyResults.value, profiles.value);
+  } catch (err) {
+    console.error('[ScannerView] -> No se pudo guardar el escaneo en el historial', err);
+  }
+}
+
+function retryScan() {
+  if (!scannedCode.value) return;
+
+  onBarcodeDetected(scannedCode.value);
+}
+
 const handleNameInput = async () => {
   const term = nameSearch.value.trim();
+
   if (!term) {
     nameMatches.value = [];
     return;
   }
+
   try {
     nameMatches.value = await getMatchesByName(term);
   } catch (error) {
-    console.error('Error al buscar coincidencias por nombre desde el scanner', error);
+    console.error('[ScannerView] -> Error al buscar coincidencias por nombre', error);
   }
 };
 
 const confirmNameSearch = async () => {
   const normalizedName = nameSearch.value.trim().toLowerCase();
+
   if (!normalizedName) {
     nameError.value = 'Ingresá el nombre del producto';
     return;
   }
+
   nameError.value = '';
+
   try {
     const result = await search(normalizedName);
+
     if (result) {
-      productsForSearchListView.value = result;
-      localStorage.removeItem('products');
-      localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
+      localStorage.setItem('products', JSON.stringify(result));
       router.push(`/search-list/${normalizedName}`);
     }
   } catch (error) {
-    console.error('Error al buscar productos por nombre desde el scanner', error);
+    console.error('[ScannerView] -> Error al buscar productos por nombre', error);
   }
 };
 
-function boldProductName(productName) {
-  if (!nameSearch.value) return productName;
-  const regex = new RegExp(nameSearch.value, 'i');
-  return productName.replace(regex, match => `<span class="font-semibold">${match}</span>`);
-}
-
-const { translateY, getTouch, moveTouch, endTouch } = useSwipeGesture(
-  () => showProduct.value || showError.value,
-  () => {
-    dismissScanResult();
-  }
-);
-
 function dismissScanResult() {
-  showProduct.value = false;
-  showError.value = false;
-  isProcessing.value = false;
+  sheetState.value = 'hidden';
+  product.value = null;
+  resumeScanner();
   resetLastScanned();
 }
 
+// Leaving the scanner on purpose and closing the panel are different intents,
+// and the route guard below has to tell them apart.
+function allowNavigation() {
+  isLeavingOnPurpose.value = true;
+}
+
+// Covered by the panel the camera has nothing to show and nobody watching, so
+// it stops working instead of burning battery behind an opaque screen.
+function onFullChange(isFull) {
+  if (isFull) pauseScanner();
+  else resumeScanner();
+}
+
+async function startCamera() {
+  cameraError.value = '';
+
+  const container = document.querySelector('#camera-view-container');
+  await initializeScanner(container, onBarcodeDetected);
+
+  if (scannerError.value) {
+    cameraError.value = scannerError.value;
+  }
+}
+
+async function retryCamera() {
+  await cleanupScanner();
+  await startCamera();
+}
+
+// The hardware back button closes the panel instead of leaving the scanner, so
+// somebody can scan ten products in a row. Anything the user aimed at on
+// purpose still gets through.
 onBeforeRouteLeave(() => {
-  if (showProduct.value || showError.value || isProcessing.value) {
+  if (isLeavingOnPurpose.value) return true;
+
+  if (sheetState.value !== 'hidden') {
     dismissScanResult();
     return false;
   }
@@ -158,12 +245,8 @@ onBeforeRouteLeave(() => {
 onMounted(async () => {
   unsuscribeToAuthObserver = suscribeToAuthObserver((state) => (user.value = state));
   initializeScannerLibrary();
-  const container = document.querySelector('#camera-view-container');
-  await initializeScanner(container, onBarcodeDetected);
-  if (scannerError.value) {
-    showError.value = true;
-    errorMessage.value = scannerError.value;
-  }
+  loadSafeProducts();
+  await startCamera();
 });
 
 onBeforeUnmount(async () => {
@@ -174,132 +257,121 @@ onBeforeUnmount(async () => {
 
 <template>
   <AuthLayout :padded="false">
-    <div class="relative h-full min-h-full overflow-hidden bg-black" @touchstart="getTouch" @touchmove="moveTouch" @touchend="endTouch">
+    <div class="relative h-full min-h-full overflow-hidden bg-black">
       <div class="square-with-gradient-scanner scanner-top">
         <img src="../assets/img/logo-positivo.png" alt="Logo de ophi" class="m-auto mt-20">
       </div>
       <h1 class="sr-only text-4xl">Escaner</h1>
 
-      <!-- Cámara ocupa la parte superior -->
       <div class="absolute inset-0 w-full h-full" id="camera-view-container"></div>
 
-      <!-- Parte inferior: resultados / fallback -->
-      <div id="results" class="h-full absolute bottom-0 w-full flex items-end justify-center pb-[var(--app-bottom-inset)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" :class="(showProduct && product || showError || isProcessing) ? 'bg-black/70 backdrop-blur-sm opacity-100' : 'opacity-0 pointer-events-none'">
-        <div v-if="isProcessing" class="bg-[#f5f5f5] w-full rounded-t-[11px] flex justify-center items-center py-10">
-          <AppLoading />
-        </div>
-        <div v-if="showProduct && product" class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out" :style="{ transform: `translateY(${translateY}px)` }">
-          <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
-          <div class="bg-white shadow-md m-3 p-3 rounded-[11px]">
-            <h2 class="text-center text-2xl">{{ product.name }}</h2>
-            <p v-if="product.brand?.name" class="text-center text-sm text-gray-500">{{ product.brand.name }}</p>
-            <span v-if="!product.from_catalog" class="block text-center mt-3 mb-3">Resultados</span>
-            <template v-if="safetyDataReady">
-              <Alert
-                v-if="user.profiles && user.profiles.length === 1"
-                :safe="safe"
+      <CameraErrorScreen v-if="cameraError" :message="cameraError" @retry="retryCamera" />
+
+      <Transition v-else name="sheet">
+        <ScanResultSheet
+          v-if="sheetState !== 'hidden'"
+          id="results"
+          :expandable="sheetState === 'result'"
+          @dismiss="dismissScanResult"
+          @leave="allowNavigation"
+          @update:full="onFullChange"
+        >
+          <template #band="{ full, collapse }">
+            <ScanResultBand
+              :variant="bandVariant"
+              :barcode="scannedCode"
+              :profiles-count="profiles.length"
+              :unsafe-count="unsafeProfiles.length"
+              :conflict-count="totalConflictCount"
+              :full="full"
+              @dismiss="dismissScanResult"
+              @collapse="collapse"
+            />
+          </template>
+
+          <ProductResultSkeleton v-if="sheetState === 'loading'" />
+
+          <template v-else-if="sheetState === 'result' && product">
+            <ProductSummaryCard :product="product">
+              <ProductProfileBreakdown
+                v-if="!isSingleProfile && verdict !== 'unknown'"
+                :unsafe-profiles="unsafeProfiles"
+                :safe-profiles="safeProfiles"
+                :unrestricted-profiles="unrestrictedProfiles"
               />
-              <AlertSomeUsers
-                v-else-if="user.profiles && user.profiles.length > 1"
-                :safe="safe"
-                :unrestrictedProfiles="unrestrictedProfiles"
+            </ProductSummaryCard>
+
+            <ScanNoRestrictionsCard v-if="!hasRestrictions" class="mt-3" />
+
+            <template v-else>
+              <h2 class="mt-5 mb-[10px] px-1 font-roboto-slab font-semibold text-[12px] tracking-[.09em] uppercase text-ophi-blue">
+                Ingredientes
+              </h2>
+
+              <ProductIngredientsCard
+                v-model="filterProfileId"
+                :conflicts="conflicts"
+                :total-conflicts="totalConflictCount"
+                :traces="traces"
+                :clean-ingredients="cleanIngredients"
+                :filter-profiles="profilesWithRestrictions"
+                :single-profile="isSingleProfile"
+                :has-ingredients="hasIngredients"
               />
             </template>
-            <p v-else-if="product.from_catalog" class="text-center text-sm text-gray-600 mt-4 px-2">
-              Encontramos el producto en el catálogo, pero todavía no tenemos sus ingredientes cargados.
-            </p>
-          </div>
 
-          <div v-if="safetyDataReady" class="bg-white shadow-md m-3 p-3 rounded-[11px]">
-            <h3 class="sr-only">Ingredientes</h3>
-            <p v-if="normalizedIngredients.length === 0" class="text-2xl font-roboto-slab">Ingredientes</p>
-            <p v-else-if="safe.length === 1" :class="safe[0].isSafe ? 'text-[#009161]' : 'text-[#C43B52]'" class="text-2xl font-roboto-slab">{{ safe[0].isSafe ? 'Ingredientes' : unsafeIngredients.join(', ') }}</p>
-            <p v-else class="text-[#C43B52] text-2xl font-roboto-slab">{{ unsafeIngredients.join(', ') }}</p>
-            <p>{{ (normalizedIngredients.length === 0) ? productIngredients.join(', ') : normalizedIngredients.join(', ') }}</p>
-          </div>
-        </div>
+            <RouterLink
+              v-if="productRoute"
+              :to="productRoute"
+              class="flex items-center justify-center gap-2 mt-[14px] w-full h-11 rounded-card border-2 border-ophi-green bg-white font-semibold text-[14px] text-ophi-green-dark active:bg-ophi-green-soft transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ophi-green"
+            >
+              Ver la ficha completa
+              <i class="fa-solid fa-arrow-right text-[12px]" aria-hidden="true"></i>
+            </RouterLink>
 
-        <!-- Bloque de error / fallback -->
-        <div
-          v-else-if="showError"
-          class="bg-[#f5f5f5] w-full rounded-t-[11px] transition-all duration-300 ease-out min-h-[35vh]"
-          :style="{ transform: `translateY(${translateY}px)` }"
-        >
-          <!-- Caso: no se encontró el código (404) → panel con input de nombre -->
-          <template v-if="showNameFallback">
-            <div class="mb-5">
-              <div class="h-[5px] bg-gray-300 m-3 w-[40%] mx-auto rounded-[11px]"></div>
-              <h2 class="text-center text-xl font-semibold mb-2">Producto no encontrado</h2>
-              <p class="text-center text-sm text-gray-700">
-                ¡Lo sentimos! No encontramos ningún producto asociado a este código de barras
-              </p>
-              <p v-if="lastFailedCode" class="text-center text-xs text-gray-500 mt-1">
-                Código escaneado: <strong>{{ lastFailedCode }}</strong>
-              </p>
-            </div>
-
-            <div class="bg-white rounded-b-2xl shadow-md w-full max-w-md p-4">
-              <label for="fallbackName" class="block text-sm font-medium text-gray-700 mb-2">
-                Nombre del producto
-              </label>
-              <input
-                id="fallbackName"
-                v-model="nameSearch"
-                type="text"
-                placeholder="Ej: Yogur descremado frutilla"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#009161]"
-                @input="handleNameInput"
+            <!--
+              Always in the tree, always below the fold. The panel does not grow
+              to reveal it: it grows because you were already reading towards it.
+            -->
+            <div class="mt-[22px]">
+              <RecommendedCarousel
+                title="También puede interesarte"
+                :products="safeProducts"
+                :profiles="profiles"
+                :state="safeProductsState"
+                :empty-state="{
+                  title: 'No encontramos alternativas',
+                  message: 'Todavía no tenemos productos que sirvan para todos tus perfiles.',
+                }"
               />
-              <p v-if="nameError" class="mt-1 text-xs text-red-600">
-                {{ nameError }}
-              </p>
-
-              <ul v-if="nameMatches.length > 0" class="mt-4 w-full max-w-md">
-                <li
-                  v-for="match in nameMatches"
-                  :key="match.id ?? undefined"
-                  class="bg-[#f5f5f5] px-3 py-2 mb-2 rounded"
-                >
-                  <RouterLink
-                    :to="`/product/${match.name}/${match.brand.name}`"
-                    class="flex justify-between items-center"
-                  >
-                    <div class="flex flex-col text-left">
-                      <span v-html="boldProductName(match.name)"></span>
-                      <span class="font-medium text-sm">{{ match.brand.name }}</span>
-                    </div>
-                  </RouterLink>
-                </li>
-              </ul>
-
-              <button
-                type="button"
-                class="mt-4 w-full py-2 rounded-full bg-[#00A878] text-white font-semibold"
-                @click="confirmNameSearch"
-              >
-                Confirmar
-              </button>
             </div>
           </template>
 
-          <!-- Otros errores (auth, server, etc.) -->
-          <template v-else>
-            <p class="text-lg font-semibold mb-4 text-center">
-              {{ errorMessage }}
-            </p>
-          </template>
-        </div>
-      </div>
+          <ScanNameFallbackCard
+            v-else-if="sheetState === 'not-found'"
+            v-model="nameSearch"
+            :matches="nameMatches"
+            :error="nameError"
+            @search="handleNameInput"
+            @confirm="confirmNameSearch"
+          />
+
+          <ProductErrorState
+            v-else-if="sheetState === 'network-error'"
+            :barcode="scannedCode"
+            secondary-label="Escanear otro"
+            @retry="retryScan"
+            @secondary="dismissScanResult"
+          />
+
+          <ScanSessionExpiredCard v-else-if="sheetState === 'session-expired'" />
+        </ScanResultSheet>
+      </Transition>
     </div>
   </AuthLayout>
 </template>
 
 <style scoped>
-canvas {
-  border-radius: 12px;
-  border: 3px solid #005B8E;
-}
-
 .scanner-top {
   position: absolute;
   z-index: 3;
@@ -307,7 +379,23 @@ canvas {
   height: 650px;
 }
 
-#results {
-  z-index: 10;
+.sheet-enter-active {
+  transition: opacity .28s ease-out;
+}
+
+.sheet-leave-active {
+  transition: opacity .2s ease-in;
+}
+
+.sheet-enter-from,
+.sheet-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-enter-active,
+  .sheet-leave-active {
+    transition: none;
+  }
 }
 </style>

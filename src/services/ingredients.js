@@ -2,6 +2,8 @@ import axiosInstance from "../config/axios.js";
 let controller;
 
 
+// SIN USO: ningún componente la llama actualmente. Se conserva porque el
+// endpoint GET /api/ingredients sigue activo en el backend.
 export async function getAllIngredients() {
     if(controller) controller.abort();
     
