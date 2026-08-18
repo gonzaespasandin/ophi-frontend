@@ -57,6 +57,9 @@
     --color-ophi-green-soft: #E9F5F0;
     --color-ophi-danger: #C43B52;
     --color-ophi-danger-soft: #FDF2F4;
+    /* The action green is brighter than ophi-green: it carries the primary
+       buttons, where ophi-green is reserved for secondary marks and icons. */
+    --color-ophi-action: #009161;
     --color-ophi-slate: #5B6572;
     --color-ophi-surface: #F7F9FB;
     --color-ophi-border: #EDEFF2;
@@ -73,6 +76,43 @@
 @utility dot-texture-page {
     background-image: radial-gradient(rgb(0 91 142 / .08) 1.5px, transparent 1.5px);
     background-size: 16px 16px;
+}
+
+@utility scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@keyframes band-rise {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+}
+
+/* Shares curve and duration with the scanner bottom sheet, so the two surfaces
+   that rise from the bottom edge of the app move the same way. */
+@utility band-rise {
+    animation: band-rise .5s cubic-bezier(.2, .8, .2, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+@keyframes step-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+@utility step-in {
+    animation: step-in .2s ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
 }
 
 @keyframes shimmer {
