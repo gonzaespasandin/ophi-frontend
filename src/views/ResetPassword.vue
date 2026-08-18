@@ -82,7 +82,7 @@ function clearError(field) {
               autofocus
               @input="clearError('password')"
               placeholder="Nueva contraseña"
-              :class="formErrors.password ? 'inputs-wrong' : 'inputs'"
+              :invalid="!!formErrors.password"
           />
           <p v-if="formErrors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
             {{ formErrors.password }}

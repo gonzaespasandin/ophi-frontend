@@ -92,6 +92,8 @@ function handleSubmit() {
         <span class="font-medium text-[13px] text-gray-700">Tu contraseña actual</span>
         <InputPassword
           v-model="currentPassword"
+          tone="light"
+          :invalid="errorField === 'password'"
           required
           autocomplete="current-password"
           :aria-invalid="errorField === 'password' ? 'true' : undefined"
