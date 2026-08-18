@@ -1,39 +1,31 @@
 <script setup>
+import { computed, ref } from "vue";
 import IntolerancesPicker from "../ingredients/IntolerancesPicker.vue";
+import AuthButton from "../auth/AuthButton.vue";
 
 const model = defineModel();
 const emit = defineEmits(['next', 'previous']);
-const props = defineProps({
-  where: String,
-  loadingTheme: {
-    type: String,
-  }
+
+const selectedCount = ref(0)
+
+const selectionHint = computed(() => {
+  if (selectedCount.value === 0) return 'Podés seguir sin elegir ninguna'
+
+  return selectedCount.value === 1 ? '1 seleccionada' : `${selectedCount.value} seleccionadas`
 })
-
-
 </script>
 
 <template>
-  <div class="flex flex-col grow">
-    <button
-        type="button"
-        class="border border-black/20 hover:bg-black/10 hover:border-black/30 transition cursor-pointer inline-flex items-center py-2 px-4 gap-2 me-auto mb-2 rounded-[11px]"
-        @click.prevent="emit('previous')"
-    ><i class="fa-solid fa-chevron-left pe-2"></i> Volver</button>
+  <div class="flex flex-col flex-1 step-in">
+    <h2 class="mb-1 font-roboto-slab font-bold text-[21px]/[1.2] text-white">¿Tenés alguna intolerancia?</h2>
+    <p class="mb-4 text-[13.5px]/[1.5] text-white/80">Seleccioná todas las que correspondan.</p>
 
-    <div>
-      <h2 class="text-2xl font-semibold text-center">¿Tenés alguna intolerancia?</h2>
-      <p class="text-center mb-4 mt-2">Seleccioná todas las que correspondan</p>
-    </div>
+    <IntolerancesPicker v-model="model.ingredients" @update:selected-count="selectedCount = $event" />
 
-    <div class="flex flex-col justify-between grow">
-        <IntolerancesPicker :loadingTheme="props.loadingTheme" v-model="model.ingredients" :where="where"/>
-    
-        <button
-            class="action-btn mt-6 w-full"
-            @click="emit('next')"
-        >Siguiente</button>
-    </div>
+    <div class="flex-1 min-h-[18px]"></div>
 
+    <p class="mb-[11px] text-center text-[12.5px] text-white/70">{{ selectionHint }}</p>
+
+    <AuthButton icon="fa-arrow-right" @click="emit('next')">Siguiente</AuthButton>
   </div>
 </template>

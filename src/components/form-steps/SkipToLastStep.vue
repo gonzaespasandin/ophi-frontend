@@ -1,40 +1,31 @@
 <script setup>
-const model = defineModel()
-const emit = defineEmits(['next', 'previous', 'golast']);
-const props = defineProps({
-  where: String
-})
+import AuthButton from "../auth/AuthButton.vue";
 
+const emit = defineEmits(['next', 'previous', 'golast'])
 </script>
 
 <template>
-  <div class="grow flex flex-col">
-    <div class="grow">
-      <button
-          type="button"
-          class="border border-black/20 hover:bg-black/10 hover:border-black/30 transition cursor-pointer inline-flex items-center py-2 px-4 gap-2 me-auto mb-2 rounded-[11px]"
-          @click.prevent="emit('previous')"
-      ><i class="fa-solid fa-chevron-left pe-2"></i> Volver</button>
+  <div class="flex flex-col flex-1 step-in">
+    <div class="flex-1 flex flex-col justify-center pt-2.5 pb-6 text-center">
+      <span class="grid place-items-center w-[66px] h-[66px] mx-auto mb-[18px] rounded-[18px] bg-white/15 border border-white/30 text-[27px] text-white">
+        <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+      </span>
 
-      <div>
-        <h2 class="text-2xl font-semibold text-center">¿Querés completar tu perfil ahora?</h2>
-        <p class="text-center mb-3 mt-2">(Intolerancias, alergias y dietas especiales)</p>
-      </div>
+      <h2 class="mb-2.5 font-roboto-slab font-bold text-[23px]/[1.25] text-white">
+        ¿Cargamos tu perfil<br>alimenticio ahora?
+      </h2>
+
+      <p class="mx-auto max-w-[290px] text-[13.5px]/[1.6] text-white/85">
+        Son tres pantallas de tildar opciones: intolerancias, alergias y dietas.
+        <b class="font-semibold text-white">Sin esto no podemos darte veredictos</b>, pero podés
+        hacerlo más tarde desde tu perfil.
+      </p>
     </div>
 
-    <div class="flex flex-col justify-between">
-      <button
-          type="button"
-          class="secondary-action-btn text-black w-full mt-6"
-          @click="emit('golast')"
-      >
-        No, no quiero completarlo ahora
-      </button>
-      <button
-          class="py-2 px-4 w-full bg-blue-900 text-white disabled:bg-gray-700 disabled:opacity-50 not-disabled:cursor-pointer mt-5 action-btn"
-          :disabled="!model.terms_and_conditions"
-          @click="emit('next')"
-      >Sí, quiero completarlo ahora</button>
-    </div>
+    <AuthButton icon="fa-arrow-right" @click="emit('next')">Sí, lo cargo ahora</AuthButton>
+
+    <AuthButton variant="secondary" class="mt-[11px]" @click="emit('golast')">
+      No, lo completo después
+    </AuthButton>
   </div>
 </template>

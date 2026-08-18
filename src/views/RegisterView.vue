@@ -1,8 +1,9 @@
 <script setup>
-import StepsContainer from "../components/form-steps/StepsContainer.vue";
-import {register} from "../services/auth.js";
-import {ref} from "vue";
+import { ref } from "vue";
 import { useRouter } from 'vue-router'
+import StepsContainer from "../components/form-steps/StepsContainer.vue";
+import AuthErrorBanner from "../components/auth/AuthErrorBanner.vue";
+import { register } from "../services/auth.js";
 
 const loading = ref(false);
 const router = useRouter();
@@ -10,23 +11,23 @@ const registrationErrors = ref({});
 const generalError = ref(null);
 
 async function handleSubmit(formData) {
-  console.log('Registrar usuario', formData)
   loading.value = true;
   registrationErrors.value = {};
   generalError.value = null;
-  
+
   try {
     await register(formData)
     localStorage.removeItem('ophi-step-form')
     router.push('/')
   } catch (error) {
-    console.error({error});
+    console.error('[RegisterView] -> handleSubmit(), Error:', error);
+
     if (error.status === 422) {
       registrationErrors.value = error.response?.data?.errors || {};
-      generalError.value = 'Por favor, corregí los errores en el formulario';
-    } 
+      generalError.value = 'Revisá los campos marcados. Todo lo que cargaste en los pasos anteriores quedó guardado.';
+    }
     else {
-      generalError.value = 'Ha ocurrido un error al registrar. Por favor, intenta de nuevo.';
+      generalError.value = 'Ha ocurrido un error al registrar. Por favor, intentá de nuevo.';
     }
   } finally {
     loading.value = false;
@@ -35,50 +36,25 @@ async function handleSubmit(formData) {
 </script>
 
 <template>
-  <div class="flex flex-col h-dvh overflow-y-auto">
+  <div class="h-dvh overflow-hidden bg-[#F5F5F5]">
+    <h1 class="sr-only">Crear una cuenta en Ophi</h1>
 
-    <!-- HEADER -->
-    <div class="flex flex-col bg-texture">
-      <img src="../assets/img/logo.png" alt="Logo de ophi">
-      <div class="flex flex-col justify-center mb-5 px-3 h-30">
-        <h1 class="text-3xl text-center">Registro</h1>
-      </div>
-    </div>
-
-    <!-- CONTENIDO CENTRAL QUE CRECE -->
-    <div class="flex flex-col grow justify-start">
-
-      <div 
-        v-if="generalError" 
-        class="bg-[#C43B52] p-3 mx-3 mb-2 rounded-[11px] text-white text-center"
-      >
-        <p>{{ generalError }}</p>
-      </div>
-
-      <StepsContainer
-        :steps="['terms', 'skip_to_last_step', 'intolerances', 'allergies', 'diets', 'new_user_data']"
-        @submit="handleSubmit"
-        :where="'register'"
-        :errors="registrationErrors"
-        :loadingTheme="'white'"
-        :loading="loading"
-        class="bg-[#005B8E] flex flex-col justify-between py-6 text-white p-3 grow"  
-      />
-    </div>
+    <StepsContainer
+      fill
+      screen="register"
+      :steps="['terms', 'skip_to_last_step', 'intolerances', 'allergies', 'diets', 'new_user_data']"
+      :errors="registrationErrors"
+      :loading="loading"
+      @submit="handleSubmit"
+    >
+      <template #banner>
+        <AuthErrorBanner
+          v-if="generalError"
+          title="No pudimos crear tu cuenta"
+          :message="generalError"
+          class="mb-4"
+        />
+      </template>
+    </StepsContainer>
   </div>
 </template>
-
-
-
-<style scoped>
-  .bg-texture {
-    background-image: url('../assets/img/tramas/Artboard\ 1trama-1.png');
-
-    background-repeat: no-repeat;
-  }
-
-  img {
-    display: block;
-    margin: 4rem auto;
-  }
-</style>

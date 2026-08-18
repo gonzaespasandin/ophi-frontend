@@ -1,88 +1,83 @@
 <script setup>
-import {  onMounted, ref } from 'vue';
-import AppLoading from '../loadings/AppLoading.vue';
+import { onMounted, ref } from 'vue'
+import ProfileAvatar from '../ui/ProfileAvatar.vue'
+import AuthButton from '../auth/AuthButton.vue'
+import FieldError from '../auth/FieldError.vue'
 
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
-const nameError = ref(null); 
-const userProfiles = ref([]);
-const repeatedNameError = ref(null);
 
-const props = defineProps({
-  where: String,
+defineProps({
   errors: [Object, Boolean, null],
-  loading: Boolean
+  loading: Boolean,
 })
 
+const nameError = ref(null)
+const existingProfiles = ref([])
+
 function handleSubmit() {
-  nameError.value = null;
-  repeatedNameError.value = null;
-  if(model.value.name === '') {
-    nameError.value = 'El nombre es obligatorio';
-    return;
+  nameError.value = null
+
+  const name = model.value.name.trim()
+
+  if (name === '') {
+    nameError.value = 'El nombre es obligatorio'
+    return
   }
-  userProfiles.value.forEach(profile => {
-    if(profile.name === model.value.name) {
-      repeatedNameError.value = 'Ya tenés un perfil con ese nombre';
-    }
-  });
-  if(repeatedNameError.value) {
-    return;
+
+  const isTaken = existingProfiles.value.some(profile => profile.name === name)
+
+  if (isTaken) {
+    nameError.value = 'Ya tenés un perfil con ese nombre'
+    return
   }
-  nameError.value = null;
-  repeatedNameError.value = null;
-  emit('next');
+
+  emit('next')
 }
 
 onMounted(() => {
-  userProfiles.value = JSON.parse(sessionStorage.getItem('ophi-user')).profiles;
-}) 
+  // A cleared or expired session leaves no cached user behind; the duplicate
+  // check is a courtesy here, the server is the one that enforces it.
+  existingProfiles.value = JSON.parse(sessionStorage.getItem('ophi-user'))?.profiles ?? []
+})
 </script>
 
 <template>
+  <div class="flex flex-col flex-1 step-in">
+    <h2 class="mb-1 font-roboto-slab font-bold text-[21px]/[1.2] text-white">¿De quién estamos hablando?</h2>
+    <p class="mb-[18px] text-[13.5px]/[1.5] text-white/80">Poné un nombre que te sirva para reconocerlo.</p>
 
+    <div class="p-3 rounded-card bg-white/10 border border-white/25">
+      <label for="profile-name" class="block mb-2.5 font-medium text-[11.5px] uppercase tracking-[.05em] text-white/70">
+        Nombre del perfil
+      </label>
 
-    <div>
-      <button
-          type="button"
-          class="border border-black/20 hover:bg-black/10 hover:border-black/30 transition cursor-pointer inline-flex items-center py-2 px-4 gap-2 me-auto mb-2 rounded-[11px]"
-          @click.prevent="emit('previous')"
-      ><i class="fa-solid fa-chevron-left pe-2"></i> Volver</button>
+      <div class="flex items-center gap-[11px]">
+        <ProfileAvatar :name="model.name" :size="44" class="ring-2 ring-white/55" />
 
-      <h2 class="text-2xl font-semibold text-center" :class="props.where === 'addNew' ? 'text-lg' : 'text-2xl'">¿De quién estamos hablando?</h2>
-
-      <div class="mt-3">
-        <label for="name">Nombre</label>
         <input
-          id="name"
-          class="block border-b-1  text-black w-full p-2 mb-2 rounded-t-[.2rem] bg-[#f5f5f5]"
-          type="text"
-          name="name"
-          :class="(props.where === 'addNew' && nameError) ? 'border-b-red-600' : 'border-b-[#009161]'"
+          id="profile-name"
           v-model="model.name"
+          :aria-invalid="nameError ? 'true' : undefined"
+          :aria-describedby="nameError ? 'profile-name-error' : undefined"
+          class="flex-1 min-w-0 h-11 px-3 rounded-card bg-black/15 font-semibold text-[14.5px] text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
+          :class="nameError ? 'border-2 border-ophi-danger' : 'border-[1.5px] border-white/40'"
         >
-        <div v-if="props.where === 'addNew' && nameError" class=" text-red-600 pb-4">
-          {{ nameError }}
-        </div>
-        <div v-if="props.where === 'addNew' && repeatedNameError" class=" text-red-600 pb-4">
-          {{ repeatedNameError }}
-        </div>
       </div>
- 
-      <button
-          type="submit"
-          class="action-btn w-full"
-          @click="handleSubmit()"
-          :disabled="props.loading"
-          :class="props.loading ? 'opacity-60 cursor-not-allowed' : ''"
-      >
-        <span v-if="props.loading"><i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...</span>
-        <span v-else>Agregar perfil</span>
-      </button>
+
+      <FieldError v-if="nameError" id="profile-name-error" :message="nameError" />
     </div>
 
+    <div class="flex-1 min-h-[20px]"></div>
+
+    <AuthButton
+      data-testid="save-profile"
+      icon="fa-check"
+      icon-placement="start"
+      :loading="loading"
+      loading-label="Guardando…"
+      class="mt-[18px]"
+      @click="handleSubmit"
+    >Agregar perfil</AuthButton>
+  </div>
 </template>
-
-<style scoped>
-
-</style>

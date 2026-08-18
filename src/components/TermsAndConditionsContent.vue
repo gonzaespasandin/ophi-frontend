@@ -2,7 +2,10 @@
 </script>
 
 <template>
-  <div class="rounded-[11px] max-h-[400px] overflow-auto">
+  <!-- Plain content block: capping and scrolling the legal text is the job of
+       whoever places it, otherwise its box scrolls inside the card that is
+       already scrolling it. -->
+  <div>
     <div>
       <h2>Términos y Condiciones</h2>
       <p>Última actualización: 18/02/2026</p>
@@ -181,38 +184,51 @@
 </template>
 
 <style scoped>
+/* The legal text used to sit on a dark card of its own. It now lives inside the
+   white sheet of the wizard, so the palette is inverted: page text on white,
+   section headings in the brand blue. */
 section,
 div {
-  padding: .5rem;
-  background-color: #333;
-  color: hsl(0, 0%, 100%);
+  color: #4B5563;
+}
 
-  &:not(:last-child) {
-    border-bottom: 1px solid hsl(0 0% 100% / 0.2);
-  }
+section:not(:last-child) {
+  padding-block-end: .875rem;
 }
 
 section > *:not(:is(h3, :last-child)) {
-  padding-block-end: 1rem;
+  padding-block-end: .5rem;
 }
 
 h2 {
-  font-size: 1.75em;
-  font-weight: bold;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin-block-end: 3px;
 }
 
 h2 + p {
-  color: hsl(0 0% 100% / 0.6);
+  font-size: 11.5px;
+  color: #9CA3AF;
+  padding-block-end: .875rem;
 }
 
 h3 {
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin-bottom: .5rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #005B8E;
+  margin-block-end: 6px;
+}
+
+p,
+li {
+  font-size: 12.5px;
+  line-height: 1.6;
 }
 
 ul {
-  padding-inline-start: 2rem;
+  padding-inline-start: 1.25rem;
   list-style: disc outside;
 }
 </style>

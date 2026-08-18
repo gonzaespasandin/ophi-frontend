@@ -1,36 +1,55 @@
 <script setup>
+import { computed, ref } from 'vue'
 import InputPassword from '../ui/InputPassword.vue'
+import ProfileAvatar from '../ui/ProfileAvatar.vue'
+import AuthButton from '../auth/AuthButton.vue'
+import AuthTextField from '../auth/AuthTextField.vue'
+import FieldError from '../auth/FieldError.vue'
+
+const EMAIL_PATTERN = /^([^\s@]+)@[^\s@]+\.[^\s@]{2,}$/
+
 const model = defineModel()
 const emit = defineEmits(['next', 'previous'])
+
 const props = defineProps({
-  where: String,
-  errors: {type: Object, default: () => ({})},
-  loading: {type: Boolean, default: false}
+  errors: { type: Object, default: () => ({}) },
+  loading: { type: Boolean, default: false },
 })
 
+const nameWasEdited = ref(false)
+const mismatchError = ref(null)
 
+const serverError = field => props.errors?.[field]?.[0] ?? null
 
-function getUserNameFromEmail(e) {
-  const email = e.currentTarget.value
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-  
-  if (!emailRegex.test(email)) return
-  let name = email.split('@')[0]
+const nameHint = computed(() => {
+  if (nameWasEdited.value) return 'Lo podés cambiar cuando quieras desde tu perfil.'
+  if (model.value.name) return 'Lo sacamos de tu email. Cambialo si querés.'
 
-  // Separating dots "."
-  if (name.includes('.')) {
-    name = name.split('.')[0]
-  }
+  return 'Lo completamos con tu email, o escribilo vos.'
+})
 
-  // Making the first letter uppercase
-  name = name[0].toUpperCase() +  name.slice(1)
+/**
+ * Deriving "Lucía" from lucia.mendez@… saves typing, but it is a suggestion:
+ * the moment somebody names the profile themselves, the email stops overwriting it.
+ */
+function inferNameFromEmail(event) {
+  if (nameWasEdited.value) return
 
-  // Saving it
-  model.value.name = name
-  console.log({name})
+  const match = EMAIL_PATTERN.exec(event.target.value.trim())
+  if (!match) return
+
+  const [firstPart] = match[1].split('.')
+  model.value.name = firstPart.charAt(0).toUpperCase() + firstPart.slice(1)
 }
 
 function handleNext() {
+  mismatchError.value = null
+
+  if (model.value.password !== model.value.confirm_password) {
+    mismatchError.value = 'Las contraseñas no coinciden'
+    return
+  }
+
   if (!model.value.name.trim()) {
     model.value.name = 'Usuario principal'
   }
@@ -40,70 +59,88 @@ function handleNext() {
 </script>
 
 <template>
-  <div class="flex flex-col grow">
-    <button
-        type="button"
-        class="border border-black/20 hover:bg-black/10 hover:border-black/30 transition cursor-pointer inline-flex items-center py-2 px-4 gap-2 me-auto mb-2 rounded-[11px]"
-        @click.prevent="emit('previous')"
-    ><i class="fa-solid fa-chevron-left pe-2"></i> Volver</button>
+  <div class="flex flex-col flex-1 step-in">
+    <h2 class="mb-1 font-roboto-slab font-bold text-[21px]/[1.2] text-white">¡Último paso!</h2>
+    <p class="mb-[18px] text-[13.5px]/[1.5] text-white/80">Con esto creamos tu cuenta.</p>
 
-    <h2 class="text-2xl font-semibold text-center">¡Último paso!</h2>
+    <AuthTextField
+      id="email"
+      label="Email"
+      type="email"
+      placeholder="tu@email.com"
+      autocomplete="email"
+      v-model="model.email"
+      :error="serverError('email')"
+      @input="inferNameFromEmail"
+    />
 
-    <div class="flex flex-col justify-between grow p-4 min-h-80 bg-[#005B8E]">
-      <div>
-        <div class="mb-3">
-          <label for="email">Email</label>
-          <input
-              id="email"
-              :class="[props.errors.email ? 'inputs-wrong' : 'inputs', 'block border text-black']"
-              type="email"
-              name="email"
-              placeholder="tu@email.com"
-              v-model="model.email"
-              @input="getUserNameFromEmail"
-          >
-          <p v-if="props.errors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
-            {{props.errors.email[0] }}
-          </p>
-        </div>
+    <div class="mt-3.5 p-3 rounded-card bg-white/10 border border-white/25">
+      <p class="mb-2.5 font-medium text-[11.5px] uppercase tracking-[.05em] text-white/70">Tu perfil principal</p>
 
-        <div class="mb-3">
-          <label for="password">Contraseña</label>
-          <InputPassword
-              id="password"
-              :class="[props.errors.password ? 'inputs-wrong' : 'inputs', 'block border text-black']"
-              name="password"
-              v-model="model.password"
-          />
-          <p v-if="props.errors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
-            {{ props.errors.password[0] }}
-          </p>
-          <p class="text-xs text-gray-300 mt-1">Mínimo 8 caracteres, al menos 1 mayúscula y 1 minúscula</p>
-        </div>
+      <div class="flex items-center gap-[11px]">
+        <ProfileAvatar :name="model.name" :size="44" class="ring-2 ring-white/55" />
 
-        <div class="mb-3">
-          <label for="confirm_password">Confirmar contraseña</label>
-          <InputPassword
-              id="confirm_password"
-              :class="[props.errors.confirm_password ? 'inputs-wrong' : 'inputs', 'block border text-black']"
-              name="confirm_password"
-              v-model="model.confirm_password"
-          />
-          <p v-if="props.errors.confirm_password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px] text-sm">
-            {{ props.errors.confirm_password[0] }}
-          </p>
-        </div>
+        <input
+          id="profile-name"
+          aria-label="Nombre del perfil"
+          v-model="model.name"
+          class="flex-1 min-w-0 h-11 px-3 rounded-card border-[1.5px] border-white/40 bg-black/15 font-semibold text-[14.5px] text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
+          @input="nameWasEdited = true"
+        >
       </div>
 
-      <button
-          class="action-btn mt-6"
-          :disabled="loading"
-          @click="handleNext"
-      >{{ loading ? 'Registrando...' : 'Completar registro' }}</button>
+      <p class="mt-2.5 text-[11.5px]/[1.45] text-white/70">{{ nameHint }}</p>
     </div>
+
+    <div class="mt-4">
+      <label for="password" class="block mb-[7px] font-medium text-[13px] text-white/90">Contraseña</label>
+
+      <InputPassword
+        id="password"
+        name="password"
+        placeholder="••••••••"
+        autocomplete="new-password"
+        v-model="model.password"
+        :invalid="!!serverError('password')"
+        :aria-invalid="serverError('password') ? 'true' : undefined"
+      />
+
+      <FieldError v-if="serverError('password')" :message="serverError('password')" />
+
+      <p class="mt-[7px] text-[11.5px]/[1.4] text-white/70">
+        Mínimo 8 caracteres, con una mayúscula y una minúscula.
+      </p>
+    </div>
+
+    <div class="mt-4">
+      <label for="confirm_password" class="block mb-[7px] font-medium text-[13px] text-white/90">Repetir contraseña</label>
+
+      <InputPassword
+        id="confirm_password"
+        name="confirm_password"
+        placeholder="••••••••"
+        autocomplete="new-password"
+        v-model="model.confirm_password"
+        :invalid="!!(mismatchError || serverError('confirm_password'))"
+        :aria-invalid="(mismatchError || serverError('confirm_password')) ? 'true' : undefined"
+      />
+
+      <FieldError
+        v-if="mismatchError || serverError('confirm_password')"
+        :message="mismatchError || serverError('confirm_password')"
+      />
+    </div>
+
+    <div class="flex-1 min-h-[20px]"></div>
+
+    <AuthButton
+      data-testid="complete-registration"
+      icon="fa-check"
+      icon-placement="start"
+      :loading="loading"
+      loading-label="Registrando…"
+      class="mt-[18px]"
+      @click="handleNext"
+    >Completar registro</AuthButton>
   </div>
 </template>
-
-<style scoped>
-
-</style>
