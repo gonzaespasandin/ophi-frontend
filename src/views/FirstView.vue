@@ -1,38 +1,29 @@
 <script setup>
+import AuthScreen from '../components/auth/AuthScreen.vue'
+import AuthButton from '../components/auth/AuthButton.vue'
+import logo from '../assets/img/logo.png'
 </script>
 
 <template>
-  <div class="grid grid-rows-[auto_1fr]">
-    <div class="flex flex-col justify-between">
-      <img src="../assets/img/logo.png" alt="Logo de ophi" class="mt-6">
-      <div class="flex flex-col justify-center mb-5 px-3 h-50">
-        <h1 class="text-4xl text-center mb-3">Te damos la bienvenida</h1>
-        <p>Somos <span class="font-semibold">ophi</span> y queremos ayudarte a comer sin preocupaciones</p>
+  <AuthScreen screen="welcome" layout="hero">
+    <template #hero>
+      <div class="flex-1 flex flex-col justify-center items-center px-6 pb-5 text-center">
+        <img :src="logo" alt="Ophi" class="h-[46px] mb-[38px] object-contain">
+
+        <h1 class="mb-3.5 font-roboto-slab font-bold text-[34px]/[1.15] text-[#111827]">
+          Te damos la<br>bienvenida
+        </h1>
+
+        <p class="max-w-[290px] text-[15px]/[1.6] text-[#4B5563]">
+          Somos <b class="font-semibold text-ophi-blue">ophi</b> y queremos ayudarte a comer sin preocupaciones.
+        </p>
       </div>
-    </div>
+    </template>
 
-    <div class="flex flex-col justify-end p-4 bg-[#005B8E]">
-      <RouterLink to="/register" class="action-btn mb-5">Empezar <i class="fa-solid fa-arrow-right ps-4"></i></RouterLink>
-      <RouterLink to="/login" class="secondary-action-btn">Ya tengo una cuenta</RouterLink>
+    <div class="px-5 pt-[30px] pb-[30px]">
+      <AuthButton to="/register" icon="fa-arrow-right">Empezar</AuthButton>
+
+      <AuthButton to="/login" variant="secondary" class="mt-[11px]">Ya tengo una cuenta</AuthButton>
     </div>
-  </div>
+  </AuthScreen>
 </template>
-
-
-<style scoped>
-  div > div:first-child {
-    background-image: url(../assets/img/tramas/Artboard\ 1trama-1.png);
- 
-    background-repeat: no-repeat;
-    background-size: 175%;
-  }
-  
-  img {
-    
-    display: block;
-    margin: 4rem auto;
-  }
-
-  
-
-</style>

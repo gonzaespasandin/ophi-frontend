@@ -1,8 +1,14 @@
 <script setup>
-import {ref} from "vue";
-import {login} from "../services/auth.js";
-import {useRouter} from "vue-router";
+import { ref } from "vue";
+import { login } from "../services/auth.js";
+import { useRouter } from "vue-router";
 import InputPassword from "../components/ui/InputPassword.vue";
+import AuthScreen from "../components/auth/AuthScreen.vue";
+import AuthHeader from "../components/auth/AuthHeader.vue";
+import AuthButton from "../components/auth/AuthButton.vue";
+import AuthTextField from "../components/auth/AuthTextField.vue";
+import AuthErrorBanner from "../components/auth/AuthErrorBanner.vue";
+import FieldError from "../components/auth/FieldError.vue";
 
 const loading = ref(false);
 const router = useRouter();
@@ -23,9 +29,9 @@ function clearError(field) {
 async function handleSubmit() {
   formErrors.value = {...formDefaultValues};
   generalError.value = null;
-  
+
   let hasErrors = false;
-  
+
   if(formData.value.email === '') {
     formErrors.value.email = 'El email es obligatorio';
     hasErrors = true;
@@ -45,19 +51,17 @@ async function handleSubmit() {
 
   try {
     loading.value = true;
-    const data = await login(formData.value);
+    await login(formData.value);
     router.push('/');
   } catch (error) {
-    // console.error({error});
-    
     if (error.status === 422) {
       const errors = error.response?.data?.errors || {};
       formErrors.value.email = errors.email?.[0] || '';
       formErrors.value.password = errors.password?.[0] || '';
-    } 
+    }
     else if (error.status === 401) {
       generalError.value = error.response?.data?.message || 'Las credenciales no coinciden.';
-    } 
+    }
     else {
       generalError.value = 'Ha ocurrido un error. Por favor, intenta de nuevo.';
     }
@@ -68,79 +72,73 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="grid grid-rows-[auto_1fr]">
-    <div class="flex flex-col justify-between">
-      <img src="../assets/img/logo.png" alt="logo de ophi">
-      <div class="flex flex-col justify-center mb-5 px-3 h-50">
-        <h1 class="text-4xl mb-3 text-center">Iniciar sesión</h1>
-        <p>Por favor, completá los siguientes campos.</p>
+  <AuthScreen screen="login">
+    <template #hero>
+      <div class="px-5 pt-4 pb-[22px]">
+        <AuthHeader to="/welcome" />
+
+        <h1 class="mt-3.5 mb-1.5 font-roboto-slab font-bold text-[28px]/[1.15] text-[#111827]">Iniciar sesión</h1>
+        <p class="text-[14px]/[1.5] text-[#4B5563]">Completá tus datos para entrar.</p>
       </div>
-    </div>
+    </template>
 
+    <form
+      action="#"
+      method="post"
+      @submit.prevent="handleSubmit"
+      class="px-5 pt-[22px] pb-7"
+      novalidate
+    >
+      <AuthErrorBanner v-if="generalError" :message="generalError" class="mb-[18px]" />
 
-    <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-end p-4 bg-[#005B8E]" novalidate>
-      <div v-if="generalError" class="bg-[#C43B52] flex justify-center p-3 mb-4 rounded-[11px] text-white">
-        <p>{{ generalError }}</p>
-      </div>
+      <AuthTextField
+        id="email"
+        label="Email"
+        type="email"
+        placeholder="tu@email.com"
+        autocomplete="email"
+        autofocus
+        v-model="formData.email"
+        :error="formErrors.email || null"
+        @input="clearError('email')"
+      />
 
-      <p class="text-white mb-4">¿No tenés cuenta? <RouterLink class="text-blue-200 underline" to="/register">Registrate</RouterLink></p>
+      <div class="mt-[18px]">
+        <label for="password" class="block mb-[7px] font-medium text-[13px] text-white/90">Contraseña</label>
 
-      <div class="mb-4">
-        <input
-          class="block border"
-          type="email"
-          id="email"
-          aria-label="Email"
-          name="email"
-          v-model="formData.email"
-          @input="clearError('email')"
-          placeholder="Email"
-          autofocus
-          :class="formErrors.email ? 'inputs-wrong' : 'inputs'"
-        >
-        <p v-if="formErrors.email" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
-          {{ formErrors.email }}
-        </p>
-      </div>
-
-      <div>
         <InputPassword
           id="password"
           name="password"
-          aria-label="Contraseña"
+          placeholder="••••••••"
+          autocomplete="current-password"
           v-model="formData.password"
+          :invalid="!!formErrors.password"
+          :aria-invalid="formErrors.password ? 'true' : undefined"
+          :aria-describedby="formErrors.password ? 'password-error' : undefined"
           @input="clearError('password')"
-          placeholder="Contraseña"
-          :class="formErrors.password ? 'inputs-wrong' : 'inputs'"
         />
-        <p v-if="formErrors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
-          {{ formErrors.password }}
-        </p>
+
+        <FieldError v-if="formErrors.password" id="password-error" :message="formErrors.password" />
       </div>
 
-      <div class="mt-2">
-        <RouterLink to="/forgot-password" class="text-blue-200 underline">¿Olvidaste tu contraseña?</RouterLink>
+      <div class="mt-3 flex justify-end">
+        <RouterLink
+          to="/forgot-password"
+          class="flex items-center h-11 px-1 font-medium text-[13.5px] text-[#B9DCF0] underline"
+        >¿Olvidaste tu contraseña?</RouterLink>
       </div>
 
-      <button type="submit" :disabled="loading" class="action-btn mt-6">
-        {{ loading ? 'Iniciando...' : 'Iniciar Sesión' }}
-      </button>
+      <AuthButton type="submit" :loading="loading" loading-label="Iniciando…" class="mt-2">
+        Iniciar sesión
+      </AuthButton>
+
+      <div class="mt-5 pt-[18px] border-t border-white/20 flex items-center justify-center gap-2">
+        <span class="text-[13.5px] text-white/80">¿No tenés cuenta?</span>
+        <RouterLink
+          to="/register"
+          class="flex items-center h-11 px-1 font-semibold text-[13.5px] text-white underline"
+        >Registrate</RouterLink>
+      </div>
     </form>
-  </div>
+  </AuthScreen>
 </template>
-
-
-
-<style scoped>
-  div > div > div:first-child {
-    background-image: url(../assets/img/tramas/Artboard\ 1trama-1.png);
-
-    background-repeat: no-repeat;
-    background-size: 175%;
-  }
-
-  img {
-    display: block;
-    margin: 4rem auto;
-  }
-</style>
