@@ -103,4 +103,37 @@ describe('UserData', () => {
 
     expect(submit(wrapper).attributes('disabled')).toBeDefined()
   })
+
+  // The rule used to be a grey line of fine print that said the same thing
+  // whether or not the password met it. The checklist answers while typing.
+  describe('password rules', () => {
+    it('ticks the rules the typed password already meets', async () => {
+      const form = emptyForm()
+      const wrapper = mountStep(form)
+
+      await wrapper.get('#password').setValue('Secreta12')
+
+      const length = wrapper.findAll('[data-testid="password-rule"]')
+        .find(rule => rule.text().includes('Al menos 8 caracteres'))
+
+      expect(length.classes()).toContain('text-white')
+    })
+
+    // Showing a checklist that says "no" while the button says "go" is the
+    // screen contradicting itself; the reset screen already gates on the rules.
+    it('blocks the submit while the checklist is not satisfied', async () => {
+      const form = { ...emptyForm(), name: 'Lucía', password: 'corta', confirm_password: 'corta' }
+      const wrapper = mountStep(form)
+
+      await submit(wrapper).trigger('click')
+
+      expect(wrapper.emitted('next')).toBeUndefined()
+    })
+
+    it('drops the static line the checklist replaces', () => {
+      const wrapper = mountStep(emptyForm())
+
+      expect(wrapper.text()).not.toContain('Mínimo 8 caracteres')
+    })
+  })
 })

@@ -5,6 +5,8 @@ import ProfileAvatar from '../ui/ProfileAvatar.vue'
 import AuthButton from '../auth/AuthButton.vue'
 import AuthTextField from '../auth/AuthTextField.vue'
 import FieldError from '../auth/FieldError.vue'
+import PasswordRules from '../auth/PasswordRules.vue'
+import { isPasswordValid } from '../../utils/passwordRules.js'
 
 const EMAIL_PATTERN = /^([^\s@]+)@[^\s@]+\.[^\s@]{2,}$/
 
@@ -18,6 +20,7 @@ const props = defineProps({
 
 const nameWasEdited = ref(false)
 const mismatchError = ref(null)
+const rulesError = ref(null)
 
 const serverError = field => props.errors?.[field]?.[0] ?? null
 
@@ -44,6 +47,15 @@ function inferNameFromEmail(event) {
 
 function handleNext() {
   mismatchError.value = null
+  rulesError.value = null
+
+  // The checklist above already says which rule is missing, so this only has to
+  // stop the submit: a button that goes through on a password the list marks as
+  // unmet is the screen contradicting itself.
+  if (!isPasswordValid(model.value.password)) {
+    rulesError.value = 'La contraseña todavía no cumple los requisitos'
+    return
+  }
 
   if (model.value.password !== model.value.confirm_password) {
     mismatchError.value = 'Las contraseñas no coinciden'
@@ -101,15 +113,17 @@ function handleNext() {
         placeholder="••••••••"
         autocomplete="new-password"
         v-model="model.password"
+        aria-describedby="password-rules"
         :invalid="!!serverError('password')"
         :aria-invalid="serverError('password') ? 'true' : undefined"
       />
 
-      <FieldError v-if="serverError('password')" :message="serverError('password')" />
+      <FieldError
+        v-if="rulesError || serverError('password')"
+        :message="rulesError || serverError('password')"
+      />
 
-      <p class="mt-[7px] text-[11.5px]/[1.4] text-white/70">
-        Mínimo 8 caracteres, con una mayúscula y una minúscula.
-      </p>
+      <PasswordRules id="password-rules" :password="model.password" class="mt-3.5" />
     </div>
 
     <div class="mt-4">
