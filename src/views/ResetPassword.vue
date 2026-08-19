@@ -1,114 +1,177 @@
 <script setup>
-import {useRoute, useRouter} from "vue-router";
-import {ref} from "vue"
-import {resetPassword} from "../services/auth.js";
-import InputPassword from "../components/ui/InputPassword.vue";
+import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { resetPassword } from '../services/auth.js'
+import { isPasswordValid } from '../utils/passwordRules.js'
+import AuthScreen from '../components/auth/AuthScreen.vue'
+import AuthHeader from '../components/auth/AuthHeader.vue'
+import AuthButton from '../components/auth/AuthButton.vue'
+import AuthErrorBanner from '../components/auth/AuthErrorBanner.vue'
+import FieldError from '../components/auth/FieldError.vue'
+import PasswordRules from '../components/auth/PasswordRules.vue'
+import InputPassword from '../components/ui/InputPassword.vue'
+import { statusOf } from '../utils/httpStatus.js'
 
-const route =  useRoute();
-const router = useRouter();
-const loading = ref(false)
+// Laravel answers a spent or expired link with these keys. They travel as
+// codes, not as translated text, so the branch survives a copy edit.
+const DEAD_LINK_CODES = ['passwords.token', 'passwords.user']
 
-const formDefaultValues = {
-  token: route.params.token,
-  email: route.params.email,
-  password: '',
+const HEADINGS = {
+  form: { title: 'Elegí tu contraseña nueva', lead: 'Con esto entrás de nuevo a tu cuenta.' },
+  done: { title: 'Listo, ya está cambiada', lead: 'Usá la contraseña nueva para entrar.' },
+  expired: {
+    title: 'Este enlace ya no sirve',
+    lead: 'Los enlaces vencen a los 60 minutos, y cada uno se puede usar una sola vez.',
+  },
 }
-const formErrors = ref({...formDefaultValues})
-const formData = ref({...formDefaultValues})
-const formAlert = ref({
-  type: '',
-  message: '',
-});
+
+const route = useRoute()
+
+const account = { token: route.params.token, email: route.params.email }
+
+const password = ref('')
+const loading = ref(false)
+const stage = ref('form')
+const fieldError = ref(null)
+const generalError = ref(null)
+
+const heading = computed(() => HEADINGS[stage.value])
+const canSubmit = computed(() => isPasswordValid(password.value) && !loading.value)
+
+function handleFailure(error) {
+  if (statusOf(error) !== 422) {
+    generalError.value = true
+    return
+  }
+
+  if (DEAD_LINK_CODES.includes(error.response?.data?.code)) {
+    stage.value = 'expired'
+    return
+  }
+
+  fieldError.value = error.response?.data?.errors?.password?.[0] ?? 'Revisá la contraseña e intentá de nuevo'
+}
 
 async function handleSubmit() {
+  fieldError.value = null
+  generalError.value = null
   loading.value = true
 
   try {
-    await resetPassword(formData.value)
-    router.push('/login')
+    await resetPassword({ ...account, password: password.value })
+    stage.value = 'done'
   } catch (error) {
-    console.error('ERROR', error)
-
-    if (error.status === 422) {
-      const errors = error.response?.data?.errors || {};
-      formErrors.value.password = errors.password?.[0] || '';
-    } else {
-      formAlert.value.type = 'error'
-      formAlert.value.message = 'Ocurrió un error desconocido'
-    }
+    handleFailure(error)
+  } finally {
+    loading.value = false
   }
-
-  loading.value = false
-}
-
-function clearError(field) {
-  formErrors.value[field] = '';
-  formAlert.value.message = '';
 }
 </script>
 
 <template>
-  <div>
-    <div class="flex flex-col justify-around min-h-screen">
-      <div class="flex flex-col justify-between flex-grow">
-        <img src="../assets/img/logo.png" alt="Logo de ophi">
-        <div class="flex flex-col justify-center mb-5 px-3 h-50">
-          <h1 class="text-4xl mb-3 text-center">Reiniciar contraseña</h1>
-          <p>Introducí tu nueva contraseña en el campo de abajo.</p>
+  <AuthScreen screen="reset-password">
+    <template #hero>
+      <div class="px-5 pt-4 pb-[22px]">
+        <AuthHeader to="/login" />
+
+        <h1 class="mt-3.5 mb-1.5 font-roboto-slab font-bold text-[28px]/[1.15] text-[#111827]">{{ heading.title }}</h1>
+        <p class="max-w-[320px] text-[14px]/[1.55] text-[#4B5563]">{{ heading.lead }}</p>
+      </div>
+    </template>
+
+    <div class="px-5 pt-[22px] pb-7">
+      <form v-if="stage === 'form'" action="#" method="post" @submit.prevent="handleSubmit" novalidate>
+        <AuthErrorBanner
+          v-if="generalError"
+          title="No pudimos confirmar el cambio"
+          message="Probá entrar con la contraseña nueva. Si no funciona, seguí usando la anterior."
+          class="mb-[18px]"
+        />
+
+        <div class="flex items-center gap-[11px] p-3 rounded-card bg-white/12 border border-white/25">
+          <span class="grid place-items-center shrink-0 w-[38px] h-[38px] rounded-card bg-white/15 text-[14px] text-white">
+            <i class="fa-solid fa-user" aria-hidden="true"></i>
+          </span>
+
+          <div class="flex-1 min-w-0">
+            <p class="mb-px font-medium text-[11px] uppercase tracking-[.05em] text-white/70">Cuenta</p>
+            <p class="truncate font-semibold text-[13.5px] text-white">{{ account.email }}</p>
+          </div>
         </div>
+
+        <div class="mt-5">
+          <label for="password" class="block mb-[7px] font-medium text-[13px] text-white/90">Contraseña nueva</label>
+
+          <InputPassword
+            id="password"
+            name="password"
+            placeholder="Mínimo 8 caracteres"
+            autocomplete="new-password"
+            autofocus
+            v-model="password"
+            aria-describedby="password-rules"
+            :invalid="!!fieldError"
+            :aria-invalid="fieldError ? 'true' : undefined"
+          />
+
+          <FieldError v-if="fieldError" :message="fieldError" />
+
+          <PasswordRules id="password-rules" :password="password" class="mt-3.5" />
+        </div>
+
+        <AuthButton
+          data-testid="save-password"
+          type="submit"
+          icon="fa-check"
+          icon-placement="start"
+          :loading="loading"
+          loading-label="Guardando…"
+          :disabled="!canSubmit"
+          class="mt-5"
+        >Guardar contraseña</AuthButton>
+
+        <p class="mt-4 text-[12.5px]/[1.5] text-white/75">
+          Este enlace vale por 60 minutos desde que pediste el correo.
+        </p>
+      </form>
+
+      <div v-else-if="stage === 'done'" class="step-in">
+        <div class="p-4 rounded-card bg-white shadow-card text-center">
+          <span class="grid place-items-center w-14 h-14 mx-auto mb-3 rounded-full bg-ophi-action text-[22px] text-white">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+          </span>
+
+          <p class="font-roboto-slab font-bold text-[17px]/[1.25] text-[#111827]">Contraseña actualizada</p>
+
+          <p class="mt-3.5 px-3 py-2.5 rounded-card bg-ophi-surface border border-ophi-border break-all font-semibold text-[13px] text-ophi-blue">
+            {{ account.email }}
+          </p>
+        </div>
+
+        <AuthButton data-testid="go-to-login" to="/login" icon="fa-arrow-right" class="mt-[18px]">
+          Iniciar sesión
+        </AuthButton>
       </div>
 
-      <form action="#" method="post" @submit.prevent="handleSubmit" class="flex flex-col justify-center p-4 min-h-80 bg-[#005B8E]">
-        <div
-            v-if="formAlert.message"
-            class="flex justify-center p-3 mb-4 rounded-[11px] text-white"
-            :class="{
-              'bg-[#C43B52]': formAlert.type === 'error',
-              'bg-green-700': formAlert.type === 'success'
-            }"
-        >
-          <p>{{ formAlert.message }}</p>
+      <div v-else class="step-in">
+        <div class="p-4 rounded-card bg-white shadow-card text-center">
+          <span class="grid place-items-center w-13 h-13 mx-auto mb-3 rounded-card bg-ophi-danger-soft text-[20px] text-ophi-danger">
+            <i class="fa-solid fa-link-slash" aria-hidden="true"></i>
+          </span>
+
+          <p class="font-roboto-slab font-bold text-[17px]/[1.25] text-[#111827]">Enlace expirado</p>
         </div>
 
-        <input type="hidden" name="token" :value="route.params.token">
-        <input type="hidden" name="email" :value="route.params.email">
+        <AuthButton
+          data-testid="ask-new-email"
+          to="/forgot-password"
+          icon="fa-envelope"
+          icon-placement="start"
+          class="mt-[18px]"
+        >Pedir un correo nuevo</AuthButton>
 
-        <div class="mb-4">
-          <InputPassword
-              id="password"
-              name="password"
-              aria-label="Nueva contraseña"
-              v-model="formData.password"
-              autofocus
-              @input="clearError('password')"
-              placeholder="Nueva contraseña"
-              :invalid="!!formErrors.password"
-          />
-          <p v-if="formErrors.password" class="text-white bg-[#C43B52] w-fit px-2 mt-1 rounded-[11px]">
-            {{ formErrors.password }}
-          </p>
-          <p class="text-xs text-gray-300 mt-1">Mínimo 8 caracteres, al menos 1 mayúscula y 1 minúscula</p>
-        </div>
-
-        <button type="submit" :disabled="loading" class="action-btn mt-6">
-          {{ loading ? 'Enviando...' : 'Reiniciar contraseña' }}
-        </button>
-      </form>
+        <AuthButton to="/login" variant="secondary" class="mt-[11px]">Volver a iniciar sesión</AuthButton>
+      </div>
     </div>
-  </div>
+  </AuthScreen>
 </template>
-
-
-<style scoped>
-div > div > div:first-child {
-  background-image: url(../assets/img/tramas/Artboard\ 1trama-1.png);
-
-  background-repeat: no-repeat;
-  background-size: 175%;
-}
-
-img {
-  display: block;
-  margin: 4rem auto;
-}
-</style>
