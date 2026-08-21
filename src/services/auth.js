@@ -154,16 +154,14 @@ export function logout() {
 
 export async function register(data) {
     try {
-        console.log(data, 'REGISTER DATA');
-        // Register the user
+        // Register the user. The API also creates the main profile from the
+        // ingredients this payload carries, so there is nothing left to store.
         const result = await axiosInstance.post('/api/register', data)
         const user = result.data.user || result.data
-        console.log(user, 'DESDE REGISTER');
+
         // Login
         await login({email: user.email, password: data.password})
 
-        // Register the user profile
-        await storeProfile(data)
         user.profiles = await getAuthUserProfiles()
 
         setUser(user)

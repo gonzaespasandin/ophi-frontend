@@ -23,8 +23,17 @@ async function handleSubmit(formData) {
     console.error('[RegisterView] -> handleSubmit(), Error:', error);
 
     if (error.status === 422) {
-      registrationErrors.value = error.response?.data?.errors || {};
-      generalError.value = 'Revisá los campos marcados. Todo lo que cargaste en los pasos anteriores quedó guardado.';
+      const errors = error.response?.data?.errors;
+
+      // The API can answer 422 with `errors` as a plain message instead of a
+      // map of fields. Pointing at "los campos marcados" would then highlight
+      // nothing and hide the only reason the person was given.
+      if (typeof errors === 'string') {
+        generalError.value = errors;
+      } else {
+        registrationErrors.value = errors || {};
+        generalError.value = 'Revisá los campos marcados. Todo lo que cargaste en los pasos anteriores quedó guardado.';
+      }
     }
     else {
       generalError.value = 'Ha ocurrido un error al registrar. Por favor, intentá de nuevo.';
