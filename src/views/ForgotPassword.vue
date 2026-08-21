@@ -9,7 +9,9 @@ import AuthErrorBanner from '../components/auth/AuthErrorBanner.vue'
 import { statusOf } from '../utils/httpStatus.js'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-const RESEND_COOLDOWN_SECONDS = 30
+// The API throttles password-reset requests for a minute (config/auth.php).
+// Opening the button sooner only buys the person a refusal.
+const RESEND_COOLDOWN_SECONDS = 60
 
 const HEADINGS = {
   form: {
@@ -27,6 +29,7 @@ const sent = ref(false)
 const loading = ref(false)
 const fieldError = ref(null)
 const generalError = ref(false)
+const throttled = ref(false)
 const secondsLeft = ref(0)
 
 let countdown = null
@@ -59,6 +62,7 @@ async function requestLink() {
 
   fieldError.value = null
   generalError.value = false
+  throttled.value = false
   loading.value = true
 
   try {
@@ -71,6 +75,11 @@ async function requestLink() {
 
     if (statusOf(error) === 422) {
       fieldError.value = error.response?.data?.errors?.email?.[0] ?? 'Escribí un email válido'
+    } else if (statusOf(error) === 429) {
+      // The throttle answers before sending anything, so the sent card would be
+      // a lie. The status the API writes is already translated by the server —
+      // its locale is not ours, so only the code path is read here.
+      throttled.value = true
     } else {
       generalError.value = true
     }
@@ -87,6 +96,7 @@ async function requestLink() {
 function handleSubmit() {
   fieldError.value = null
   generalError.value = false
+  throttled.value = false
 
   if (!EMAIL_PATTERN.test(email.value.trim())) {
     fieldError.value = 'Escribí un email válido'
@@ -101,6 +111,7 @@ function editEmail() {
   sent.value = false
   fieldError.value = null
   generalError.value = false
+  throttled.value = false
   clearInterval(countdown)
   secondsLeft.value = 0
 }
@@ -120,7 +131,14 @@ function editEmail() {
     <div class="px-5 pt-[22px] pb-7">
       <form v-if="!sent" action="#" method="post" @submit.prevent="handleSubmit" novalidate>
         <AuthErrorBanner
-          v-if="generalError"
+          v-if="throttled"
+          title="Ya pediste un enlace hace un momento"
+          message="Esperá un minuto antes de pedir otro."
+          class="mb-[18px]"
+        />
+
+        <AuthErrorBanner
+          v-else-if="generalError"
           title="No pudimos enviar el correo"
           message="Puede ser la conexión. Probá de nuevo en un momento."
           class="mb-[18px]"
@@ -153,7 +171,14 @@ function editEmail() {
 
       <div v-else class="step-in">
         <AuthErrorBanner
-          v-if="generalError || fieldError"
+          v-if="throttled"
+          title="Ya pediste un enlace hace un momento"
+          message="Esperá un minuto antes de pedir otro."
+          class="mb-[18px]"
+        />
+
+        <AuthErrorBanner
+          v-else-if="generalError || fieldError"
           title="No pudimos enviar el correo"
           :message="fieldError || 'Puede ser la conexión. Probá de nuevo en un momento.'"
           class="mb-[18px]"

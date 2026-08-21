@@ -104,23 +104,109 @@ describe('ForgotPassword', () => {
 
       expect(wrapper.get('[data-testid="resend"]').attributes('disabled')).toBeDefined()
 
-      vi.advanceTimersByTime(30000)
+      vi.advanceTimersByTime(60000)
       await flushPromises()
 
       expect(wrapper.get('[data-testid="resend"]').attributes('disabled')).toBeUndefined()
+    })
+
+    // The pause has to outlast the server's own throttle, or the button opens
+    // while the API still refuses and the tap comes back as an error.
+    it('waits as long as the server does before opening the resend', async () => {
+      const wrapper = mountView()
+      await request(wrapper)
+
+      expect(wrapper.get('[data-testid="resend"]').text()).toBe('Reenviar en 60s')
+
+      vi.advanceTimersByTime(59000)
+      await flushPromises()
+
+      expect(wrapper.get('[data-testid="resend"]').attributes('disabled')).toBeDefined()
     })
 
     it('asks for another email once the pause is over', async () => {
       const wrapper = mountView()
       await request(wrapper)
 
-      vi.advanceTimersByTime(30000)
+      vi.advanceTimersByTime(60000)
       await flushPromises()
       await wrapper.get('[data-testid="resend"]').trigger('click')
       await flushPromises()
 
       expect(sendEmailToResetPassword).toHaveBeenCalledTimes(2)
       expect(wrapper.get('[data-testid="resend"]').attributes('disabled')).toBeDefined()
+    })
+  })
+
+  // The API throttles password-reset requests: on 429 no mail left the server,
+  // so the sent card would be a lie.
+  describe('when the server refuses a repeat request', () => {
+    const throttled = () => sendEmailToResetPassword.mockRejectedValue({
+      status: 429,
+      response: { data: { status: 'Please wait before retrying.', code: 'passwords.throttled' } },
+    })
+
+    it('does not claim a link went out', async () => {
+      throttled()
+      const wrapper = mountView()
+
+      await request(wrapper)
+
+      expect(wrapper.find('form').exists()).toBe(true)
+      expect(wrapper.text()).not.toContain('Revisá tu correo')
+    })
+
+    it('says a link was already asked for and to wait', async () => {
+      throttled()
+      const wrapper = mountView()
+
+      await request(wrapper)
+
+      expect(wrapper.text()).toContain('Ya pediste un enlace hace un momento')
+      expect(wrapper.text()).not.toContain('No pudimos enviar el correo')
+    })
+
+    // The translated text depends on the server locale, so it must never reach
+    // the screen.
+    it('does not show the message the server wrote', async () => {
+      throttled()
+      const wrapper = mountView()
+
+      await request(wrapper)
+
+      expect(wrapper.text()).not.toContain('Please wait before retrying.')
+    })
+
+    it('holds the resend closed, so it cannot be hammered', async () => {
+      vi.useFakeTimers()
+      const wrapper = mountView()
+      await request(wrapper)
+
+      vi.advanceTimersByTime(60000)
+      await flushPromises()
+      throttled()
+      await wrapper.get('[data-testid="resend"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.get('[data-testid="resend"]').attributes('disabled')).toBeDefined()
+      expect(wrapper.text()).toContain('Ya pediste un enlace hace un momento')
+      vi.useRealTimers()
+    })
+
+    it('does not carry the wait back into the form when the address is corrected', async () => {
+      vi.useFakeTimers()
+      const wrapper = mountView()
+      await request(wrapper)
+
+      vi.advanceTimersByTime(60000)
+      await flushPromises()
+      throttled()
+      await wrapper.get('[data-testid="resend"]').trigger('click')
+      await flushPromises()
+      await wrapper.get('[data-testid="edit-email"]').trigger('click')
+
+      expect(wrapper.text()).not.toContain('Ya pediste un enlace hace un momento')
+      vi.useRealTimers()
     })
   })
 
@@ -132,7 +218,7 @@ describe('ForgotPassword', () => {
     const wrapper = mountView()
     await request(wrapper)
 
-    vi.advanceTimersByTime(30000)
+    vi.advanceTimersByTime(60000)
     await flushPromises()
     sendEmailToResetPassword.mockRejectedValue({ status: 500, response: { data: {} } })
     await wrapper.get('[data-testid="resend"]').trigger('click')
@@ -147,7 +233,7 @@ describe('ForgotPassword', () => {
     const wrapper = mountView()
     await request(wrapper)
 
-    vi.advanceTimersByTime(30000)
+    vi.advanceTimersByTime(60000)
     await flushPromises()
     sendEmailToResetPassword.mockRejectedValue({ status: 500, response: { data: {} } })
     await wrapper.get('[data-testid="resend"]').trigger('click')
