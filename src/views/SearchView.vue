@@ -1,177 +1,183 @@
 <script setup>
-import AuthLayout from '../layouts/AuthLayout.vue'
-import Top from "../components/ui/Top.vue";
-import Back from '../components/ui/Back.vue';
-import { useRouter, useRoute } from 'vue-router';
-import { onMounted, ref, computed, onUnmounted } from 'vue';
-import { getMatchesByName, search } from '../services/product';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
+import AuthLayout from '../layouts/AuthLayout.vue';
+import SearchField from '../components/search/SearchField.vue';
+import SearchRecentList from '../components/search/SearchRecentList.vue';
+import SearchScanNudge from '../components/search/SearchScanNudge.vue';
+import SearchIntroCard from '../components/search/SearchIntroCard.vue';
+import SearchSuggestionList from '../components/search/SearchSuggestionList.vue';
+import SearchEmptyState from '../components/search/SearchEmptyState.vue';
+import SearchScannerHandoff from '../components/search/SearchScannerHandoff.vue';
+import SearchBarcodeReceipt from '../components/search/SearchBarcodeReceipt.vue';
+import SearchErrorCard from '../components/search/SearchErrorCard.vue';
+import { useRecentSearches } from '../composables/useRecentSearches.js';
+import { useSearchSuggestions } from '../composables/useSearchSuggestions.js';
+import { search } from '../services/product';
 import { suscribeToAuthObserver } from '../services/auth';
-import Error from '../components/ui/Error.vue';
-
-let unsubscribeToAuthObserver = () => {}
-const user = ref({});
+import logoPositivo from '../assets/img/logo-positivo.png';
 
 const router = useRouter();
 const route = useRoute();
 
-const inputValue = ref('');
+// Kept only for the premium block at the bottom of the template, which is not
+// ours to decide on: the screen itself no longer waits for the session.
+let unsubscribeToAuthObserver = () => {};
+const user = ref({});
 
-const products = ref([]);
-const productsForSearchListView = ref([]);
+const query = ref('');
+const searchFailed = ref(false);
 
-const loading = ref(true)
+const { searches, wasEmptiedByHand, remove, clear } = useRecentSearches();
+const { suggestions, status, search: suggest, cancel } = useSearchSuggestions();
 
-const error = ref(false);
-const errorMessage = ref('');
-
-const timeout = ref(null);
-
-//Arreglo local storage
-const storage = ref([]);
-const rawStorage = localStorage.getItem('latestSearches');
-if (rawStorage) {
-  try {
-    storage.value = JSON.parse(rawStorage).reverse();
-  } catch (error) {
-    console.error('Error al parsear latestSearches desde localStorage', error);
-    storage.value = [];
-  }
-}
-//contexto del escaner para el template
+const trimmedQuery = computed(() => query.value.trim());
 const fromScanner = computed(() => route.query.from === 'scanner');
-const lastCode = computed(() => route.query.code || '');
+const scannedCode = computed(() => route.query.code ?? '');
+
+/**
+ * One panel at a time. "Nothing typed yet" and "we found nothing" used to share
+ * the same silent paragraph, which meant a brand-new user read an error first.
+ */
+const panel = computed(() => {
+  if (searchFailed.value) return 'error';
+
+  if (!trimmedQuery.value) {
+    if (fromScanner.value) return 'scanner';
+    return searches.value.length > 0 || wasEmptiedByHand.value ? 'recent' : 'intro';
+  }
+
+  return status.value === 'empty' ? 'no-matches' : 'suggestions';
+});
 
 onMounted(() => {
   localStorage.removeItem('pending_scan_barcode');
-  products.value = storage.value.length > 0 ? storage.value : [];
-  unsubscribeToAuthObserver = suscribeToAuthObserver((state) => {user.value = state, loading.value = false});
-}) 
+  unsubscribeToAuthObserver = suscribeToAuthObserver((state) => (user.value = state));
+});
 
 onUnmounted(() => {
+  cancel();
   unsubscribeToAuthObserver();
-})
+});
+
+function handleInput(value) {
+  query.value = value;
+  // Editing the search is the person retrying by hand: the error stops applying.
+  searchFailed.value = false;
+  suggest(value);
+}
+
+function runShortcut(shortcut) {
+  query.value = shortcut;
+  suggest(shortcut);
+  handleSubmit();
+}
 
 async function handleSubmit() {
-  error.value = false;
-  errorMessage.value = '';
-  const normalizedName = inputValue.value.trim().toLowerCase();
+  const normalizedName = trimmedQuery.value.toLowerCase();
+
   if (!normalizedName) return;
+
+  searchFailed.value = false;
+
   try {
     const result = await search(normalizedName);
-    if(result && result.data?.length > 0) {
-      productsForSearchListView.value = result.data;
-      localStorage.removeItem('products');
-      localStorage.setItem('products', JSON.stringify(productsForSearchListView.value));
-      router.push(`/search-list/${normalizedName}`);
+
+    // The service returns the HTTP status code instead of throwing when the
+    // request fails, so a payload without a list is a failure too.
+    if (!Array.isArray(result?.data)) {
+      throw new Error('[SearchView] -> respuesta inesperada de search()');
     }
+
+    localStorage.setItem('products', JSON.stringify(result.data));
+    router.push(`/search-list/${normalizedName}`);
   } catch (err) {
-    console.error('Error al buscar productos por nombre', err);
-    error.value = true;
-    errorMessage.value = 'Estamos teniendo problemas para buscar el producto...';
+    console.error('[SearchView] -> handleSubmit(), Error:', err);
+    searchFailed.value = true;
   }
 }
-
-async function getInput() {
-  try {
-    if(inputValue.value === '') {
-      products.value = storage.value.length > 0 ? storage.value : [];
-      return;
-    }
-    products.value = await getMatchesByName(inputValue.value);
-    console.log({ProductsMatches: products.value})
-    // Para de vuelta limpiar
-    if(inputValue.value === '') {
-      products.value = storage.value.length > 0 ? storage.value : [];
-      return;
-    }
-  } catch(error) {
-    console.log(error, 'Error al buscar producto');
-  }
-}
-
-
-function bold(productName) {
-  if(!inputValue.value) {
-    return;
-  }
-  const regex = new RegExp(inputValue.value, "i");
-  return productName.replace(regex, match => `<span class="font-semibold">${match}</span>`);
-}
-
-function time() {
-  clearTimeout(timeout.value);
-  timeout.value = setTimeout(() => {
-    getInput();
-  }, 300);
-}
-
 </script>
-
 
 <template>
   <AuthLayout>
-      <div v-if="!loading">
-        <template v-if="error">
-          <Error :errorMessage="errorMessage"/>
-        </template>
-        <template v-else>
-          <div class="bg-[#005B8E] h-5"></div>
+    <div class="min-h-full bg-[#F5F5F5] dot-texture-page">
+      <div class="bg-ophi-blue dot-texture-band px-4 pt-4 pb-5 rounded-b-[22px]">
+        <!-- The back arrow exists only here: coming from the scanner there is a
+             concrete place to go back to. On the default entry it had no handler
+             and no unambiguous destination. -->
+        <div v-if="fromScanner" class="flex items-center gap-2 pb-[14px]">
+          <RouterLink
+            to="/scanner"
+            aria-label="Volver al escáner"
+            class="grid place-items-center shrink-0 w-11 h-11 -ml-[10px] rounded-card text-[17px] text-white active:bg-white/20 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          </RouterLink>
+          <h1 class="flex-1 font-poppins font-semibold text-[12px] tracking-[.1em] uppercase text-white/80">
+            Buscar por nombre
+          </h1>
+        </div>
 
-          <!-- Mensaje cuando venís del scanner -->
-          <div v-if="fromScanner" class="px-4 py-2 text-sm bg-yellow-100 text-yellow-800">
-            <p>
-              Buscar por nombre <strong v-if="lastCode">{{ lastCode }}</strong>!
-            </p>
-          </div>
+        <div v-else class="flex items-center justify-between pb-4">
+          <img :src="logoPositivo" alt="Ophi" class="shrink-0 w-[104px] h-[30px] object-contain object-left">
+          <h1 class="font-poppins font-semibold text-[12px] tracking-[.1em] uppercase text-white/80">
+            Buscar
+          </h1>
+        </div>
 
-            <form class="flex justify-around items-center m-auto mb-0.5 shadow-[0_2px_2px_#dbe0e5] h-15" @submit.prevent="handleSubmit">
-              <h1 class="sr-only">Buscar producto</h1>
-              <i class="fa-solid fa-arrow-left"></i>
-              <input type="text" id="searchInput" name="searchInput" placeholder="Buscar productos..." v-model="inputValue" @change="bold(inputValue, productName)" class="border-0 outline-0 w-70" @input="time()" autocomplete="off"/>
-              <button type="submit">
-                <i class="fa-solid fa-magnifying-glass"></i>
-              </button>
-            </form>
+        <SearchBarcodeReceipt v-if="fromScanner && scannedCode" :code="scannedCode" class="mb-[14px]" />
 
-          <ul class="SearchView-list">
-            <li v-if="products.length > 0" v-for="product of products" :key="product.id ?? undefined" class="bg-[#f5f5f5]">
-              <RouterLink :to="`/product/${product.name}/${typeof(product.brand) === 'string' ? product.brand : product.brand.name}`" class="flex justify-between items-center">
-                <div class="flex flex-col">
-                  <span v-if="!product.barcode" class="text-sm">{{ product.name }}</span>
-                  <p v-else v-html="bold(product.name)" class="text-sm"></p>
-                  <span class="text-[12px] text-gray-600">{{ typeof(product.brand) === 'string' ? product.brand : product.brand.name }}</span>
-                </div>
-                <i v-if="!product.barcode" class="fa-solid fa-clock-rotate-left"></i>
-                <i v-else class="fa-solid fa-arrow-right"></i>
-              </RouterLink>
-            </li>
-          </ul>
-          <div v-if="products.length === 0" class="mt-4">
-              <p class="text-center">No hay resultados</p>
-          </div>
-          <!-- <template v-else>
-              <Top/>
-              <div class="flex flex-col flex-1 h-[80%] justify-center">
-                <div class="p-3">
-                  <div class="text-black px-6 py-3 rounded-lg shadow-md bg-white mt-10">
-                    <p class="text-[18px] font-semibold pb-2">Hola, {{ user.name }}</p>
-                    <p class=" text-center text-gray-800">¡Hacete <span class="font-semibold">premium</span> para <span class="font-semibold">buscar productos!</span></p>
-                    <RouterLink to="/subscriptions" class="action-btn text-white mt-3">Hacerme premuim</RouterLink>
-                  </div>
-                </div>
-            </div>
-          </template> -->
-        </template>
+        <SearchField
+          :model-value="query"
+          :placeholder="fromScanner ? '¿Cómo se llama el producto?' : 'Buscar productos…'"
+          @update:model-value="handleInput"
+          @submit="handleSubmit"
+        />
       </div>
+
+      <div class="px-3 pt-[18px] pb-6">
+        <SearchRecentList
+          v-if="panel === 'recent'"
+          :searches="searches"
+          :emptied="wasEmptiedByHand"
+          @remove="remove"
+          @clear="clear"
+        >
+          <template #nudge>
+            <div class="mt-[22px]">
+              <SearchScanNudge />
+            </div>
+          </template>
+        </SearchRecentList>
+
+        <SearchIntroCard v-else-if="panel === 'intro'" @shortcut="runShortcut" />
+
+        <SearchScannerHandoff v-else-if="panel === 'scanner'" />
+
+        <SearchSuggestionList
+          v-else-if="panel === 'suggestions'"
+          :suggestions="suggestions"
+          :query="trimmedQuery"
+          @see-all="handleSubmit"
+        />
+
+        <SearchEmptyState v-else-if="panel === 'no-matches'" :query="trimmedQuery" />
+
+        <SearchErrorCard v-else-if="panel === 'error'" @retry="handleSubmit" />
+      </div>
+    </div>
+
+    <!-- <template v-else>
+        <Top/>
+        <div class="flex flex-col flex-1 h-[80%] justify-center">
+          <div class="p-3">
+            <div class="text-black px-6 py-3 rounded-lg shadow-md bg-white mt-10">
+              <p class="text-[18px] font-semibold pb-2">Hola, {{ user.name }}</p>
+              <p class=" text-center text-gray-800">¡Hacete <span class="font-semibold">premium</span> para <span class="font-semibold">buscar productos!</span></p>
+              <RouterLink to="/subscriptions" class="action-btn text-white mt-3">Hacerme premuim</RouterLink>
+            </div>
+          </div>
+      </div>
+    </template> -->
   </AuthLayout>
 </template>
-
-
-<style scoped>
-    .trama {
-        background-image: url('../assets/img/tramas/1x/Artboard\ 1test-trama.png');
-        background-position: bottom;
-        background-size: cover;
-        background-repeat: no-repeat;
-    }
-</style>
