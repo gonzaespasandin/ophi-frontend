@@ -28,13 +28,18 @@ export async function findByBarcode(barcode) {
 }
 
 
-export async function search(query, currentPage, filters) {
+// currentPage y filters tienen default porque hay llamadores que sólo pasan el
+// término (SearchView, ScannerView). La query va encodeada: viene del texto que
+// escribe la persona y un "&" suelto rompía el resto de los parámetros.
+export async function search(query, currentPage = 1, filters = '') {
     try {
-        const result = await axiosInstance.get(`/api/products/search?q=${query}&page=${currentPage}${filters}`);
+        const result = await axiosInstance.get(`/api/products/search?q=${encodeURIComponent(query)}&page=${currentPage}${filters}`);
         return result.data;
     } catch(error) {
         console.error('[services/product.js] -> [findByName]: Error al buscar un producto por nombre', error);
-        return error.response.status;
+        // Sin respuesta (offline, timeout) no hay status que devolver: null deja
+        // que el llamador lo trate como fallo en vez de romper acá.
+        return error.response?.status ?? null;
     }
 }
 
